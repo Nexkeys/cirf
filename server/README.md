@@ -1,0 +1,155 @@
+# CIRF API
+
+The backend for the Community Infrastructure Repair Fund Tracker: one Express app, deployed as a single Vercel serverless function, using Firebase Auth for identity and Firestore through the Firebase Admin SDK.
+
+## How a request flows
+
+1. The app signs the user in with Firebase Auth (email/password or Google) and gets an ID token.
+2. Every API call sends `Authorization: Bearer <token>`.
+3. `verifyFirebaseToken` checks the token with the Admin SDK and loads the caller's Firestore profile (role and estate).
+4. `requireRole` blocks the request if the caller's role isn't allowed on that route.
+5. The route checks the caller belongs to the estate that owns the data, then reads or writes Firestore with the Admin SDK.
+
+Browsers never talk to Firestore. `firestore.rules` denies all direct access; that is the backstop, not the main lock.
+
+## Folder layout
+
+```
+api/index.js              Vercel entry point (the only deployed function)
+server/
+  app.js                  Express app: JSON parsing, routers, error handling
+  dev.js                  Local server for `npm run dev:api`
+  routes/                 One file per resource, paths match the API spec
+  middleware/             verifyFirebaseToken, requireRole, guards, errorHandler
+  services/
+    reconciliation.js     Pure reconciliation maths (unit tested)
+    levy.js               Pure levy and payment-status maths (unit tested)
+    transparencyReport.js Builds the audit-trail report (JSON, PDF, public)
+    pdfReport.js          Renders the report with pdfkit
+    audit.js              Append-only campaign event log
+    notifications.js      In-app notifications
+    firebaseAdmin.js      Admin SDK setup
+    cloudinary.js         Image uploads
+  lib/                    Small helpers: errors, validation, formatting
+  e2e/lifecycle.e2e.js    Full lifecycle test against the Firebase emulators
+firestore.rules           Deny-all rules
+```
+
+## Running it locally
+
+```bash
+npm install
+npm run dev:api     # API on http://localhost:3001/api (reads .env)
+npm run dev         # Vite on http://localhost:5173, proxies /api to the API
+```
+
+Local credentials come from `.env`. See `.env.example`. Locally, `FIREBASE_SERVICE_ACCOUNT_PATH` points at the downloaded service account JSON.
+
+## Tests
+
+```bash
+npm test            # unit tests for reconciliation and levy maths
+npm run test:e2e    # whole campaign lifecycle through the real API, on the Firebase emulators (needs Java)
+```
+
+The e2e test refuses to run unless emulator hosts are set, so it can never write to the real project.
+
+On Windows the Firestore emulator's `java.exe` can keep running after the test finishes. If the next run says "Port 8085 is not open", end that `java.exe` process in Task Manager (its command line mentions `cloud-firestore-emulator`).
+
+## Campaign lifecycle
+
+| Status | How it gets there | What's allowed |
+| --- | --- | --- |
+| `draft` | `POST /campaigns` | Admin edits details, adds quotes. Hidden from residents. |
+| `fundraising` | `POST /campaigns/:id/publish` | Contributions, verification, quotes, reminders |
+| `repairing` | `PUT /vendor-quotes/:id/select` | Contributions still accepted, vendor can be re-selected |
+| `completed` | `POST /campaigns/:id/complete` (actual cost) | Pending contributions can still be verified/rejected |
+| `reconciled` | `POST /campaigns/:id/reconcile` | Read only. Numbers are final. |
+
+## Endpoints
+
+Access: **Public** needs no token, **Resident** means any registered user (admins included), **Admin** means community leads only. Everything is scoped to the caller's own estate.
+
+### Users
+| Method | Path | Access | Purpose |
+| --- | --- | --- | --- |
+| POST | `/api/users/register` | Signed in | Create the profile after Firebase sign-up. Body: `name`, `phone?`, `role?` (`resident`/`admin`), `joinCode?`, `unitNumber?` |
+| GET | `/api/users/me` | Resident | Profile and estate |
+| PUT | `/api/users/me` | Resident | Update `name`, `phone` |
+| GET | `/api/users/me/contributions` | Resident | Own contribution history across campaigns |
+| GET | `/api/users/me/notifications` | Resident | Latest 50 notifications and unread count |
+| PUT | `/api/users/me/notifications/read-all` | Resident | Mark all as read |
+
+### Estates
+| Method | Path | Access | Purpose |
+| --- | --- | --- | --- |
+| POST | `/api/estates` | Admin | Create the admin's estate. Body: `name`, `address`, `totalHouseholds`, `totalUnits?` |
+| GET | `/api/estates/:id` | Resident | Details and stats (join code for admins only) |
+| PUT | `/api/estates/:id` | Admin | Update details, `regenerateJoinCode: true` for a new code |
+| GET | `/api/estates/:id/residents?campaignId=` | Admin | Residents, pending invites, and paid/unpaid status for a campaign |
+| POST | `/api/estates/:id/residents` | Admin | Add an existing user or invite an email. Body: `email`, `unitNumber?`, `units?` |
+| PUT | `/api/estates/:id/residents/:userId` | Admin | Change `unitNumber`, `units`, `status` (`active`/`suspended`), `role` |
+| DELETE | `/api/estates/:id/residents/:userId` | Admin | Remove from estate (their contributions stay on record) |
+| DELETE | `/api/estates/:id/invites/:email` | Admin | Cancel an invite |
+
+### Campaigns
+| Method | Path | Access | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/campaigns?status=a,b` | Resident | Estate campaigns, each with the caller's `myPayment` |
+| POST | `/api/campaigns` | Admin | Create a draft. Body: `title`, `description`, `category`, `targetAmount`, `levyMethod?` (`flat`/`per_unit`), `deadline?` (YYYY-MM-DD), `imageUrl?` |
+| GET | `/api/campaigns/:id` | Resident | Full detail with `myPayment` |
+| GET | `/api/campaigns/:id/progress` | Resident | Lightweight polling endpoint (one read) |
+| PUT | `/api/campaigns/:id` | Admin | Edit while still a draft |
+| POST | `/api/campaigns/:id/publish` | Admin | Open to residents, creates the public link token |
+| POST | `/api/campaigns/:id/reminders` | Admin | Notify every active resident who still owes |
+
+### Contributions
+| Method | Path | Access | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/campaigns/:id/contributions` | Resident | Admins see all. Residents see verified ones plus their own. |
+| POST | `/api/campaigns/:id/contributions` | Resident | Body: `amount`, `method`, `reference?`, `note?`, `paidAt?`, `proofUrl?`. Admins may add `userId` to record cash for a resident (starts verified). |
+| PUT | `/api/contributions/:id/verify` | Admin | Body: `status?` (`verified`/`rejected`), `reason` (required to reject) |
+
+### Vendor quotes
+| Method | Path | Access | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/campaigns/:id/vendor-quotes` | Resident | Quotes cheapest first, with a summary |
+| POST | `/api/campaigns/:id/vendor-quotes` | Admin | Body: `vendorName`, `quotedAmount`, `vendorPhone?`, `notes?`, `attachmentUrl?` |
+| PUT | `/api/vendor-quotes/:id/select` | Admin | Select a vendor. `reason` is required if it isn't the cheapest quote. |
+
+### Reconciliation and transparency
+| Method | Path | Access | Purpose |
+| --- | --- | --- | --- |
+| POST | `/api/campaigns/:id/complete` | Admin | Body: `actualCost`, `completionNote?`, `receiptUrl?` |
+| POST | `/api/campaigns/:id/reconcile` | Admin | Run and store the reconciliation (refused while contributions are pending) |
+| GET | `/api/campaigns/:id/reconciliation` | Resident | The stored result, plus the caller's own row as `mine` |
+| GET | `/api/campaigns/:id/transparency-report` | Resident | Full audit trail as JSON |
+| GET | `/api/campaigns/:id/transparency-report/pdf` | Resident | Same report as a PDF download |
+| GET | `/api/public/campaigns/:publicToken` | Public | Anonymized report for the share link |
+| GET | `/api/public/campaigns/:publicToken/pdf` | Public | Anonymized PDF |
+
+### Notifications and uploads
+| Method | Path | Access | Purpose |
+| --- | --- | --- | --- |
+| PUT | `/api/notifications/:id/read` | Resident | Mark one as read |
+| POST | `/api/uploads/image` | Resident | `multipart/form-data` with `file` (JPG/PNG/WebP/HEIC, 4 MB max) and `purpose`. Returns the Cloudinary `url` to send with a campaign, contribution or quote. |
+
+Errors always look like `{ "error": { "message": "...", "details": [{ "field": "...", "message": "..." }] } }`.
+
+## Reconciliation, in one paragraph
+
+`variance = totalCollected - actualCost`, using verified contributions only. Each contributor's share of the variance is proportional to what they paid: a positive adjustment is a refund owed to them, a negative one is an extra balance they owe. Shares are split with the largest remainder method, so they add up to the variance exactly, with no Naira lost to rounding. The result is stored once in `reconciliations/{campaignId}` and can't be re-run.
+
+## Notes for the frontend
+
+- Poll `GET /campaigns/:id/progress` every 3 to 5 seconds while the page is visible. Refetch the contribution list only when `verifiedCount`, `pendingCount` or `updatedAt` change. Firestore's free tier allows 50k reads a day.
+- All money is whole Naira integers.
+
+## Deploying on Vercel
+
+Set these in the Vercel project's environment variables (never with a `VITE_` prefix):
+
+- `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`: from the service account JSON. The private key can be pasted as-is.
+- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+
+Firestore rules: paste `firestore.rules` into Firebase console → Firestore → Rules and publish, or run `npx firebase-tools deploy --only firestore:rules --project cirf-b708c` after `firebase login`.

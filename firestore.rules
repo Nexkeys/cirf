@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// CIRF never lets a browser or app read or write Firestore directly. Every request goes
+// through the API, which checks the Firebase ID token and the caller's role, then uses
+// the Admin SDK. The Admin SDK bypasses these rules by design.
+//
+// So these rules are the backstop, not the main lock: even if someone copies the
+// public Firebase config out of the website, they still can't query the database.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

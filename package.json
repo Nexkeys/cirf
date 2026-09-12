@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "node --watch --env-file=.env server/dev.js",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test \"server/**/*.test.js\"",
+    "test:e2e": "npx --yes firebase-tools@15.30.0 emulators:exec --only auth,firestore --project demo-cirf \"node --test server/e2e/lifecycle.e2e.js\""
   },
   "dependencies": {
     "cloudinary": "^2.11.0",
