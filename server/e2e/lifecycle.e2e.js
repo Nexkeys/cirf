@@ -62,7 +62,7 @@ describe('campaign lifecycle', () => {
     await new Promise((resolve) => server.on('listening', resolve))
     base = `http://localhost:${server.address().port}`
 
-    for (const name of ['lead', 'ada', 'bola', 'chidi']) token[name] = await signUp(`${name}@example.com`)
+    for (const name of ['lead', 'ada', 'bola', 'chidi', 'outsider']) token[name] = await signUp(`${name}@example.com`)
   })
 
   after(() => server.close())
@@ -212,6 +212,7 @@ describe('campaign lifecycle', () => {
       count: 2, lowest: 70_000, highest: 95_000, average: 82_500, selectedQuoteId: null,
     })
 
+    state.quoteId = expensive.data.quote.id
     const selectPath = `/api/vendor-quotes/${expensive.data.quote.id}/select`
     assert.equal((await call(token.lead, 'PUT', selectPath)).status, 400)
     const selected = await call(token.lead, 'PUT', selectPath, { reason: 'Only vendor offering a 2-year warranty' })
@@ -290,6 +291,36 @@ describe('campaign lifecycle', () => {
 
     const all = await call(token.ada, 'PUT', '/api/users/me/notifications/read-all')
     assert.equal(all.data.markedRead, data.unreadCount - 1)
+  })
+
+  it("keeps an estate's data away from admins of other estates", async () => {
+    await call(token.outsider, 'POST', '/api/users/register', { name: 'Other Lead', role: 'admin' })
+    await call(token.outsider, 'POST', '/api/estates', {
+      name: 'Elsewhere Estate',
+      address: '1 Elsewhere Close, Lagos',
+      totalHouseholds: 10,
+    })
+
+    // Being an admin of *an* estate must not unlock anyone else's.
+    const attempts = [
+      ['GET', `/api/estates/${state.estate.id}`],
+      ['PUT', `/api/estates/${state.estate.id}`, { name: 'Taken Over Estate' }],
+      ['GET', `/api/estates/${state.estate.id}/residents`],
+      ['POST', `/api/estates/${state.estate.id}/residents`, { email: 'spy@example.com' }],
+      ['GET', `/api/campaigns/${state.campaignId}`],
+      ['GET', `/api/campaigns/${state.campaignId}/contributions`],
+      ['POST', `/api/campaigns/${state.campaignId}/contributions`, { amount: 1_000, method: 'cash' }],
+      ['GET', `/api/campaigns/${state.campaignId}/vendor-quotes`],
+      ['PUT', `/api/vendor-quotes/${state.quoteId}/select`, { reason: 'Trying to pick for them' }],
+      ['PUT', `/api/contributions/${state.adaContribution}/verify`],
+      ['GET', `/api/campaigns/${state.campaignId}/reconciliation`],
+      ['GET', `/api/campaigns/${state.campaignId}/transparency-report`],
+      ['GET', `/api/campaigns/${state.campaignId}/transparency-report/pdf`],
+    ]
+    for (const [method, path, body] of attempts) {
+      assert.equal((await call(token.outsider, method, path, body)).status, 403, `${method} ${path}`)
+    }
+    assert.deepEqual((await call(token.outsider, 'GET', '/api/campaigns')).data.campaigns, [])
   })
 
   it('keeps estate stats in step', async () => {

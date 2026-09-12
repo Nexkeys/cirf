@@ -12,6 +12,37 @@ The backend for the Community Infrastructure Repair Fund Tracker: one Express ap
 
 Browsers never talk to Firestore. `firestore.rules` denies all direct access; that is the backstop, not the main lock.
 
+## Security model
+
+**Why the Firestore rules are only "deny everything".** Security rules only apply to requests from client SDKs, like a browser or phone using the public Firebase config. The Admin SDK on the server skips them completely. CIRF clients never read Firestore directly, so there is no legitimate traffic for a rule to allow. Any `allow` rule would just be a way around the API's checks. Role-based rules would only be needed if the frontend queried Firestore itself, which Doc 3 deliberately avoids. Doing both would mean writing the security logic twice.
+
+**Every Firebase service is locked** (checked against the live project on 2026-09-12):
+
+| Service | State |
+| --- | --- |
+| Firestore | Deny-all rules. A direct unauthenticated read returns `403 PERMISSION_DENIED`. |
+| Realtime Database | Not used by CIRF. Rules are `.read: false, .write: false`, and anonymous reads return 401. |
+| Storage | Not used (images go to Cloudinary). No bucket exists. |
+| Auth | Email/password and Google enabled. |
+
+**Where each role is enforced (in the API):**
+
+| Who | Enforced by | Rule |
+| --- | --- | --- |
+| Anyone without a token | `verifyFirebaseToken` | 401 on everything except `/api/health` and `/api/public/*` |
+| Signed in, not registered | `requireRole` | 403 until `POST /users/register` |
+| Suspended user | `requireRole` | 403 everywhere |
+| Resident | `guards.adminOnly` | 403 on admin actions: create/publish campaigns, verify, quotes, complete, reconcile, manage residents |
+| Any user or admin | `assertSameEstate` | 403 on another estate's estate, campaigns, contributions, quotes, reports |
+| Resident viewing data | route filters | Drafts hidden. Only verified contributions plus their own. Join code hidden. Only their own notifications. |
+| Public link | `routes/public.js` | Read-only, anonymized report for one campaign. Needs an unguessable 144-bit token. |
+
+Vendors are not accounts. They are quote records an admin enters, so they have no access at all.
+
+The e2e test checks all of this, including an admin of a second estate being refused on 13 routes of the first estate.
+
+**What must stay secret:** the service account key (`FIREBASE_PRIVATE_KEY` on Vercel, `firebase-admin-sdk-.json` locally, which is gitignored) and `CLOUDINARY_API_SECRET`. Anyone with the service account key bypasses every rule above, so rotate it in the Google Cloud console if it ever leaks.
+
 ## Folder layout
 
 ```
