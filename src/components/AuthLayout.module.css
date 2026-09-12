@@ -1,0 +1,130 @@
+.page {
+  min-height: 100svh;
+  background: linear-gradient(180deg, var(--page-top), var(--page-bottom));
+}
+
+.panel {
+  display: none;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: 34px var(--pad-x) 48px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 32px;
+  --logo-size: 30px;
+}
+
+.logoLink {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.tagline {
+  font-size: 10.5px;
+  line-height: 14px;
+  font-weight: 500;
+  text-align: right;
+  color: #22272d;
+}
+
+.withBack {
+  justify-content: flex-start;
+  gap: 24px;
+  margin-left: calc(-1 * var(--pad-x) + 12px);
+}
+
+.back {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: var(--ink);
+}
+
+.back:hover {
+  background: rgb(12 20 17 / 0.06);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding-top: 40px;
+}
+
+/* Wide screens: photo panel on the left, the form centred on the right. */
+@media (min-width: 960px) {
+  .page {
+    display: grid;
+    grid-template-columns: minmax(440px, 46%) 1fr;
+  }
+
+  .panel {
+    position: sticky;
+    top: 0;
+    display: block;
+    height: 100svh;
+    overflow: hidden;
+  }
+
+  .panelInner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    padding: 40px clamp(40px, 4vw, 64px) 56px;
+  }
+
+  .panelTop {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    --logo-size: 34px;
+  }
+
+  .panelTagline {
+    font-size: 13.5px;
+    line-height: 17px;
+    font-weight: 500;
+    text-align: right;
+    color: #fff;
+  }
+
+  .main {
+    justify-content: center;
+    max-width: 460px;
+    padding-block: 48px;
+  }
+
+  /* The panel already shows the logo and name. */
+  .logoLink,
+  .tagline {
+    display: none;
+  }
+
+  .header {
+    min-height: 0;
+  }
+
+  .withBack {
+    margin-left: -10px;
+  }
+
+  .body {
+    flex: 0 0 auto;
+    padding-top: 12px;
+  }
+}

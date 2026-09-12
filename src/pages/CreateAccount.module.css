@@ -1,0 +1,29 @@
+/* Spacing measured from the Create Account design, which is denser than Sign In. */
+
+.form {
+  margin-top: 20px;
+  --field-height: 38px;
+  --label-gap: 6px;
+  --tabs-height: 34px;
+}
+
+.firstField {
+  margin-top: 16px;
+}
+
+.field {
+  margin-top: 10px;
+}
+
+.alert {
+  margin-top: 14px;
+}
+
+.form .submit {
+  min-height: 42px;
+  margin-top: 22px;
+}
+
+p.footer {
+  padding-top: 30px;
+}

@@ -1,0 +1,39 @@
+.circle {
+  display: grid;
+  place-items: center;
+  width: 106px;
+  height: 106px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, #e8f2ea 0%, var(--mint) 70%);
+}
+
+.art {
+  position: relative;
+  width: 52px;
+  height: 52px;
+}
+
+.icon {
+  width: 100%;
+  height: 100%;
+  color: #0c3a2b;
+}
+
+.badge {
+  position: absolute;
+  right: -7px;
+  bottom: 1px;
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border: 2px solid var(--mint);
+  border-radius: 50%;
+  color: #fff;
+  background: #0b5d3b;
+}
+
+.badge > svg {
+  width: 14px;
+  height: 14px;
+}

@@ -1,0 +1,32 @@
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: var(--tabs-height, 38px);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--tab-track);
+}
+
+.tab {
+  margin: -1px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+
+.tab[aria-checked='true'] {
+  color: #fff;
+  background: linear-gradient(180deg, var(--primary-top), var(--primary));
+  box-shadow: 0 2px 8px rgb(6 41 30 / 0.18);
+}
+
+.tab:disabled {
+  cursor: default;
+}

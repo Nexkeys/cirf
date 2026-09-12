@@ -1,0 +1,100 @@
+/* Spacing measured from the Sign In design. */
+
+.form {
+  margin-top: 30px;
+}
+
+.firstField {
+  margin-top: 28px;
+}
+
+.field {
+  margin-top: 18px;
+}
+
+.options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  font-size: 12.5px;
+}
+
+.remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #28373f;
+  cursor: pointer;
+}
+
+.remember input {
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  border: 1.5px solid #2a3a36;
+  border-radius: 3px;
+  background: var(--field);
+  appearance: none;
+  cursor: pointer;
+}
+
+.remember input:checked {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+.remember input:checked::after {
+  content: '';
+  width: 8px;
+  height: 4.5px;
+  border-bottom: 2px solid #fff;
+  border-left: 2px solid #fff;
+  transform: translateY(-1px) rotate(-45deg);
+}
+
+.forgot {
+  font-weight: 600;
+  color: var(--link);
+  text-decoration: none;
+}
+
+.forgot:hover {
+  text-decoration: underline;
+}
+
+.alert {
+  margin-top: 16px;
+}
+
+.submit {
+  margin-top: 24px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 26px 0 20px;
+  font-size: 12px;
+  color: #4b5560;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line-soft);
+}
+
+.form .google {
+  min-height: 42px;
+}
+
+.createOne {
+  font-weight: 500;
+  color: var(--link-dark);
+}

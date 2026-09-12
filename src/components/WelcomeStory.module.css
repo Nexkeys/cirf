@@ -1,0 +1,43 @@
+.story {
+  color: #fff;
+}
+
+.heading {
+  font-size: 33px;
+  line-height: 1.03;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.accent {
+  color: var(--hero-green);
+}
+
+.intro {
+  max-width: 300px;
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 18.5px;
+  color: rgb(255 255 255 / 0.93);
+}
+
+.features {
+  margin-top: 28px;
+}
+
+@media (min-width: 960px) {
+  .heading {
+    font-size: clamp(40px, 3.4vw, 52px);
+  }
+
+  .intro {
+    max-width: 440px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .features {
+    max-width: 520px;
+    margin-top: 40px;
+  }
+}

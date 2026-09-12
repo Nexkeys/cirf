@@ -1,0 +1,104 @@
+/* Design tokens, sampled from the CIRF screen designs (public/Images/SCREEN DESIGNS). */
+:root {
+  --font: 'Inter Variable', Inter, 'Segoe UI', system-ui, sans-serif;
+
+  /* Light screens */
+  --page: #f5f5f1;
+  --page-top: #f7f7f3;
+  --page-bottom: #f2f3ee;
+  --ink: #0c1411;
+  --text: #2f383b;
+  --muted: #6c7780;
+  --placeholder: #8b96a0;
+  --label: #13221e;
+  --line: #dcdfda;
+  --line-soft: #e5e7e3;
+  --field: #f8f8f5;
+  --tab-track: #efefea;
+  --primary: #06291e;
+  --primary-top: #0b372a;
+  --link: #11703f;
+  --link-dark: #0b4a33;
+  --mint: #dfeee5;
+  --brand-green: #0d7445;
+  --danger: #b42318;
+  --danger-bg: #fdf1ef;
+  --danger-line: #f4c7c0;
+
+  /* Photo screens */
+  --hero-ink: #020b0e;
+  --hero-green: #5de69a;
+  --hero-icon: #74d89c;
+  --bright: #0e8a4f;
+  --bright-end: #1f8c60;
+
+  --radius: 9px;
+  --pad-x: clamp(24px, 9.5vw, 40px);
+
+  font-family: var(--font);
+  font-optical-sizing: auto;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--page);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

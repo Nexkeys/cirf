@@ -1,0 +1,61 @@
+.page {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  overflow: hidden;
+  color: #fff;
+  background: var(--hero-ink);
+}
+
+.header {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 34px 24px 0 27px;
+  --logo-size: 28px;
+}
+
+.logoLink {
+  display: inline-flex;
+}
+
+.tagline {
+  font-size: 11px;
+  line-height: 14.5px;
+  font-weight: 500;
+  text-align: right;
+}
+
+.content {
+  position: relative;
+  margin-top: auto;
+  padding: 48px 30px 30px;
+}
+
+.cta {
+  margin-top: 32px;
+}
+
+@media (min-width: 960px) {
+  .header {
+    padding: 40px clamp(32px, 5vw, 72px) 0;
+    --logo-size: 34px;
+  }
+
+  .tagline {
+    font-size: 14px;
+    line-height: 18px;
+  }
+
+  .content {
+    max-width: 680px;
+    padding: 64px clamp(32px, 5vw, 72px);
+  }
+
+  .cta {
+    width: 320px;
+  }
+}

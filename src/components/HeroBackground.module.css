@@ -1,0 +1,109 @@
+.hero {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--hero-ink);
+  container-type: size;
+}
+
+/*
+ * On a phone the design shows a wide slice of the photo across the top part of the
+ * screen, not a zoomed-in crop. So the photo is sized by the screen's height and slid
+ * sideways until a chosen landmark (a pole) sits where the design has it:
+ *   --anchor-x   where the landmark sits across the screen
+ *   --landmark   where the landmark is across the photo itself
+ */
+.photo {
+  position: absolute;
+  top: var(--photo-top);
+  left: var(--anchor-x);
+  width: auto;
+  max-width: none;
+  height: var(--photo-height);
+  transform: translateX(calc(-1 * var(--landmark)));
+  filter: var(--photo-filter);
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+}
+
+.skyline {
+  --photo-top: 0%;
+  --photo-height: 61%;
+  --anchor-x: 27%;
+  --landmark: 16%;
+  --photo-filter: saturate(0.8) brightness(0.9);
+  /* Continues the sky above the photo's top edge */
+  background: linear-gradient(180deg, #34495a 0%, var(--hero-ink) 70%);
+}
+
+.skyline .shade {
+  background: linear-gradient(
+    180deg,
+    rgb(4 14 18 / 0.35) 0%,
+    rgb(4 14 18 / 0.08) 22%,
+    rgb(4 14 18 / 0.18) 40%,
+    rgb(2 11 14 / 0.86) 55%,
+    var(--hero-ink) 63%
+  );
+}
+
+.street {
+  --photo-top: 0%;
+  --photo-height: 66%;
+  --anchor-x: 62%;
+  --landmark: 55%;
+  --photo-filter: saturate(0.62) brightness(0.8);
+  background: linear-gradient(180deg, #243642 0%, var(--hero-ink) 70%);
+}
+
+.street .shade {
+  background: linear-gradient(
+    180deg,
+    rgb(4 14 18 / 0.45) 0%,
+    rgb(4 14 18 / 0.2) 20%,
+    rgb(4 14 18 / 0.36) 44%,
+    rgb(2 11 14 / 0.9) 60%,
+    var(--hero-ink) 67%
+  );
+}
+
+/*
+ * Once the space is wide enough that the height-sized photo would stop covering it
+ * (tablets, landscape, the desktop panel), fill it like a normal cover photo instead.
+ */
+@container (min-aspect-ratio: 13 / 20) {
+  .skyline .photo {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 22% 42%;
+    transform: none;
+  }
+
+  .skyline .shade {
+    background:
+      linear-gradient(180deg, rgb(4 14 18 / 0.45) 0%, rgb(4 14 18 / 0.1) 30%, rgb(2 11 14 / 0.8) 68%, rgb(2 11 14 / 0.96) 100%),
+      linear-gradient(90deg, rgb(2 11 14 / 0.45), transparent 75%);
+  }
+}
+
+@container (min-aspect-ratio: 1 / 1) {
+  .street .photo {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 62% 35%;
+    transform: none;
+  }
+
+  .street .shade {
+    background:
+      linear-gradient(180deg, rgb(4 14 18 / 0.45) 0%, rgb(4 14 18 / 0.15) 30%, rgb(2 11 14 / 0.8) 70%, rgb(2 11 14 / 0.96) 100%),
+      linear-gradient(90deg, rgb(2 11 14 / 0.6), transparent 70%);
+  }
+}

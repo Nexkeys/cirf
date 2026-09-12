@@ -1,0 +1,105 @@
+.list {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #fff;
+}
+
+.item {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+}
+
+.item + .item {
+  border-left: 1px solid rgb(255 255 255 / 0.14);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: var(--icon-size);
+  height: var(--icon-size);
+  color: var(--hero-icon);
+}
+
+.icon > svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ring {
+  border: 1.6px solid currentColor;
+  border-radius: 50%;
+}
+
+.ring > svg {
+  width: 58%;
+  height: 58%;
+}
+
+.title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* Welcome: icon, title and a two-line description, in equal columns. */
+.detailed {
+  --icon-size: 23px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.detailed .item + .item {
+  padding-left: 12px;
+}
+
+.detailed .title {
+  margin-top: 11px;
+  font-size: 11px;
+}
+
+.detailed .detail {
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 15px;
+  color: rgb(255 255 255 / 0.84);
+}
+
+/* Home: icon and title only, spread across the width. */
+.compact {
+  --icon-size: 19px;
+  justify-content: space-between;
+}
+
+.compact .item + .item {
+  padding-left: clamp(12px, 5vw, 26px);
+}
+
+.compact .item:not(:last-child) {
+  padding-right: clamp(8px, 3vw, 20px);
+}
+
+.compact .title {
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.9);
+}
+
+@media (min-width: 960px) {
+  .detailed .title {
+    font-size: 13px;
+  }
+
+  .detailed .detail {
+    font-size: 12.5px;
+    line-height: 17px;
+  }
+
+  .compact .title {
+    font-size: 13px;
+  }
+}

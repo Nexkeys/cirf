@@ -1,0 +1,89 @@
+.field {
+  position: relative;
+  display: grid;
+  /* minmax(0, 1fr) stops the input's built-in width from stretching the field */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--label-gap, 7px);
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--label);
+}
+
+.control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: var(--field-height, 40px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--field);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.control:focus-within {
+  border-color: #7fa894;
+  box-shadow: 0 0 0 3px rgb(17 112 63 / 0.12);
+}
+
+.control.invalid {
+  border-color: var(--danger);
+}
+
+.icon {
+  position: absolute;
+  left: 12px;
+  color: #1b2a2e;
+  pointer-events: none;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 12px 0 40px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  font-size: 13.5px;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--placeholder);
+}
+
+.input:read-only {
+  color: var(--muted);
+}
+
+/* Keep the browser's autofill from painting the field yellow or blue. */
+.input:-webkit-autofill {
+  -webkit-text-fill-color: var(--ink);
+  box-shadow: 0 0 0 40px var(--field) inset;
+}
+
+.reveal {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 42px;
+  height: 100%;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: #1f2433;
+}
+
+.error {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--danger);
+}

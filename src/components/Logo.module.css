@@ -1,0 +1,50 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-size: var(--logo-size, 32px);
+  line-height: 0;
+  vertical-align: middle;
+}
+
+.mark,
+.word {
+  display: block;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* The ratios are the pixel sizes of the two images the script writes. */
+.mark {
+  height: 1em;
+  aspect-ratio: 185 / 192;
+  color: var(--logo-mark);
+  -webkit-mask-image: url('../assets/images/cirf-mark.png');
+  mask-image: url('../assets/images/cirf-mark.png');
+}
+
+.word {
+  height: 0.58em;
+  aspect-ratio: 340 / 120;
+  color: var(--logo-word);
+  -webkit-mask-image: url('../assets/images/cirf-wordmark.png');
+  mask-image: url('../assets/images/cirf-wordmark.png');
+}
+
+.light {
+  --logo-mark: var(--brand-green);
+  --logo-word: var(--ink);
+}
+
+.splash {
+  --logo-mark: var(--hero-green);
+  --logo-word: #fff;
+}
+
+.white {
+  --logo-mark: #fff;
+  --logo-word: #fff;
+}

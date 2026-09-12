@@ -90,6 +90,18 @@ npm run dev         # Vite on http://localhost:5173, proxies /api to the API
 
 Local credentials come from `.env`. See `.env.example`. Locally, `FIREBASE_SERVICE_ACCOUNT_PATH` points at the downloaded service account JSON.
 
+## Trying the app on the emulators
+
+To click through sign-up, estate joining and sign-in without creating practice accounts in the real Firebase project, run everything against the local emulators. Use three terminals:
+
+```bash
+npm run emulators           # Auth + Firestore emulators (needs Java)
+npm run dev:api:emulators   # API on :3001, using the emulators
+npm run dev:emulators       # Vite on :5173, signing in through the Auth emulator
+```
+
+The settings live in `.env.emulators`, which holds no secrets. Emulator data disappears when the emulators stop. Google sign-in and Cloudinary uploads only work against the real project.
+
 ## Tests
 
 ```bash

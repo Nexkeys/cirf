@@ -1,0 +1,83 @@
+/* Centred status screens: Check Your Email, and the account states after signing in. */
+
+main.page {
+  padding-top: 22px;
+}
+
+.center {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.title {
+  margin-top: 18px;
+  font-size: 25px;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.text {
+  max-width: 300px;
+  margin-top: 16px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+
+.text strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* The email address on its own line under "We've sent a password reset link to" */
+.email {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.note {
+  margin-top: 16px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+
+.center .action {
+  width: min(253px, 100%);
+  min-height: 39px;
+  margin-top: 26px;
+}
+
+.form {
+  display: grid;
+  gap: 18px;
+  width: 100%;
+  margin-top: 26px;
+  text-align: left;
+}
+
+.alert {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.footer {
+  margin-top: 30px;
+  font-size: 12.5px;
+  color: #6b7680;
+}
+
+.feedback {
+  min-height: 18px;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--link);
+}
