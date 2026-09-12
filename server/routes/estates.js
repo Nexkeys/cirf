@@ -1,32 +1,36 @@
 import { Router } from 'express'
 import { FieldValue } from 'firebase-admin/firestore'
 import { z } from 'zod'
-import { assertSameEstate } from '../lib/access.js'
-import { docToJson } from '../lib/firestore.js'
+import { assertSameEstate, isAdmin } from '../lib/access.js'
+import { docToJson, oldestFirst } from '../lib/firestore.js'
 import { badRequest, conflict, notFound } from '../lib/httpError.js'
+import { estateName, notEmpty } from '../lib/schemas.js'
 import { parse } from '../lib/validate.js'
 import { adminOnly, registered } from '../middleware/guards.js'
 import { CAMPAIGN_STATUSES, loadCampaignFor } from '../services/campaigns.js'
 import { collections } from '../services/collections.js'
-import { estateJson, generateJoinCode, loadEstate } from '../services/estates.js'
+import { estateJson, generateJoinCode, loadEstate, newEstate, searchableName } from '../services/estates.js'
 import { db } from '../services/firebaseAdmin.js'
 import { paymentStatus } from '../services/levy.js'
+import { notify } from '../services/notifications.js'
 import { estateMembers, forgetUserProfile, publicProfile } from '../services/users.js'
 
 const router = Router()
 
 const count = z.number().int().positive().max(100_000)
+const address = z.string().trim().min(5, 'Enter the full address').max(300)
 
 const createEstateSchema = z.object({
-  name: z.string().trim().min(2).max(120),
-  address: z.string().trim().min(5).max(300),
-  totalHouseholds: count,
+  name: estateName,
+  address: address.optional(),
+  totalHouseholds: count.optional(),
   // Defaults to one unit per household when the estate doesn't use per-unit levies.
   totalUnits: count.optional(),
 })
 
 // POST /api/estates
-// A community lead creates their estate and becomes its admin.
+// A community lead who didn't name their estate when signing up creates it here and
+// becomes its admin.
 router.post('/estates', adminOnly, async (req, res) => {
   if (req.user.estateId) throw conflict('You already manage an estate')
 
@@ -34,14 +38,7 @@ router.post('/estates', adminOnly, async (req, res) => {
   const estateRef = collections.estates.doc()
   const batch = db.batch()
 
-  batch.create(estateRef, {
-    ...body,
-    totalUnits: body.totalUnits ?? body.totalHouseholds,
-    joinCode: await generateJoinCode(),
-    createdBy: req.user.id,
-    createdAt: FieldValue.serverTimestamp(),
-    updatedAt: FieldValue.serverTimestamp(),
-  })
+  batch.create(estateRef, await newEstate(body, req.user.id))
   batch.update(collections.users.doc(req.user.id), {
     estateId: estateRef.id,
     updatedAt: FieldValue.serverTimestamp(),
@@ -57,10 +54,11 @@ router.post('/estates', adminOnly, async (req, res) => {
 router.get('/estates/:id', registered, async (req, res) => {
   assertSameEstate(req.user, req.params.id)
 
-  const [estate, residentCount, campaignsSnapshot] = await Promise.all([
+  const [estate, residentCount, campaignsSnapshot, joinRequestCount] = await Promise.all([
     loadEstate(req.params.id),
     collections.users.where('estateId', '==', req.params.id).count().get(),
     collections.campaigns.where('estateId', '==', req.params.id).get(),
+    isAdmin(req.user) ? collections.users.where('requestedEstateId', '==', req.params.id).count().get() : null,
   ])
 
   const campaigns = campaignsSnapshot.docs.map((doc) => doc.data())
@@ -71,6 +69,7 @@ router.get('/estates/:id', registered, async (req, res) => {
     estate: estateJson(estate, req.user),
     stats: {
       residentCount: residentCount.data().count,
+      ...(joinRequestCount && { joinRequestCount: joinRequestCount.data().count }),
       campaignCount: campaigns.length,
       campaignsByStatus: byStatus,
       totalRaised: campaigns.reduce((sum, campaign) => sum + (campaign.totalCollected ?? 0), 0),
@@ -79,10 +78,19 @@ router.get('/estates/:id', registered, async (req, res) => {
   })
 })
 
-const updateEstateSchema = createEstateSchema
+const updateEstateSchema = z
+  .object({
+    name: estateName,
+    address,
+    totalHouseholds: count,
+    totalUnits: count,
+    // Community Access settings
+    allowRegistration: z.boolean(),
+    requireApproval: z.boolean(),
+    regenerateJoinCode: z.boolean(),
+  })
   .partial()
-  .extend({ regenerateJoinCode: z.boolean().optional() })
-  .refine((body) => Object.keys(body).length > 0, 'Send at least one field to update')
+  .refine(...notEmpty)
 
 // PUT /api/estates/:id
 // Existing campaigns keep the levy they were created with; changes apply to new campaigns.
@@ -91,6 +99,13 @@ router.put('/estates/:id', adminOnly, async (req, res) => {
 
   const { regenerateJoinCode, ...changes } = parse(updateEstateSchema, req.body)
   if (regenerateJoinCode) changes.joinCode = await generateJoinCode()
+  if (changes.name) changes.nameLower = searchableName(changes.name)
+
+  // An estate created with just a name counts one unit per household unless told otherwise.
+  if (changes.totalHouseholds && changes.totalUnits === undefined) {
+    const current = await loadEstate(req.params.id)
+    if (!current.totalUnits) changes.totalUnits = changes.totalHouseholds
+  }
 
   const estateRef = collections.estates.doc(req.params.id)
   await estateRef.update({ ...changes, updatedAt: FieldValue.serverTimestamp() })
@@ -99,13 +114,15 @@ router.put('/estates/:id', adminOnly, async (req, res) => {
 })
 
 // GET /api/estates/:id/residents[?campaignId=]
-// Every resident, pending invites, and (with campaignId) who has and hasn't paid.
+// Every resident, pending invites, people asking to join, and (with campaignId) who has
+// and hasn't paid.
 router.get('/estates/:id/residents', adminOnly, async (req, res) => {
   assertSameEstate(req.user, req.params.id)
 
-  const [residents, invitesSnapshot] = await Promise.all([
+  const [residents, invitesSnapshot, requestsSnapshot] = await Promise.all([
     estateMembers(req.params.id),
     collections.invites.where('estateId', '==', req.params.id).get(),
+    collections.users.where('requestedEstateId', '==', req.params.id).get(),
   ])
   residents.sort((a, b) => a.name.localeCompare(b.name))
 
@@ -128,6 +145,7 @@ router.get('/estates/:id/residents', adminOnly, async (req, res) => {
     residents: rows,
     paymentSummary,
     invites: invitesSnapshot.docs.map(docToJson),
+    joinRequests: requestsSnapshot.docs.map(docToJson).map(publicProfile).sort(oldestFirst('requestedAt')),
   })
 })
 
@@ -168,6 +186,9 @@ router.post('/estates/:id/residents', adminOnly, async (req, res) => {
   const userRef = collections.users.doc(user.id)
   await userRef.update({
     estateId: req.params.id,
+    // Being added by an admin replaces any request they had waiting elsewhere.
+    requestedEstateId: null,
+    requestedAt: null,
     ...(body.unitNumber !== undefined && { unitNumber: body.unitNumber }),
     ...(body.units !== undefined && { units: body.units }),
     updatedAt: FieldValue.serverTimestamp(),
@@ -222,6 +243,67 @@ router.delete('/estates/:id/residents/:userId', adminOnly, async (req, res) => {
   const snapshot = await loadResident(req.params.id, req.params.userId)
   await snapshot.ref.update({ estateId: null, updatedAt: FieldValue.serverTimestamp() })
   forgetUserProfile(req.params.userId)
+
+  res.status(204).end()
+})
+
+// Answers someone's request to join this estate. A transaction, so an approval and the
+// person withdrawing their request at the same moment can't cross.
+async function answerJoinRequest(estateId, userId, change) {
+  const userRef = collections.users.doc(userId)
+  await db.runTransaction(async (tx) => {
+    const snapshot = await tx.get(userRef)
+    if (!snapshot.exists || snapshot.get('requestedEstateId') !== estateId) {
+      throw notFound('Join request not found')
+    }
+    tx.update(userRef, {
+      ...change,
+      requestedEstateId: null,
+      requestedAt: null,
+      updatedAt: FieldValue.serverTimestamp(),
+    })
+  })
+  forgetUserProfile(userId)
+  return userRef
+}
+
+const approveSchema = z.object({ unitNumber: unitNumber.optional(), units: units.optional() })
+
+// POST /api/estates/:id/join-requests/:userId/approve
+// Lets a resident in, optionally setting their unit details at the same time.
+router.post('/estates/:id/join-requests/:userId/approve', adminOnly, async (req, res) => {
+  assertSameEstate(req.user, req.params.id)
+  const body = parse(approveSchema, req.body)
+  const estate = await loadEstate(req.params.id)
+
+  const userRef = await answerJoinRequest(req.params.id, req.params.userId, { ...body, estateId: req.params.id })
+  await notify([
+    {
+      userId: req.params.userId,
+      type: 'join_approved',
+      title: `Welcome to ${estate.name}`,
+      message: 'Your request to join was approved. You can now follow and contribute to repair campaigns.',
+    },
+  ])
+
+  res.json({ resident: publicProfile(docToJson(await userRef.get())) })
+})
+
+// DELETE /api/estates/:id/join-requests/:userId
+// Declines a request. The person keeps their account and can ask to join again.
+router.delete('/estates/:id/join-requests/:userId', adminOnly, async (req, res) => {
+  assertSameEstate(req.user, req.params.id)
+  const estate = await loadEstate(req.params.id)
+
+  await answerJoinRequest(req.params.id, req.params.userId, {})
+  await notify([
+    {
+      userId: req.params.userId,
+      type: 'join_declined',
+      title: `Request to join ${estate.name} declined`,
+      message: 'Check the estate with your community lead, then ask to join again or ask them to invite you.',
+    },
+  ])
 
   res.status(204).end()
 })

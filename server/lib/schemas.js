@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { normalizePhone } from './phone.js'
 
 // Validation pieces shared by several routes.
 
@@ -18,3 +19,21 @@ export const cloudinaryUrl = z
   )
 
 export const notEmpty = [(body) => Object.keys(body).length > 0, 'Send at least one field to update']
+
+// A Firestore document id sent by the client. Checked so a "/" can't point at another path.
+export const documentId = z.string().trim().regex(/^[A-Za-z0-9_-]{1,128}$/, 'That id is not valid')
+
+export const estateName = z.string().trim().min(2, 'Enter the estate or community name').max(120)
+
+// Any usual way of writing a phone number, stored in E.164 form (see lib/phone.js).
+export const phoneNumber = z
+  .string()
+  .trim()
+  .transform((value, ctx) => {
+    const phone = normalizePhone(value)
+    if (!phone) {
+      ctx.issues.push({ code: 'custom', message: 'Enter a valid phone number, e.g. 08012345678', input: value })
+      return z.NEVER
+    }
+    return phone
+  })

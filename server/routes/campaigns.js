@@ -18,7 +18,7 @@ import {
   loadCampaignFor,
 } from '../services/campaigns.js'
 import { collections } from '../services/collections.js'
-import { loadEstate } from '../services/estates.js'
+import { assertLevyCounts, loadEstate } from '../services/estates.js'
 import { db } from '../services/firebaseAdmin.js'
 import { LEVY_METHODS, computeLevy, paymentStatus } from '../services/levy.js'
 import { notify, toEach } from '../services/notifications.js'
@@ -85,6 +85,7 @@ router.post('/campaigns', adminOnly, async (req, res) => {
 
   const body = parse(createCampaignSchema, req.body)
   const estate = await loadEstate(req.user.estateId)
+  assertLevyCounts(estate, body.levyMethod ?? 'flat')
   const levy = computeLevy({
     targetAmount: body.targetAmount,
     levyMethod: body.levyMethod ?? 'flat',
@@ -186,6 +187,7 @@ router.put('/campaigns/:id', adminOnly, async (req, res) => {
 
   if (changes.targetAmount !== undefined || changes.levyMethod !== undefined) {
     const estate = await loadEstate(campaign.estateId)
+    assertLevyCounts(estate, changes.levyMethod ?? campaign.levyMethod)
     Object.assign(
       changes,
       computeLevy({

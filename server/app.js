@@ -1,5 +1,6 @@
 import express from 'express'
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js'
+import auth from './routes/auth.js'
 import campaigns from './routes/campaigns.js'
 import contributions from './routes/contributions.js'
 import estates from './routes/estates.js'
@@ -25,7 +26,7 @@ app.get('/api/health', (req, res) => {
 
 // Each router declares its full paths (e.g. /campaigns/:id/contributions), grouped by
 // resource the same way as the API spec.
-for (const router of [users, estates, campaigns, contributions, vendorQuotes, reconciliation, notifications, uploads, publicRoutes]) {
+for (const router of [auth, users, estates, campaigns, contributions, vendorQuotes, reconciliation, notifications, uploads, publicRoutes]) {
   app.use('/api', router)
 }
 

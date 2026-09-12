@@ -4,7 +4,7 @@ The backend for the Community Infrastructure Repair Fund Tracker: one Express ap
 
 ## How a request flows
 
-1. The app signs the user in with Firebase Auth (email/password or Google) and gets an ID token.
+1. The app signs the user in with Firebase Auth and gets an ID token. There are three ways in: email and password, Google, or phone number and password through `POST /api/auth/phone-sign-in`.
 2. Every API call sends `Authorization: Bearer <token>`.
 3. `verifyFirebaseToken` checks the token with the Admin SDK and loads the caller's Firestore profile (role and estate).
 4. `requireRole` blocks the request if the caller's role isn't allowed on that route.
@@ -29,19 +29,31 @@ Browsers never talk to Firestore. `firestore.rules` denies all direct access; th
 
 | Who | Enforced by | Rule |
 | --- | --- | --- |
-| Anyone without a token | `verifyFirebaseToken` | 401 on everything except `/api/health` and `/api/public/*` |
-| Signed in, not registered | `requireRole` | 403 until `POST /users/register` |
-| Suspended user | `requireRole` | 403 everywhere |
-| Resident | `guards.adminOnly` | 403 on admin actions: create/publish campaigns, verify, quotes, complete, reconcile, manage residents |
+| Anyone without a token | `verifyFirebaseToken` | 401 on everything except `/api/health`, `/api/auth/*` and `/api/public/*` |
+| Signed in, not registered | `requireRole` | 403 with code `NOT_REGISTERED` until `POST /users/register` |
+| Suspended user | `requireRole` | 403 with code `SUSPENDED` everywhere |
+| Waiting for approval | `assertSameEstate` | They only have `requestedEstateId`, never `estateId`, so every estate check refuses them until an admin approves |
+| Resident | `guards.adminOnly` | 403 on admin actions: create/publish campaigns, verify, quotes, complete, reconcile, manage residents and join requests |
 | Any user or admin | `assertSameEstate` | 403 on another estate's estate, campaigns, contributions, quotes, reports |
 | Resident viewing data | route filters | Drafts hidden. Only verified contributions plus their own. Join code hidden. Only their own notifications. |
 | Public link | `routes/public.js` | Read-only, anonymized report for one campaign. Needs an unguessable 144-bit token. |
+| Estate search | `routes/public.js` | Only `id`, `name`, `address`. Estates with "Resident registration" off never appear. |
+| Phone sign-in | `routes/auth.js` | The password is checked on the server, and the email never reaches the browser. A wrong password and an unknown number get the same answer. |
 
 Vendors are not accounts. They are quote records an admin enters, so they have no access at all.
 
-The e2e test checks all of this, including an admin of a second estate being refused on 13 routes of the first estate.
+The e2e test checks all of this. It includes an admin of a second estate being refused on 13 routes of the first estate, and a resident waiting for approval being refused until they're let in.
 
-**What must stay secret:** the service account key (`FIREBASE_PRIVATE_KEY` on Vercel, `firebase-admin-sdk-.json` locally, which is gitignored) and `CLOUDINARY_API_SECRET`. Anyone with the service account key bypasses every rule above, so rotate it in the Google Cloud console if it ever leaks.
+**What must stay secret:** the service account key (`FIREBASE_PRIVATE_KEY` on Vercel, `firebase-admin-sdk-.json` locally, which is gitignored) and `CLOUDINARY_API_SECRET`. Anyone with the service account key bypasses every rule above, so rotate it in the Google Cloud console if it ever leaks. `FIREBASE_API_KEY` is not a secret; it only identifies the project.
+
+## Joining an estate
+
+| How | Result |
+| --- | --- |
+| Admin invites the email (`POST /estates/:id/residents`) | Joins as soon as that email registers |
+| Resident enters the estate's join code | Joins straight away. The admin shared the code on purpose, so it skips approval and works even when registration is off. |
+| Resident picks the estate from `GET /public/estates` | Waits for approval (`requestedEstateId`) unless the estate turned "Require admin approval" off. The admins get a `join_request` notification. |
+| Community lead signs up with `estateName` | Creates the estate with only a name and becomes its admin. The address and household count are added in Estate Settings, and campaigns are refused until the count is there. |
 
 ## Folder layout
 
@@ -59,9 +71,11 @@ server/
     pdfReport.js          Renders the report with pdfkit
     audit.js              Append-only campaign event log
     notifications.js      In-app notifications
+    estates.js            Join codes, new estates, how a resident joins
+    passwordCheck.js      Checks a password with Firebase Auth, for phone sign-in
     firebaseAdmin.js      Admin SDK setup
     cloudinary.js         Image uploads
-  lib/                    Small helpers: errors, validation, formatting
+  lib/                    Small helpers: errors, validation, phone numbers, formatting
   e2e/lifecycle.e2e.js    Full lifecycle test against the Firebase emulators
 firestore.rules           Deny-all rules
 ```
@@ -79,7 +93,7 @@ Local credentials come from `.env`. See `.env.example`. Locally, `FIREBASE_SERVI
 ## Tests
 
 ```bash
-npm test            # unit tests for reconciliation and levy maths
+npm test            # unit tests: reconciliation, levy and phone number maths
 npm run test:e2e    # whole campaign lifecycle through the real API, on the Firebase emulators (needs Java)
 ```
 
@@ -99,35 +113,46 @@ On Windows the Firestore emulator's `java.exe` can keep running after the test f
 
 ## Endpoints
 
-Access: **Public** needs no token, **Resident** means any registered user (admins included), **Admin** means community leads only. Everything is scoped to the caller's own estate.
+Access: **Public** needs no token, **Signed in** means any Firebase user even before registering, **Resident** means any registered user (admins included), **Admin** means community leads only. Everything is scoped to the caller's own estate.
+
+### Auth
+| Method | Path | Access | Purpose |
+| --- | --- | --- | --- |
+| POST | `/api/auth/phone-sign-in` | Public | Body: `phone`, `password`. Returns `customToken` for `signInWithCustomToken()`. |
 
 ### Users
 | Method | Path | Access | Purpose |
 | --- | --- | --- | --- |
-| POST | `/api/users/register` | Signed in | Create the profile after Firebase sign-up. Body: `name`, `phone?`, `role?` (`resident`/`admin`), `joinCode?`, `unitNumber?` |
-| GET | `/api/users/me` | Resident | Profile and estate |
+| POST | `/api/users/register` | Signed in | Create the profile after Firebase sign-up. Body: `name`, `phone?`, `role?` (`resident`/`admin`), `unitNumber?`. Residents add `estateId?` or `joinCode?`, leads add `estateName?`. |
+| GET | `/api/users/me` | Resident | Profile, estate, and `joinRequest` (the estate they're waiting for, or null) |
 | PUT | `/api/users/me` | Resident | Update `name`, `phone` |
+| POST | `/api/users/me/join-request` | Resident | Residents with no estate ask to join one. Body: `estateId` or `joinCode`. |
+| DELETE | `/api/users/me/join-request` | Resident | Withdraw a request that hasn't been answered |
 | GET | `/api/users/me/contributions` | Resident | Own contribution history across campaigns |
 | GET | `/api/users/me/notifications` | Resident | Latest 50 notifications and unread count |
 | PUT | `/api/users/me/notifications/read-all` | Resident | Mark all as read |
 
+Phone numbers are stored as `+234...` and must be unique, so any usual way of writing a number signs in to the same account.
+
 ### Estates
 | Method | Path | Access | Purpose |
 | --- | --- | --- | --- |
-| POST | `/api/estates` | Admin | Create the admin's estate. Body: `name`, `address`, `totalHouseholds`, `totalUnits?` |
-| GET | `/api/estates/:id` | Resident | Details and stats (join code for admins only) |
-| PUT | `/api/estates/:id` | Admin | Update details, `regenerateJoinCode: true` for a new code |
-| GET | `/api/estates/:id/residents?campaignId=` | Admin | Residents, pending invites, and paid/unpaid status for a campaign |
+| POST | `/api/estates` | Admin | Create the admin's estate. Body: `name`, `address?`, `totalHouseholds?`, `totalUnits?` |
+| GET | `/api/estates/:id` | Resident | Details and stats (join code and `joinRequestCount` for admins only) |
+| PUT | `/api/estates/:id` | Admin | Update details, `allowRegistration`, `requireApproval`, or `regenerateJoinCode: true` for a new code |
+| GET | `/api/estates/:id/residents?campaignId=` | Admin | Residents, pending invites, `joinRequests`, and paid/unpaid status for a campaign |
 | POST | `/api/estates/:id/residents` | Admin | Add an existing user or invite an email. Body: `email`, `unitNumber?`, `units?` |
 | PUT | `/api/estates/:id/residents/:userId` | Admin | Change `unitNumber`, `units`, `status` (`active`/`suspended`), `role` |
 | DELETE | `/api/estates/:id/residents/:userId` | Admin | Remove from estate (their contributions stay on record) |
+| POST | `/api/estates/:id/join-requests/:userId/approve` | Admin | Let someone in. Body: `unitNumber?`, `units?` |
+| DELETE | `/api/estates/:id/join-requests/:userId` | Admin | Decline a request |
 | DELETE | `/api/estates/:id/invites/:email` | Admin | Cancel an invite |
 
 ### Campaigns
 | Method | Path | Access | Purpose |
 | --- | --- | --- | --- |
 | GET | `/api/campaigns?status=a,b` | Resident | Estate campaigns, each with the caller's `myPayment` |
-| POST | `/api/campaigns` | Admin | Create a draft. Body: `title`, `description`, `category`, `targetAmount`, `levyMethod?` (`flat`/`per_unit`), `deadline?` (YYYY-MM-DD), `imageUrl?` |
+| POST | `/api/campaigns` | Admin | Create a draft. Body: `title`, `description`, `category`, `targetAmount`, `levyMethod?` (`flat`/`per_unit`), `deadline?` (YYYY-MM-DD), `imageUrl?`. Refused until the estate has its household (or unit) count. |
 | GET | `/api/campaigns/:id` | Resident | Full detail with `myPayment` |
 | GET | `/api/campaigns/:id/progress` | Resident | Lightweight polling endpoint (one read) |
 | PUT | `/api/campaigns/:id` | Admin | Edit while still a draft |
@@ -159,13 +184,14 @@ Access: **Public** needs no token, **Resident** means any registered user (admin
 | GET | `/api/public/campaigns/:publicToken` | Public | Anonymized report for the share link |
 | GET | `/api/public/campaigns/:publicToken/pdf` | Public | Anonymized PDF |
 
-### Notifications and uploads
+### Notifications, uploads and search
 | Method | Path | Access | Purpose |
 | --- | --- | --- | --- |
 | PUT | `/api/notifications/:id/read` | Resident | Mark one as read |
 | POST | `/api/uploads/image` | Resident | `multipart/form-data` with `file` (JPG/PNG/WebP/HEIC, 4 MB max) and `purpose`. Returns the Cloudinary `url` to send with a campaign, contribution or quote. |
+| GET | `/api/public/estates?q=` | Public | Estates whose name starts with `q` (2+ letters), for the Create Account screen |
 
-Errors always look like `{ "error": { "message": "...", "details": [{ "field": "...", "message": "..." }] } }`.
+Errors always look like `{ "error": { "message": "...", "code": "...", "details": [{ "field": "...", "message": "..." }] } }`. `code` appears only where the app has to act on it: `NOT_REGISTERED`, `SUSPENDED`, `REGISTRATION_CLOSED`, `INVALID_CREDENTIALS`.
 
 ## Reconciliation, in one paragraph
 
@@ -178,9 +204,12 @@ Errors always look like `{ "error": { "message": "...", "details": [{ "field": "
 
 ## Deploying on Vercel
 
-Set these in the Vercel project's environment variables (never with a `VITE_` prefix):
+Set these in the Vercel project's environment variables:
 
-- `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`: from the service account JSON. The private key can be pasted as-is.
+- `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`: from the service account JSON. The private key can be pasted as-is. Never give these a `VITE_` prefix.
+- `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_APP_ID`: the public web config. The frontend build uses them for sign-in, and the API uses the key for phone sign-in.
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+
+In the Firebase console, go to Authentication → Settings → Authorized domains and add the Vercel domain. Otherwise Google sign-in is refused on the deployed site.
 
 Firestore rules: paste `firestore.rules` into Firebase console → Firestore → Rules and publish, or run `npx firebase-tools deploy --only firestore:rules --project cirf-b708c` after `firebase login`.

@@ -1,7 +1,7 @@
 import { MulterError } from 'multer'
 import { HttpError } from '../lib/httpError.js'
 
-// Every error response has the same shape: { error: { message, details? } }
+// Every error response has the same shape: { error: { message, code?, details? } }
 
 export function notFoundHandler(req, res) {
   res.status(404).json({ error: { message: `No API route for ${req.method} ${req.path}` } })
@@ -12,7 +12,7 @@ export function errorHandler(err, req, res, next) {
   if (res.headersSent) return next(err)
 
   if (err instanceof HttpError) {
-    return res.status(err.status).json({ error: { message: err.message, details: err.details } })
+    return res.status(err.status).json({ error: { message: err.message, code: err.code, details: err.details } })
   }
 
   if (err instanceof MulterError) {

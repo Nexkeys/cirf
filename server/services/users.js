@@ -33,6 +33,8 @@ export function publicProfile(user) {
     phone: user.phone ?? null,
     role: user.role,
     estateId: user.estateId ?? null,
+    requestedEstateId: user.requestedEstateId ?? null,
+    requestedAt: user.requestedAt ?? null,
     unitNumber: user.unitNumber ?? null,
     units: user.units ?? 1,
     status: user.status ?? 'active',

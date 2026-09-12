@@ -25,18 +25,23 @@ const { auth } = await import('../services/firebaseAdmin.js')
 let server
 let base
 
-async function signUp(email) {
-  const password = 'password123'
-  await auth.createUser({ email, password })
+// Calls the Auth emulator's REST API, the same one the Firebase web SDK uses.
+async function authEmulator(action, body) {
   const response = await fetch(
-    `http://${FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=emulator`,
+    `http://${FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:${action}?key=emulator`,
     {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email, password, returnSecureToken: true }),
+      body: JSON.stringify({ ...body, returnSecureToken: true }),
     },
   )
   return (await response.json()).idToken
+}
+
+async function signUp(email) {
+  const password = 'password123'
+  await auth.createUser({ email, password })
+  return authEmulator('signInWithPassword', { email, password })
 }
 
 async function call(token, method, path, body) {
@@ -62,7 +67,9 @@ describe('campaign lifecycle', () => {
     await new Promise((resolve) => server.on('listening', resolve))
     base = `http://localhost:${server.address().port}`
 
-    for (const name of ['lead', 'ada', 'bola', 'chidi', 'outsider']) token[name] = await signUp(`${name}@example.com`)
+    for (const name of ['lead', 'ada', 'bola', 'chidi', 'outsider', 'dayo', 'efe', 'funmi']) {
+      token[name] = await signUp(`${name}@example.com`)
+    }
   })
 
   after(() => server.close())
@@ -70,21 +77,26 @@ describe('campaign lifecycle', () => {
   it('rejects requests without a valid token', async () => {
     assert.equal((await call(null, 'GET', '/api/users/me')).status, 401)
     assert.equal((await call('not-a-token', 'GET', '/api/users/me')).status, 401)
-    assert.equal((await call(token.ada, 'GET', '/api/users/me')).status, 403) // not registered yet
+
+    const unregistered = await call(token.ada, 'GET', '/api/users/me')
+    assert.equal(unregistered.status, 403)
+    assert.equal(unregistered.data.error.code, 'NOT_REGISTERED') // the app opens Create Account
   })
 
-  it('lets a community lead register and create an estate', async () => {
-    const registered = await call(token.lead, 'POST', '/api/users/register', { name: 'Lead Okafor', role: 'admin' })
-    assert.equal(registered.status, 201)
-
-    const estate = await call(token.lead, 'POST', '/api/estates', {
-      name: 'Katampe Gardens',
-      address: '12 Katampe Road, Abuja',
-      totalHouseholds: 4,
+  it('lets a community lead sign up and name their estate in one step', async () => {
+    const registered = await call(token.lead, 'POST', '/api/users/register', {
+      name: 'Lead Okafor',
+      role: 'admin',
+      phone: '0801 234 5678',
+      estateName: 'Katampe Gardens',
     })
-    assert.equal(estate.status, 201)
-    assert.match(estate.data.estate.joinCode, /^[A-Z2-9]{6}$/)
-    state.estate = estate.data.estate
+    assert.equal(registered.status, 201)
+    assert.equal(registered.data.user.phone, '+2348012345678')
+
+    const { estate } = (await call(token.lead, 'GET', '/api/users/me')).data
+    assert.equal(estate.name, 'Katampe Gardens')
+    assert.match(estate.joinCode, /^[A-Z2-9]{6}$/)
+    state.estate = estate
   })
 
   it('lets residents join by join code or by invite', async () => {
@@ -115,6 +127,28 @@ describe('campaign lifecycle', () => {
     assert.equal(me.data.estate.joinCode, undefined) // residents don't see the join code
   })
 
+  it('signs people in with a phone number and password', async () => {
+    const taken = await call(token.efe, 'POST', '/api/users/register', {
+      name: 'Efe Musa',
+      phone: '+234 801 234 5678',
+      joinCode: state.estate.joinCode,
+    })
+    assert.equal(taken.status, 409) // the lead already registered this number
+
+    const signIn = (phone, password) => call(null, 'POST', '/api/auth/phone-sign-in', { phone, password })
+    const wrongPassword = await signIn('08012345678', 'not-the-password')
+    const unknownNumber = await signIn('08099999999', 'password123')
+    assert.equal(wrongPassword.status, 401)
+    // Same answer either way, so nobody can find out which numbers have accounts.
+    assert.deepEqual(unknownNumber.data, wrongPassword.data)
+    assert.equal((await signIn('12345', 'password123')).status, 400)
+
+    const signedIn = await signIn('2348012345678', 'password123')
+    assert.equal(signedIn.status, 200)
+    const idToken = await authEmulator('signInWithCustomToken', { token: signedIn.data.customToken })
+    assert.equal((await call(idToken, 'GET', '/api/users/me')).data.user.name, 'Lead Okafor')
+  })
+
   it('only lets admins create campaigns, and hides drafts from residents', async () => {
     const campaignBody = {
       title: 'Replace burnt transformer',
@@ -123,6 +157,15 @@ describe('campaign lifecycle', () => {
       targetAmount: 100_000,
     }
     assert.equal((await call(token.ada, 'POST', '/api/campaigns', campaignBody)).status, 403)
+
+    // The estate was created from the sign-up form, so there's no household count to split a levy by yet.
+    const tooEarly = await call(token.lead, 'POST', '/api/campaigns', campaignBody)
+    assert.equal(tooEarly.status, 400)
+    assert.equal(tooEarly.data.error.details[0].field, 'totalHouseholds')
+    await call(token.lead, 'PUT', `/api/estates/${state.estate.id}`, {
+      address: '12 Katampe Road, Abuja',
+      totalHouseholds: 4,
+    })
 
     const created = await call(token.lead, 'POST', '/api/campaigns', campaignBody)
     assert.equal(created.status, 201)
@@ -329,5 +372,75 @@ describe('campaign lifecycle', () => {
     assert.equal(data.stats.totalRaised, 100_000)
     assert.equal(data.stats.totalSpent, 70_000)
     assert.equal(data.stats.campaignsByStatus.reconciled, 1)
+  })
+
+  it('lets residents find their estate by name and wait for an admin to approve them', async () => {
+    const search = await call(null, 'GET', '/api/public/estates?q=KATAMPE')
+    assert.deepEqual(search.data.estates.map((estate) => estate.name), ['Katampe Gardens'])
+    assert.equal(search.data.estates[0].joinCode, undefined)
+    assert.equal((await call(null, 'GET', '/api/public/estates?q=k')).status, 400)
+
+    const asked = await call(token.dayo, 'POST', '/api/users/register', {
+      name: 'Dayo Bello',
+      phone: '08033334444',
+      estateId: state.estate.id,
+    })
+    assert.equal(asked.status, 201)
+    assert.equal(asked.data.user.estateId, null)
+    assert.equal(asked.data.user.requestedEstateId, state.estate.id)
+
+    // Waiting for approval unlocks nothing in the estate.
+    const me = await call(token.dayo, 'GET', '/api/users/me')
+    assert.equal(me.data.joinRequest.estateName, 'Katampe Gardens')
+    assert.equal((await call(token.dayo, 'GET', `/api/estates/${state.estate.id}`)).status, 403)
+    assert.equal((await call(token.dayo, 'GET', `/api/campaigns/${state.campaignId}`)).status, 403)
+    assert.deepEqual((await call(token.dayo, 'GET', '/api/campaigns')).data.campaigns, [])
+
+    const leadInbox = await call(token.lead, 'GET', '/api/users/me/notifications')
+    assert.ok(leadInbox.data.notifications.some((n) => n.type === 'join_request'))
+    const residents = await call(token.lead, 'GET', `/api/estates/${state.estate.id}/residents`)
+    assert.deepEqual(residents.data.joinRequests.map((person) => person.name), ['Dayo Bello'])
+    assert.equal((await call(token.lead, 'GET', `/api/estates/${state.estate.id}`)).data.stats.joinRequestCount, 1)
+
+    const approvePath = `/api/estates/${state.estate.id}/join-requests/${asked.data.user.id}/approve`
+    assert.equal((await call(token.ada, 'POST', approvePath)).status, 403)
+    assert.equal((await call(token.outsider, 'POST', approvePath)).status, 403)
+    const approved = await call(token.lead, 'POST', approvePath, { unitNumber: 'Block D' })
+    assert.equal(approved.data.resident.estateId, state.estate.id)
+    assert.equal(approved.data.resident.unitNumber, 'Block D')
+    assert.equal((await call(token.lead, 'POST', approvePath)).status, 404) // already answered
+
+    assert.equal((await call(token.dayo, 'GET', `/api/campaigns/${state.campaignId}`)).status, 200)
+    const dayoInbox = await call(token.dayo, 'GET', '/api/users/me/notifications')
+    assert.ok(dayoInbox.data.notifications.some((n) => n.type === 'join_approved'))
+  })
+
+  it('hides an estate that closed registration, but its join code still works', async () => {
+    await call(token.lead, 'PUT', `/api/estates/${state.estate.id}`, { allowRegistration: false })
+    assert.deepEqual((await call(null, 'GET', '/api/public/estates?q=katampe')).data.estates, [])
+
+    const refused = await call(token.efe, 'POST', '/api/users/register', { name: 'Efe Musa', estateId: state.estate.id })
+    assert.equal(refused.status, 403)
+    assert.equal(refused.data.error.code, 'REGISTRATION_CLOSED')
+
+    // The admin handed the code out on purpose, so it skips both the setting and approval.
+    const withCode = await call(token.efe, 'POST', '/api/users/register', { name: 'Efe Musa', joinCode: state.estate.joinCode })
+    assert.equal(withCode.data.user.estateId, state.estate.id)
+  })
+
+  it('lets a declined resident ask again or withdraw their request', async () => {
+    await call(token.lead, 'PUT', `/api/estates/${state.estate.id}`, { allowRegistration: true })
+    const asked = await call(token.funmi, 'POST', '/api/users/register', { name: 'Funmi Ade', estateId: state.estate.id })
+
+    const declinePath = `/api/estates/${state.estate.id}/join-requests/${asked.data.user.id}`
+    assert.equal((await call(token.lead, 'DELETE', declinePath)).status, 204)
+    assert.equal((await call(token.funmi, 'GET', '/api/users/me')).data.joinRequest, null)
+    const inbox = await call(token.funmi, 'GET', '/api/users/me/notifications')
+    assert.ok(inbox.data.notifications.some((n) => n.type === 'join_declined'))
+
+    const again = await call(token.funmi, 'POST', '/api/users/me/join-request', { estateId: state.estate.id })
+    assert.equal(again.data.user.requestedEstateId, state.estate.id)
+    assert.equal((await call(token.funmi, 'DELETE', '/api/users/me/join-request')).status, 204)
+    assert.equal((await call(token.funmi, 'DELETE', '/api/users/me/join-request')).status, 404)
   })
 })
