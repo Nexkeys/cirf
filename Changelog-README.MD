@@ -4,6 +4,32 @@ Every change to CIRF, big or small, newest first. Times are West Africa Time (WA
 
 ---
 
+## 2026-09-13 00:22 WAT · `792c520` · Backend (auth support)
+
+**Phone sign-in, estate search and join approval**
+
+The auth screen designs need things the API couldn't do yet: "Email or Phone Number" on Sign In, and "Community / Estate" on Create Account. The Estate Settings design adds "Resident registration" and "Require admin approval" toggles.
+
+- `POST /api/auth/phone-sign-in` (new, `server/routes/auth.js`):
+  - Finds the account for a phone number, checks the password on the server (`services/passwordCheck.js`), and returns a Firebase custom token.
+  - The email never reaches the browser, and a wrong password and an unknown number get the same answer.
+- Phone numbers are stored as `+234…` (`lib/phone.js`, with 3 unit tests) and kept unique in a new `phoneNumbers` collection.
+- `GET /api/public/estates?q=` (new): a new resident finds their estate by the start of its name. It returns only id, name and address. Estates with registration switched off never appear.
+- Join approval:
+  - A resident who picks an estate gets `requestedEstateId`, never `estateId`. Every existing estate check therefore keeps refusing them until an admin approves.
+  - Admins approve (`POST /estates/:id/join-requests/:userId/approve`) or decline (`DELETE …`), and get a `join_request` notification.
+  - Residents can withdraw a request or ask again (`/users/me/join-request`).
+  - `GET /users/me` now includes `joinRequest`.
+  - Estates have `allowRegistration` and `requireApproval`, both on by default.
+  - A join code still works when registration is off.
+- Community leads can name their estate while registering (`estateName`). An estate's address and household counts are now optional, and creating or re-pricing a campaign returns a clear 400 until the count the levy needs is set.
+- Error responses can carry a `code` (`NOT_REGISTERED`, `SUSPENDED`, `REGISTRATION_CLOSED`, `INVALID_CREDENTIALS`), so the app can open the right screen.
+- Tests: unit 16/16. E2e 18/18, with 4 new checks: phone sign-in, estate search with approval, closed registration, and declining a request.
+- Docs: `server/README.md` covers the new endpoints, a "Joining an estate" table, security rows for search and phone sign-in, and the Vercel env vars. `.env.example` adds `FIREBASE_API_KEY`.
+- Checked (read-only): the server can reach Firebase's password check with the project's API key. A made-up email got `INVALID_LOGIN_CREDENTIALS`, and no account was created.
+
+---
+
 ## 2026-09-12 22:28 WAT · `72b75a2` · Backend (security)
 
 **Estate isolation test and security model docs**
