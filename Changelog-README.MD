@@ -4,6 +4,20 @@ Every change to CIRF, big or small, newest first. Times are West Africa Time (WA
 
 ---
 
+## 2026-09-12 22:28 WAT · `72b75a2` · Backend (security)
+
+**Estate isolation test and security model docs**
+
+- New e2e check: an admin of a *different* estate gets 403 on 13 routes belonging to the first estate: estate details and edits, residents, campaigns, contributions, quotes, vendor selection, verification, reconciliation, and both report formats. The e2e suite now has 14 checks, all passing.
+- `server/README.md` now has a "Security model" section. It explains why deny-all Firestore rules are the complete ruleset when every request goes through the Admin SDK, where each role (anyone, resident, admin, other estate, public link) is enforced in the API, and which secrets must never leak.
+- Checked the live Firebase project (read-only):
+  - Firestore: a direct client read returns `403 PERMISSION_DENIED`.
+  - Realtime Database: rules are `.read/.write: false`, and anonymous reads get 401.
+  - Storage: no bucket exists, so nothing is exposed.
+  - Auth: Email/Password and Google sign-in are both enabled.
+
+---
+
 ## 2026-09-12 21:50 WAT · `30e24fe` · Backend
 
 **The full CIRF backend API**
