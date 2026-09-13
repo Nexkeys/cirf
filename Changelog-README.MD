@@ -42,7 +42,8 @@ Every change to CIRF, big or small, newest first. Times are West Africa Time (WA
   - New dependencies: react-router 8.3.1, lucide-react 1.45.0, @fontsource-variable/inter 5.3.0, and sharp 0.35.4 (dev).
   - Removed the Vite starter styles and images.
   - Committed the design images at their new `public/Images` location.
-- Not committed: your own `.gitignore` edit (it adds `Changelog-README.md` and `firebase-debug.log`), and this changelog entry. See the question in chat.
+- Committed separately, together with this entry: your own `.gitignore` edit, which adds `Changelog-README.md` and `firebase-debug.log`. Git keeps tracking this changelog anyway, because the file was already committed before that line existed.
+- Pushed `build/backend` and `build/frontend-auth` to GitHub. `main` is unchanged.
 
 ---
 
