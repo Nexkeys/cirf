@@ -27,4 +27,5 @@ dist-ssr
 .env
 firebase-admin-sdk-.json
 firestore.rules
-
+Changelog-README.md
+firebase-debug.log

@@ -4,6 +4,48 @@ Every change to CIRF, big or small, newest first. Times are West Africa Time (WA
 
 ---
 
+## 2026-09-13 00:50 WAT · `f14d3ac` · Frontend (auth screens)
+
+**The auth screens, built from `Auth Screens.png`** (branch `build/frontend-auth`)
+
+- Screens and routes:
+  - Home hero (`/`)
+  - Welcome (`/welcome`)
+  - Sign In (`/signin`)
+  - Create Account (`/signup`)
+  - Reset Your Password (`/forgot-password`)
+  - Check Your Email (`/forgot-password/sent`)
+  - The flow is Home → Get Started → Welcome → Get Started → Create Account.
+- Matching the design:
+  - Colours were sampled and spacing measured from the design file.
+  - Each screen was screenshotted at the design's exact size and compared side by side, then corrected twice (font sizes, field heights, photo framing, a password-field width bug).
+  - Photos keep the design's framing on phones and switch to a normal cover crop on wide screens.
+- Sign in with:
+  - email and password
+  - phone number and password (through the new API route)
+  - Google; a first-time Google user is sent to Create Account to finish their profile.
+  - "Remember me" chooses between staying signed in and signing out when the tab closes.
+- Create Account:
+  - Community leads type their estate's name.
+  - Residents search for their estate and pick it, then see "Waiting for Approval".
+  - Errors show under the field they belong to.
+- `/account` is a temporary landing page until the dashboards exist. It covers: in an estate, waiting for approval (check again or cancel), no estate yet, suspended, and API unreachable.
+- Logo: the plain logo is split into the house mark and the wordmark (`scripts/optimize-images.mjs`), and CSS masks colour them per screen (green and dark on cream, green and white on Welcome, all white on Home). The favicon is generated from the same mark.
+- Images: the 2 MB PNG photos become WebP at 800 and 1600 px (56–176 KB), and the Google "G" is trimmed.
+- Security: `vite.config.js` passes only the four public Firebase web config values to the browser, never the server keys.
+- Wide screens: sign-in forms sit beside the Welcome photo panel. This isn't in the design; it's an addition for desktop.
+- Local testing without the live project: `npm run emulators`, `dev:api:emulators` and `dev:emulators`, with settings in `.env.emulators`.
+- Verified:
+  - 6 UI flows driven in headless Edge against the emulators all pass, with no page errors: lead sign-up, field errors, estate search and join request, phone sign-in, wrong password, and reset with resend.
+  - Lint is clean, the build passes, and unit tests pass 16/16.
+- Housekeeping:
+  - New dependencies: react-router 8.3.1, lucide-react 1.45.0, @fontsource-variable/inter 5.3.0, and sharp 0.35.4 (dev).
+  - Removed the Vite starter styles and images.
+  - Committed the design images at their new `public/Images` location.
+- Not committed: your own `.gitignore` edit (it adds `Changelog-README.md` and `firebase-debug.log`), and this changelog entry. See the question in chat.
+
+---
+
 ## 2026-09-13 00:22 WAT · `792c520` · Backend (auth support)
 
 **Phone sign-in, estate search and join approval**
