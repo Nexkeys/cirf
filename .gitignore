@@ -27,5 +27,12 @@ dist-ssr
 .env
 firebase-admin-sdk-.json
 firestore.rules
+# Private working notes, kept on this machine only
 Changelog-README.md
+Changelog-README.MD
 firebase-debug.log
+
+# Original design files and photos. The app uses the web-ready copies that
+# npm run images writes to src/assets/images, so these stay on this machine
+# and are never published with the site.
+public/Images/
