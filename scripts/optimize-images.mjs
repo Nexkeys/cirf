@@ -18,7 +18,7 @@ await mkdir(OUT, { recursive: true })
 
 const photos = {
   'hero-skyline': 'Auth_Screen_Images/Auth-Screen-Image2.png', // Welcome screen and the desktop sign-in panel
-  'hero-street': 'Auth_Screen_Images/Auth-Screen-Image1.png', // About: "What CIRF is"
+  lineman: 'Gemini_Generated_Image_5muwbg5muwbg5muw.jpg', // About: "What CIRF is"
   'poles-street': 'Homepage_Screen_Images/Hero image.png', // Home and About heroes, dashboard sidebar card
   transformer: 'Homepage_Screen_Images/Problem-section image.png', // Home problem section, About origin, campaigns without a photo
   'community-walk': 'Homepage_Screen_Images/Trust-section image.png', // Home trust section, About "Designed around" band

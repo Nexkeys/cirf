@@ -207,6 +207,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Keeps the line worker, right of centre in the photo, in the middle of the crop. */
+  object-position: 60% center;
 }
 
 .caption {

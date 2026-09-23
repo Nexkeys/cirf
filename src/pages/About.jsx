@@ -119,7 +119,12 @@ export default function About() {
             </ul>
           </div>
           <div className={styles.whatPhotoBox}>
-            <Photo name="street" sizes="(min-width: 1000px) 27vw, 100vw" className={styles.whatPhoto} />
+            <Photo
+              name="lineman"
+              sizes="(min-width: 1000px) 27vw, 100vw"
+              alt="A line worker in a hard hat repairing cables on an electricity pole"
+              className={styles.whatPhoto}
+            />
             <p className={styles.caption}>
               Real communities.
               <br />
