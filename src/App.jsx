@@ -7,6 +7,7 @@ import CampaignSection from './pages/campaigns/CampaignSection.jsx'
 import CampaignsList from './pages/campaigns/CampaignsList.jsx'
 import Contribute from './pages/campaigns/Contribute.jsx'
 import CreateCampaign from './pages/campaigns/CreateCampaign.jsx'
+import Reconciliation from './pages/campaigns/Reconciliation.jsx'
 import VendorQuotes from './pages/campaigns/VendorQuotes.jsx'
 import CheckEmail from './pages/CheckEmail.jsx'
 import ComingSoon from './pages/ComingSoon.jsx'
@@ -21,7 +22,6 @@ import Welcome from './pages/Welcome.jsx'
 const UPCOMING = [
   ['/campaigns/:id/contributors', 'Contributors'],
   ['/campaigns/:id/contributions', 'Contributions'],
-  ['/campaigns/:id/reconciliation', 'Reconciliation'],
   ['/campaigns/:id/report', 'Transparency Report'],
   ['/notifications', 'Notifications'],
   ['/settings', 'Settings'],
@@ -54,6 +54,7 @@ export default function App() {
       <Route path="/campaigns/:id/edit" element={<MemberOnly><CreateCampaign /></MemberOnly>} />
       <Route path="/campaigns/:id/contribute" element={<MemberOnly><Contribute /></MemberOnly>} />
       <Route path="/campaigns/:id/quotes" element={<MemberOnly><VendorQuotes /></MemberOnly>} />
+      <Route path="/campaigns/:id/reconciliation" element={<MemberOnly><Reconciliation /></MemberOnly>} />
       {SECTIONS.map(([path, section, title]) => (
         <Route key={path} path={path} element={<MemberOnly><CampaignSection section={section} title={title} /></MemberOnly>} />
       ))}

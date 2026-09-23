@@ -75,3 +75,17 @@ export async function uploadImage(file, purpose) {
   if (!response.ok) throw new ApiError(response.status, data?.error?.message ?? 'The image could not be uploaded')
   return data.url
 }
+
+// Downloads a file the API only serves to signed-in people (like a PDF report). A plain
+// link can't send the sign-in token, so fetch it and save it from memory.
+export async function downloadFile(path, filename) {
+  const headers = auth.currentUser ? { authorization: `Bearer ${await auth.currentUser.getIdToken()}` } : {}
+  const response = await fetch(`${BASE_URL}/api${path}`, { headers }).catch(() => null)
+  if (!response?.ok) throw new ApiError(response?.status ?? 0, 'The file could not be downloaded. Please try again.')
+  const url = URL.createObjectURL(await response.blob())
+  const link = Object.assign(document.createElement('a'), { href: url, download: filename })
+  document.body.append(link)
+  link.click()
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
