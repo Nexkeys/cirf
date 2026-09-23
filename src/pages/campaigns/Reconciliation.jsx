@@ -575,6 +575,7 @@ function Adjustments({ reconciliation, myName }) {
 function CompleteDialog({ campaign, onClose, onDone }) {
   const [cost, setCost] = useState(String(campaign.selectedQuoteAmount ?? ''))
   const [note, setNote] = useState('')
+  const [items, setItems] = useState([])
   const [receiptUrl, setReceiptUrl] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -596,12 +597,22 @@ function CompleteDialog({ campaign, onClose, onDone }) {
     event.preventDefault()
     const actualCost = parseNaira(cost)
     if (!actualCost) return setError('Enter what was actually paid to the vendor')
+    const costItems = items
+      .map((item) => ({ label: item.label.trim(), amount: parseNaira(item.amount) }))
+      .filter((item) => item.label || item.amount)
+    if (costItems.some((item) => !item.label || !item.amount)) return setError('Give every cost line a name and an amount')
+    if (costItems.length && itemsTotal !== actualCost) return setError('The cost breakdown must add up to the actual cost')
     setBusy(true)
     setError('')
     try {
       await api(`/campaigns/${campaign.id}/complete`, {
         method: 'POST',
-        body: { actualCost, completionNote: note.trim() || undefined, receiptUrl: receiptUrl ?? undefined },
+        body: {
+          actualCost,
+          completionNote: note.trim() || undefined,
+          receiptUrl: receiptUrl ?? undefined,
+          costItems: costItems.length ? costItems : undefined,
+        },
       })
       onDone()
     } catch (problem) {
@@ -611,6 +622,9 @@ function CompleteDialog({ campaign, onClose, onDone }) {
   }
 
   const difference = parseNaira(cost) != null && campaign.selectedQuoteAmount ? parseNaira(cost) - campaign.selectedQuoteAmount : 0
+  const itemsTotal = items.reduce((sum, item) => sum + (parseNaira(item.amount) ?? 0), 0)
+  const setItem = (index, field) => (event) =>
+    setItems((shown) => shown.map((item, i) => (i === index ? { ...item, [field]: event.target.value } : item)))
 
   return (
     <Modal title="Mark the Repair Complete" description={`Record what was actually paid to ${campaign.selectedVendorName}. Every resident is notified.`} onClose={onClose}>
@@ -628,6 +642,39 @@ function CompleteDialog({ campaign, onClose, onDone }) {
               : `Same as the selected quote (${formatNaira(campaign.selectedQuoteAmount)}).`
           }
         />
+        <fieldset className={styles.costItems}>
+          <legend>
+            Cost Breakdown <span>(optional)</span>
+          </legend>
+          <p>What the money paid for, e.g. the transformer, labour, transport. Residents see it on the transparency report.</p>
+          {items.map((item, index) => (
+            <div key={index} className={styles.costRow}>
+              <input aria-label={`Cost ${index + 1} name`} placeholder="e.g. Transformer replacement" value={item.label} onChange={setItem(index, 'label')} maxLength={60} />
+              <input
+                aria-label={`Cost ${index + 1} amount`}
+                placeholder="₦ amount"
+                inputMode="numeric"
+                value={groupDigits(parseNaira(item.amount))}
+                onChange={setItem(index, 'amount')}
+              />
+              <button type="button" aria-label={`Remove cost ${index + 1}`} onClick={() => setItems((shown) => shown.filter((_, i) => i !== index))}>
+                ×
+              </button>
+            </div>
+          ))}
+          <div className={styles.costFooter}>
+            {items.length < 10 && (
+              <button type="button" onClick={() => setItems((shown) => [...shown, { label: '', amount: '' }])}>
+                + Add cost line
+              </button>
+            )}
+            {items.length > 0 && (
+              <span className={itemsTotal === parseNaira(cost) ? styles.sumOk : styles.sumOff}>
+                Adds up to {formatNaira(itemsTotal)} of {formatNaira(parseNaira(cost) ?? 0)}
+              </span>
+            )}
+          </div>
+        </fieldset>
         <FormField label="Completion Note" optional as="textarea" rows={3} value={note} onChange={(event) => setNote(event.target.value)} placeholder="e.g. New transformer installed and tested. Power restored to Blocks A and B." />
         <div className={styles.attach}>
           <span>Receipt or Invoice Photo (optional)</span>

@@ -19,11 +19,24 @@ import { estateMembers } from '../services/users.js'
 
 const router = Router()
 
-const completeSchema = z.object({
-  actualCost: naira,
-  completionNote: z.string().trim().max(1000).optional(),
-  receiptUrl: cloudinaryUrl.optional(),
+const costItem = z.object({
+  label: z.string().trim().min(2, 'Name the cost').max(60),
+  amount: naira,
 })
+
+const completeSchema = z
+  .object({
+    actualCost: naira,
+    completionNote: z.string().trim().max(1000).optional(),
+    receiptUrl: cloudinaryUrl.optional(),
+    // What the money paid for (e.g. transformer, labour), shown as the Spending
+    // Breakdown on the transparency report. Optional, but it must add up exactly.
+    costItems: z.array(costItem).min(1).max(10).optional(),
+  })
+  .refine((body) => !body.costItems || body.costItems.reduce((sum, item) => sum + item.amount, 0) === body.actualCost, {
+    message: 'The cost breakdown must add up to the actual cost',
+    path: ['costItems'],
+  })
 
 // POST /api/campaigns/:id/complete
 // The admin confirms the repair is done and enters what was actually paid to the vendor.
@@ -41,6 +54,7 @@ router.post('/campaigns/:id/complete', adminOnly, async (req, res) => {
       actualCost: body.actualCost,
       completionNote: body.completionNote ?? null,
       receiptUrl: body.receiptUrl ?? null,
+      costItems: body.costItems ?? [],
       completedAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     })
@@ -54,6 +68,7 @@ router.post('/campaigns/:id/complete', adminOnly, async (req, res) => {
         actualCost: body.actualCost,
         selectedQuoteAmount: fresh.selectedQuoteAmount,
         differenceFromQuote: body.actualCost - fresh.selectedQuoteAmount,
+        costItems: body.costItems ?? [],
       },
     })
   })

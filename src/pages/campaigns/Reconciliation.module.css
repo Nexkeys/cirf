@@ -808,3 +808,90 @@ button.doc:hover {
     padding-right: 8px;
   }
 }
+
+/* Cost breakdown in the Mark as Complete dialog */
+.costItems {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--card-line);
+  border-radius: 10px;
+}
+
+.costItems legend {
+  padding: 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.costItems legend span {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.costItems > p {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.costRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) 34px;
+  gap: 8px;
+}
+
+.costRow input {
+  min-width: 0;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid #dbe4e0;
+  border-radius: 8px;
+  font-size: 13.5px;
+}
+
+.costRow button {
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font-size: 20px;
+  color: var(--muted);
+}
+
+.costRow button:hover {
+  background: var(--track);
+  color: var(--danger);
+}
+
+.costFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.costFooter button {
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--link);
+}
+
+.sumOk,
+.sumOff {
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.sumOk {
+  color: #13703f;
+}
+
+.sumOff {
+  color: #8a5200;
+}

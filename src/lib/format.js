@@ -52,3 +52,6 @@ export function greeting(now = new Date()) {
   if (hour < 17) return 'Good afternoon'
   return 'Good evening'
 }
+
+// The Nigerian calendar day of a timestamp, as "YYYY-MM-DD" (WAT is UTC+1 all year).
+export const lagosDay = (iso) => new Date(new Date(iso).getTime() + 3_600_000).toISOString().slice(0, 10)

@@ -1,5 +1,6 @@
-import { useId, useLayoutEffect, useRef, useState } from 'react'
+import { useId, useRef } from 'react'
 import { formatDay, formatNaira, formatNairaShort } from '../../lib/format.js'
+import { axisLabel, labelIndexes, useWidth, yTicks } from './chartUtils.js'
 import styles from './ContributionChart.module.css'
 
 const HEIGHT = 282
@@ -31,8 +32,7 @@ export function ContributionChart({ timeline, target }) {
     : ''
   const end = points.at(-1)
 
-  const labelCount = Math.min(timeline.length, width < 420 ? 4 : 6)
-  const labels = [...new Set(Array.from({ length: labelCount }, (_, i) => Math.round((i * (timeline.length - 1)) / Math.max(labelCount - 1, 1))))]
+  const labels = labelIndexes(timeline.length, width < 420 ? 4 : 6)
 
   const summary = timeline.length
     ? `${formatNaira(last)} collected between ${formatDay(timeline[0].date)} and ${formatDay(timeline.at(-1).date)}`
@@ -93,31 +93,4 @@ function Bubble({ x, y, text }) {
       </text>
     </g>
   )
-}
-
-// ₦0, ₦250K, ₦1.0M, ₦2.5M: millions keep one decimal, like the design's axis.
-function axisLabel(value) {
-  if (value >= 1_000_000) return `₦${(value / 1_000_000).toFixed(2).replace(/0$/, '')}M`
-  if (value >= 1_000) return `₦${value / 1_000}K`
-  return `₦${value}`
-}
-
-// Four or five round-number steps from ₦0 up past the highest value, e.g. ₦0–₦4.0M.
-function yTicks(max) {
-  if (!max) return [0, 250_000, 500_000, 750_000, 1_000_000]
-  const rough = max / 4
-  const magnitude = 10 ** Math.floor(Math.log10(rough))
-  const step = [1, 2, 2.5, 5, 10].map((m) => m * magnitude).find((s) => s >= rough)
-  return Array.from({ length: Math.ceil(max / step) + 1 }, (_, i) => i * step)
-}
-
-function useWidth(ref) {
-  const [width, setWidth] = useState(0)
-  useLayoutEffect(() => {
-    const element = ref.current
-    const observer = new ResizeObserver(([entry]) => setWidth(Math.floor(entry.contentRect.width)))
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [ref])
-  return width
 }

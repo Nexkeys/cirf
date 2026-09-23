@@ -193,7 +193,7 @@ Phone numbers are stored as `+234...` and must be unique, so any usual way of wr
 ### Reconciliation and transparency
 | Method | Path | Access | Purpose |
 | --- | --- | --- | --- |
-| POST | `/api/campaigns/:id/complete` | Admin | Body: `actualCost`, `completionNote?`, `receiptUrl?` |
+| POST | `/api/campaigns/:id/complete` | Admin | Body: `actualCost`, `completionNote?`, `receiptUrl?`, `costItems?` (up to 10 `{ label, amount }` that must add up exactly to `actualCost`; shown as the Spending Breakdown and in the PDF) |
 | POST | `/api/campaigns/:id/reconcile` | Admin | Run and store the reconciliation (refused while contributions are pending) |
 | GET | `/api/campaigns/:id/reconciliation` | Resident | The stored result, plus the caller's own row as `mine` |
 | GET | `/api/campaigns/:id/transparency-report` | Resident | Full audit trail as JSON |

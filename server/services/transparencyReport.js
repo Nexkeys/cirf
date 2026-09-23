@@ -61,6 +61,8 @@ export async function buildTransparencyReport(campaign, { anonymize }) {
       reconciledAt: campaign.reconciledAt,
       receiptUrl: campaign.receiptUrl,
       completionNote: campaign.completionNote,
+      costItems: campaign.costItems ?? [],
+      selectedVendorName: campaign.selectedVendorName,
     },
     summary: {
       targetAmount: campaign.targetAmount,
@@ -79,6 +81,7 @@ export async function buildTransparencyReport(campaign, { anonymize }) {
       amount: c.amount,
       method: c.method,
       reference: anonymize ? null : c.reference,
+      proofUrl: anonymize ? null : (c.proofUrl ?? null),
       paidAt: c.paidAt,
       verifiedAt: c.verifiedAt,
     })),

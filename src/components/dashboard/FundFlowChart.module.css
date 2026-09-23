@@ -1,0 +1,50 @@
+.chart {
+  position: relative;
+  min-width: 0;
+}
+
+.chart svg {
+  display: block;
+  overflow: visible;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px 18px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.legend span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.grid {
+  stroke: var(--track);
+  stroke-width: 1;
+}
+
+.axis {
+  font-size: 12px;
+  fill: var(--text);
+}
+
+@media (max-width: 640px) {
+  .legend {
+    justify-content: flex-start;
+    margin-top: 0;
+  }
+}

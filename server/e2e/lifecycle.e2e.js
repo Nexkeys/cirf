@@ -298,8 +298,19 @@ describe('campaign lifecycle', () => {
     const reconcilePath = `/api/campaigns/${state.campaignId}/reconcile`
     assert.equal((await call(token.lead, 'POST', reconcilePath)).status, 409) // not complete yet
 
-    const completed = await call(token.lead, 'POST', `/api/campaigns/${state.campaignId}/complete`, { actualCost: 70_000 })
+    const completePath = `/api/campaigns/${state.campaignId}/complete`
+    // An itemised cost has to add up to the actual cost.
+    const wrongSum = await call(token.lead, 'POST', completePath, {
+      actualCost: 70_000,
+      costItems: [{ label: 'Transformer', amount: 50_000 }, { label: 'Labour', amount: 10_000 }],
+    })
+    assert.equal(wrongSum.status, 400)
+    assert.equal(wrongSum.data.error.details[0].field, 'costItems')
+
+    const costItems = [{ label: 'Transformer', amount: 55_000 }, { label: 'Labour & installation', amount: 15_000 }]
+    const completed = await call(token.lead, 'POST', completePath, { actualCost: 70_000, costItems })
     assert.equal(completed.data.campaign.status, 'completed')
+    assert.deepEqual(completed.data.campaign.costItems, costItems)
 
     const reconciled = await call(token.lead, 'POST', reconcilePath)
     assert.equal(reconciled.status, 201)
@@ -321,6 +332,7 @@ describe('campaign lifecycle', () => {
     const report = await call(token.ada, 'GET', `/api/campaigns/${state.campaignId}/transparency-report`)
     assert.equal(report.status, 200)
     assert.equal(report.data.report.contributions.length, 4)
+    assert.equal(report.data.report.campaign.costItems.length, 2)
     assert.ok(report.data.report.timeline.some((event) => event.type === 'campaign_reconciled'))
     assert.ok(report.data.report.timeline.some((event) => event.type === 'target_reached'))
 

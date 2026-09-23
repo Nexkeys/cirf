@@ -91,6 +91,19 @@ export function streamTransparencyPdf(report, res) {
     q.selectionReason ?? q.notes ?? '',
   ]))
 
+  if (campaign.costItems?.length) {
+    heading(doc, 'What the money paid for')
+    table(doc, [
+      { header: 'Cost', width: CONTENT_WIDTH - 180 },
+      { header: 'Share', width: 70, align: 'right' },
+      { header: 'Amount', width: 110, align: 'right' },
+    ], campaign.costItems.map((item) => [
+      item.label,
+      `${Math.round((item.amount / summary.actualCost) * 100)}%`,
+      formatNaira(item.amount),
+    ]))
+  }
+
   heading(doc, 'Reconciliation')
   if (!report.reconciliation) {
     note(doc, 'This campaign has not been reconciled yet.')
