@@ -1,12 +1,9 @@
 import skylineLarge from '../assets/images/hero-skyline-1600.webp'
 import skylineSmall from '../assets/images/hero-skyline-800.webp'
-import streetLarge from '../assets/images/hero-street-1600.webp'
-import streetSmall from '../assets/images/hero-street-800.webp'
 import styles from './HeroBackground.module.css'
 
 const PHOTOS = {
   skyline: [skylineSmall, skylineLarge], // Welcome screen, and the photo panel beside the forms on desktop
-  street: [streetSmall, streetLarge], // Home screen
 }
 
 // The photo behind a dark screen, framed the way the design frames it, under the dark

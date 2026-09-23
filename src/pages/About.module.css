@@ -1,0 +1,490 @@
+/* Sizes follow ABOUT-SCREEN.png scaled to a 1440px-wide screen. */
+
+/* ---------- Hero ---------- */
+.hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: 540px;
+  background: var(--pub-light);
+}
+
+/* The photo fills the right two thirds and fades into the cream behind the text. */
+.heroPhoto {
+  position: absolute;
+  inset: 0 0 0 auto;
+  z-index: -1;
+  width: 70%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 60% 50%;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgb(0 0 0 / 0.55) 14%, #000 32%);
+  mask-image: linear-gradient(90deg, transparent 0%, rgb(0 0 0 / 0.55) 14%, #000 32%);
+}
+
+.heroInner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 118px;
+  padding-bottom: 56px;
+}
+
+.heroTitle {
+  margin-top: 20px;
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-size: clamp(38px, 3.3vw, 50px);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  color: var(--pub-ink);
+}
+
+/* The design's line breaks, kept on wide screens only; phones wrap naturally. */
+@media (max-width: 900px) {
+  .wideBreak {
+    display: none;
+  }
+}
+
+.italic {
+  font-style: italic;
+  color: var(--pub-accent);
+}
+
+.heroLead {
+  max-width: 430px;
+  margin: 26px 0 30px;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--pub-ink);
+}
+
+.sideTag {
+  position: absolute;
+  top: 96px;
+  right: 0;
+  padding: 18px 16px;
+  background: rgb(238 242 237 / 0.82);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pub-text);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.sideTag span {
+  margin: 10px 0;
+}
+
+/* ---------- Shared ---------- */
+.sectionTitle {
+  margin-top: 16px;
+  font-size: clamp(30px, 2.8vw, 42px);
+}
+
+.body {
+  margin: 24px 0 36px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--pub-ink);
+}
+
+/* ---------- The origin ---------- */
+.origin {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr) minmax(0, 0.72fr) minmax(0, 0.9fr);
+  align-items: start;
+  gap: 24px;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+.originText {
+  padding-right: 24px;
+}
+
+.originTall,
+.originShort {
+  width: 100%;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.originTall {
+  aspect-ratio: 0.82;
+}
+
+.originShort {
+  aspect-ratio: 0.8;
+}
+
+.stats {
+  display: grid;
+  gap: 26px;
+}
+
+.stats > div + div {
+  padding-top: 26px;
+  border-top: 1px solid var(--pub-line);
+}
+
+.statValue {
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-size: clamp(36px, 3.1vw, 46px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--pub-ink);
+}
+
+.statText {
+  margin-top: 12px;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+/* ---------- What CIRF is ---------- */
+.what {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24%;
+  background: #012b20;
+  color: rgb(255 255 255 / 0.78);
+}
+
+.whatInner {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.6fr);
+  align-items: center;
+  gap: 40px;
+  padding: 48px 40px 48px var(--gutter);
+}
+
+.whatTitle {
+  margin-top: 16px;
+  font-size: clamp(30px, 2.9vw, 44px);
+  line-height: 1.1;
+}
+
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.pillars li {
+  padding: 14px 18px 22px;
+  border-left: 1px solid rgb(255 255 255 / 0.18);
+}
+
+.pillars h3 {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 500;
+  color: #d9f0e2;
+}
+
+.pillars p {
+  margin-top: 14px;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.whatPhotoBox {
+  position: relative;
+  min-height: 300px;
+}
+
+.whatPhoto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.caption {
+  position: absolute;
+  right: 0;
+  bottom: 22px;
+  padding: 16px 22px;
+  background: linear-gradient(90deg, rgb(1 43 32 / 0), rgb(1 43 32 / 0.75) 30%);
+  font-size: 13px;
+  line-height: 1.45;
+  color: #fff;
+}
+
+/* ---------- The platform ---------- */
+.platform {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+  gap: 48px;
+  padding-top: 44px;
+  padding-bottom: 48px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 26px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.mock {
+  height: 220px;
+}
+
+.mock > * {
+  box-shadow: none;
+}
+
+.cardTitle {
+  margin-top: 16px;
+  font-family: var(--serif);
+  font-size: 23px;
+  font-weight: 500;
+  color: var(--pub-ink);
+}
+
+.cardText {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* ---------- Designed around communities ---------- */
+.band {
+  position: relative;
+  isolation: isolate;
+  color: rgb(255 255 255 / 0.85);
+}
+
+.bandPhoto {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 55%;
+}
+
+.band::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgb(3 45 33 / 0.95) 0%, rgb(3 45 33 / 0.78) 30%, rgb(3 45 33 / 0) 58%);
+}
+
+.bandInner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 320px;
+  padding-top: 44px;
+  padding-bottom: 44px;
+}
+
+.bandTitle {
+  max-width: 440px;
+  font-size: clamp(30px, 2.7vw, 40px);
+  line-height: 1.12;
+}
+
+.bandText {
+  max-width: 400px;
+  margin-top: 20px;
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+/* ---------- Call to action ---------- */
+.cta {
+  display: grid;
+  grid-template-columns: 32% minmax(0, 1fr) minmax(0, 0.55fr);
+  align-items: center;
+  gap: 56px;
+  min-height: 280px;
+  background: var(--pub-light);
+}
+
+.ctaPhoto {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  object-fit: cover;
+}
+
+.ctaText p {
+  margin: 14px 0 26px;
+  font-size: 15px;
+  color: var(--pub-ink);
+}
+
+.ctaTitle {
+  max-width: 540px;
+  font-size: clamp(30px, 2.7vw, 40px);
+  line-height: 1.1;
+}
+
+.ctaButton {
+  min-height: 46px;
+}
+
+.ctaArt {
+  position: relative;
+  padding-right: var(--gutter);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--pub-accent);
+}
+
+.ctaArt p {
+  position: absolute;
+  top: 26px;
+  left: 110px;
+}
+
+.sketch {
+  width: 170px;
+  fill: none;
+  stroke: var(--pub-accent);
+  stroke-width: 0.9;
+  opacity: 0.55;
+}
+
+/* ---------- Narrower screens ---------- */
+@media (max-width: 1200px) {
+  .origin {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .originText {
+    grid-column: 1 / -1;
+    max-width: 640px;
+  }
+
+  .stats {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stats > div + div {
+    padding-top: 0;
+    padding-left: 26px;
+    border-top: 0;
+    border-left: 1px solid var(--pub-line);
+  }
+
+  .what {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .whatInner {
+    grid-template-columns: minmax(0, 1fr);
+    padding-right: var(--gutter);
+  }
+
+  .platform {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px 24px;
+  }
+
+  .cta {
+    grid-template-columns: 36% minmax(0, 1fr);
+  }
+
+  .ctaArt {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    min-height: 0;
+    flex-direction: column;
+  }
+
+  .heroPhoto {
+    position: relative;
+    order: 2;
+    width: 100%;
+    height: 280px;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .heroInner {
+    padding-top: 110px;
+    padding-bottom: 36px;
+  }
+
+  .sideTag {
+    display: none;
+  }
+
+  .cta {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .ctaPhoto {
+    min-height: 0;
+    height: 240px;
+  }
+
+  .ctaText {
+    padding: 40px var(--gutter) 48px;
+  }
+
+  .band::before {
+    background: linear-gradient(180deg, rgb(3 45 33 / 0.9), rgb(3 45 33 / 0.75));
+  }
+}
+
+@media (max-width: 600px) {
+  .origin {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stats > div + div {
+    padding: 26px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--pub-line);
+  }
+
+  .pillars {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pillars li {
+    padding: 18px 0 18px 18px;
+  }
+
+  .cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mock {
+    height: auto;
+  }
+}

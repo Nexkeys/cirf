@@ -139,6 +139,24 @@
   display: none;
 }
 
+/* Small laptops: the sidebar is narrower (see AppShell), so the links tighten up. */
+@media (max-width: 1100px) and (min-width: 901px) {
+  .top {
+    padding-left: 18px;
+  }
+
+  .link {
+    gap: 14px;
+    padding: 0 14px;
+    font-size: 15px;
+    white-space: nowrap;
+  }
+
+  .promo {
+    padding: 28px 20px;
+  }
+}
+
 @media (max-height: 820px) {
   .promo {
     display: none;

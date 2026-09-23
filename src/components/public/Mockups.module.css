@@ -1,0 +1,292 @@
+/* Miniature CIRF screens. Sizes are in px because they're pictures of a UI, not text
+   people read at length. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  height: 100%;
+  padding: 14px;
+  border: 1px solid #e3e9e5;
+  border-radius: 10px;
+  background: #fbfcfb;
+  box-shadow: 0 10px 28px rgb(0 20 14 / 0.18);
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--pub-ink);
+  user-select: none;
+  container-type: inline-size;
+}
+
+/* Narrow cards (six across on a laptop) drop the least important details. */
+@container (max-width: 190px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+
+  .selected,
+  .quote small,
+  .people strong {
+    display: none;
+  }
+}
+
+.card svg {
+  width: 1em;
+  height: 1em;
+  flex: none;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.titleIcon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 50%;
+  background: #e1f1e8;
+  color: var(--pub-green);
+  font-size: 14px;
+}
+
+.label {
+  font-size: 10px;
+  color: #7a8883;
+}
+
+.input {
+  padding: 6px 8px;
+  margin-bottom: 2px;
+  overflow: hidden;
+  border: 1px solid #e3e9e5;
+  border-radius: 5px;
+  background: #fff;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: auto;
+  padding: 7px;
+  border-radius: 5px;
+  background: var(--pub-green);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.amount {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.amount small {
+  font-size: 10px;
+  font-weight: 400;
+  color: #7a8883;
+}
+
+.small {
+  font-size: 11px;
+}
+
+.barRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 10px;
+  color: #7a8883;
+}
+
+.bar {
+  flex: 1;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5ece8;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pub-green);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 50%;
+  background: #d6e9df;
+  font-size: 8.5px;
+  font-weight: 700;
+  color: var(--pub-green);
+}
+
+.people,
+.quotes,
+.checklist,
+.report {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.people li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.people strong {
+  margin-left: auto;
+  font-weight: 500;
+}
+
+.quotes li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.quotes li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.quote {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+}
+
+.quote span {
+  overflow: hidden;
+  font-size: 10px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #52615c;
+}
+
+.quote small {
+  font-size: 9.5px;
+  color: #8a9792;
+}
+
+.selected {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--pub-green);
+  font-size: 9px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.checklist li {
+  display: flex;
+  gap: 8px;
+  color: #8a9792;
+}
+
+.checklist li svg {
+  margin-top: 1px;
+  font-size: 13px;
+}
+
+.checklist span {
+  display: grid;
+}
+
+.checklist small {
+  font-size: 9.5px;
+}
+
+.checklist .done {
+  color: var(--pub-ink);
+}
+
+.checklist .done svg {
+  color: var(--pub-green);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.box {
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+  border: 1px solid #e3e9e5;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.box small,
+.refund small {
+  font-size: 9.5px;
+  font-weight: 400;
+  color: #7a8883;
+}
+
+.refund {
+  display: block;
+  margin: 4px 0;
+  padding: 9px;
+  border-radius: 6px;
+  background: #e3f2e9;
+  color: var(--pub-green);
+}
+
+.refund small {
+  display: block;
+  color: var(--pub-green);
+}
+
+.refund strong {
+  font-size: 13px;
+}
+
+.report li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.report li svg {
+  font-size: 14px;
+  color: var(--pub-green);
+}
+
+.report small {
+  margin-left: auto;
+  font-size: 9.5px;
+  color: #7a8883;
+}

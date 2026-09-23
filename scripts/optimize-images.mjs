@@ -18,9 +18,11 @@ await mkdir(OUT, { recursive: true })
 
 const photos = {
   'hero-skyline': 'Auth_Screen_Images/Auth-Screen-Image2.png', // Welcome screen and the desktop sign-in panel
-  'hero-street': 'Auth_Screen_Images/Auth-Screen-Image1.png', // Home screen
-  'poles-street': 'Homepage_Screen_Images/Hero image.png', // dashboard sidebar card
-  transformer: 'Homepage_Screen_Images/Problem-section image.png', // campaigns without an uploaded photo
+  'hero-street': 'Auth_Screen_Images/Auth-Screen-Image1.png', // About: "What CIRF is"
+  'poles-street': 'Homepage_Screen_Images/Hero image.png', // Home and About heroes, dashboard sidebar card
+  transformer: 'Homepage_Screen_Images/Problem-section image.png', // Home problem section, About origin, campaigns without a photo
+  'community-walk': 'Homepage_Screen_Images/Trust-section image.png', // Home trust section, About "Designed around" band
+  'evening-street': 'Homepage_Screen_Images/Small CTA image.png', // Home call to action, footers, About origin
 }
 for (const [name, file] of Object.entries(photos)) {
   for (const width of [800, 1600]) {

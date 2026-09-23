@@ -1,22 +1,21 @@
 import { FeatureList } from './FeatureList.jsx'
 import styles from './WelcomeStory.module.css'
 
-// The headline, introduction and features from the Welcome screen. The same story sits
-// in the photo panel beside the forms on wide screens, where it isn't the page heading.
+// The welcome story: CIRF's promise, the one-line summary and the three features. It is
+// the Welcome screen's heading, and on wide screens it also fills the photo panel beside
+// the forms, where it isn't the page heading.
 export function WelcomeStory({ isPageHeading = false }) {
   const Heading = isPageHeading ? 'h1' : 'p'
   return (
     <div className={styles.story}>
+      <p className={styles.eyebrow}>Community Infrastructure Repair Fund Tracker</p>
       <Heading className={styles.heading}>
-        Community
-        <br />
-        Infrastructure
-        <br />
-        <span className={styles.accent}>Repair Fund Tracker</span>
+        Stronger Communities Through <span className={styles.accent}>Transparency</span>
       </Heading>
       <p className={styles.intro}>
-        A transparent, real-time platform that helps communities and estates fairly levy, collect, track and
-        reconcile contributions toward infrastructure repairs.
+        Track contributions. Verify repair costs.
+        <br />
+        Reconcile funds. Build trust.
       </p>
       <div className={styles.features}>
         <FeatureList withDetail />

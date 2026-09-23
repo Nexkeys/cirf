@@ -1,0 +1,142 @@
+/* Shared by Home and About. */
+.page {
+  --gutter: clamp(20px, 6.6vw, 96px);
+  background: var(--pub-light);
+  color: var(--pub-text);
+  overflow-x: clip;
+}
+
+.container {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pub-ink);
+}
+
+.eyebrowRule::after {
+  content: '';
+  width: 48px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.4;
+}
+
+.onDark .eyebrow,
+.eyebrow.onDark {
+  color: rgb(255 255 255 / 0.78);
+}
+
+.title {
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-size: clamp(32px, 3.9vw, 54px);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  color: var(--pub-ink);
+}
+
+.onDark .title {
+  color: #fff;
+}
+
+.accent {
+  color: var(--pub-accent);
+}
+
+.onDark .accent {
+  color: var(--pub-mint);
+}
+
+.lead {
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.rule {
+  display: block;
+  width: 56px;
+  height: 1px;
+  background: var(--pub-ink);
+  opacity: 0.45;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.primary,
+.outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 28px;
+  border-radius: 7px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+
+.primary {
+  background: var(--pub-green);
+  color: #fff;
+}
+
+.primary:hover {
+  background: var(--pub-green-hover);
+}
+
+.outline {
+  border: 1px solid rgb(255 255 255 / 0.55);
+  color: #fff;
+}
+
+.outline:hover {
+  border-color: #fff;
+  background: rgb(255 255 255 / 0.06);
+}
+
+.outline.onLight {
+  border-color: var(--pub-ink);
+  color: var(--pub-ink);
+}
+
+.textLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pub-ink);
+  text-decoration: none;
+}
+
+.textLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .actions > * {
+    flex: 1 1 100%;
+  }
+}

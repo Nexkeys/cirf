@@ -1,6 +1,31 @@
+/* Phones and tablets: the photo behind everything, the form on a frosted card. */
 .page {
+  position: relative;
+  isolation: isolate;
   min-height: 100svh;
-  background: linear-gradient(180deg, var(--page-top), var(--page-bottom));
+  background: var(--hero-ink);
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.backdropPhoto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 22% 30%;
+  filter: saturate(0.85);
+}
+
+.backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(2 11 14 / 0.15) 0%, rgb(2 11 14 / 0.4) 40%, rgb(2 11 14 / 0.72) 100%);
 }
 
 .panel {
@@ -11,17 +36,18 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 480px;
+  max-width: 520px;
   min-height: 100svh;
   margin: 0 auto;
-  padding: 34px var(--pad-x) 48px;
+  padding: max(22px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 32px;
+  min-height: 42px;
+  padding: 0 6px;
   --logo-size: 30px;
 }
 
@@ -31,44 +57,68 @@
 }
 
 .tagline {
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 14px;
   font-weight: 500;
   text-align: right;
-  color: #22272d;
+  color: rgb(255 255 255 / 0.9);
 }
 
 .withBack {
   justify-content: flex-start;
-  gap: 24px;
-  margin-left: calc(-1 * var(--pad-x) + 12px);
+  gap: 14px;
 }
 
 .back {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgb(255 255 255 / 0.22);
   border-radius: 50%;
-  color: var(--ink);
+  background: rgb(2 11 14 / 0.35);
+  backdrop-filter: blur(8px);
+  color: #fff;
 }
 
 .back:hover {
-  background: rgb(12 20 17 / 0.06);
+  background: rgb(255 255 255 / 0.12);
 }
 
+/* The card starts a little way down so the photo shows above it. */
 .body {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  padding-top: 40px;
+  margin-top: clamp(24px, 12svh, 120px);
+  padding: 30px 22px 26px;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  border-radius: 22px;
+  background: rgb(247 247 243 / 0.9);
+  backdrop-filter: blur(18px) saturate(1.2);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.35);
 }
 
-/* Wide screens: photo panel on the left, the form centred on the right. */
+@media (max-width: 360px) {
+  .main {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .body {
+    padding: 24px 16px 22px;
+  }
+}
+
+/* Wide screens: photo panel on the left, the form centred on the cream right-hand side. */
 @media (min-width: 960px) {
   .page {
     display: grid;
     grid-template-columns: minmax(440px, 46%) 1fr;
+    background: linear-gradient(180deg, var(--page-top), var(--page-bottom));
+  }
+
+  .backdrop {
+    display: none;
   }
 
   .panel {
@@ -106,7 +156,7 @@
   .main {
     justify-content: center;
     max-width: 460px;
-    padding-block: 48px;
+    padding: 48px var(--pad-x);
   }
 
   /* The panel already shows the logo and name. */
@@ -117,14 +167,33 @@
 
   .header {
     min-height: 0;
+    padding: 0;
   }
 
   .withBack {
     margin-left: -10px;
   }
 
+  .back {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    background: none;
+    backdrop-filter: none;
+    color: var(--ink);
+  }
+
+  .back:hover {
+    background: rgb(12 20 17 / 0.06);
+  }
+
   .body {
-    flex: 0 0 auto;
-    padding-top: 12px;
+    margin-top: 0;
+    padding: 12px 0 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    backdrop-filter: none;
+    box-shadow: none;
   }
 }

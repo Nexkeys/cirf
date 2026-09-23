@@ -1,127 +1,598 @@
-.page {
+/* Sizes follow HOME-PAGE-DESIGN.png scaled to a 1440px-wide screen. */
+
+/* ---------- Hero ---------- */
+.hero {
   position: relative;
   isolation: isolate;
   display: flex;
-  flex-direction: column;
-  min-height: 100svh;
-  overflow: hidden;
+  min-height: clamp(600px, 78svh, 700px);
+  background: #000f0d;
   color: #fff;
-  background: var(--hero-ink);
 }
 
-.header {
+.heroPhoto {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 70% 40%;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgb(0 15 13 / 0.97) 0%, rgb(0 15 13 / 0.9) 28%, rgb(0 15 13 / 0.45) 52%, rgb(0 15 13 / 0) 70%),
+    linear-gradient(180deg, rgb(0 15 13 / 0.35) 0%, rgb(0 15 13 / 0) 22%);
+}
+
+.heroInner {
   position: relative;
-  z-index: 2;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 20px 16px 0 24px;
-  --logo-size: 27px;
+  padding-top: 104px;
+  padding-bottom: 60px;
 }
 
-.logoLink {
-  display: inline-flex;
+.heroText {
+  max-width: 600px;
 }
 
-.menuButton {
+.hero .heroText .heroEyebrow {
+  color: #a9dcbf;
+}
+
+.heroTitle {
+  margin-top: 18px;
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-size: clamp(42px, 4.4vw, 64px);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+/* The design's line breaks, kept on wide screens only; phones wrap naturally. */
+@media (max-width: 900px) {
+  .wideBreak {
+    display: none;
+  }
+}
+
+.heroLead {
+  max-width: 470px;
+  margin: 22px 0 32px;
+  font-size: 16px;
+  line-height: 1.65;
+  color: rgb(255 255 255 / 0.86);
+}
+
+.play {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+}
+
+.play svg {
+  margin-left: 2px;
+}
+
+.handwritten {
+  position: absolute;
+  top: 138px;
+  right: var(--gutter);
+  font-family: var(--script);
+  font-size: clamp(28px, 2.6vw, 38px);
+  font-weight: 600;
+  line-height: 1.12;
+  color: #123b2e;
+  transform: rotate(-7deg);
+  transform-origin: right top;
+}
+
+.place {
+  position: absolute;
+  right: calc(var(--gutter) + 40px);
+  bottom: 34px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: 0 1px 8px rgb(0 0 0 / 0.5);
+}
+
+.place span {
+  display: grid;
+}
+
+.place small {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgb(255 255 255 / 0.8);
+}
+
+/* ---------- Shared section bits ---------- */
+.sectionTitle {
+  margin-top: 16px;
+  font-size: clamp(30px, 2.6vw, 40px);
+}
+
+.body {
+  margin-top: 22px;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.strong {
+  margin-top: 22px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--pub-ink);
+}
+
+.small {
+  min-height: 44px;
+  padding: 0 20px;
+  font-size: 14px;
+}
+
+/* ---------- The problem ---------- */
+.problem {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1.25fr);
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.problemText {
+  padding: 40px 48px 48px var(--gutter);
+  border-right: 1px solid var(--pub-line);
+  margin: 26px 0;
+}
+
+.stats {
+  display: grid;
+  align-content: start;
+  gap: 30px;
+  padding: 44px 40px 40px;
+}
+
+.statValue {
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-size: clamp(40px, 3.9vw, 58px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--pub-ink);
+}
+
+.statText {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.mission {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.mission svg {
+  flex: none;
+  color: var(--pub-ink);
+}
+
+.problemPhoto {
+  width: 100%;
+  height: calc(100% - 30px);
+  margin-top: 30px;
+  object-fit: cover;
+}
+
+/* ---------- How it works ---------- */
+.how {
+  background: radial-gradient(120% 90% at 0% 100%, #0a3326 0%, var(--pub-night) 55%);
+  color: rgb(255 255 255 / 0.8);
+}
+
+/* The intro reads across the top, so all six steps get a full-width row below it. */
+.howInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: end;
+  gap: 32px 64px;
+  padding-top: 64px;
+  padding-bottom: 64px;
+  padding-left: max(20px, calc(var(--gutter) - 32px));
+  padding-right: max(20px, calc(var(--gutter) - 32px));
+}
+
+.howAside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 420px;
+}
+
+.howLead {
+  margin-bottom: 22px;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.steps {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 14px 10px 10px;
+  border: 1px solid rgb(255 255 255 / 0.07);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.02);
+}
+
+.number {
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+  color: rgb(255 255 255 / 0.9);
+}
+
+.stepTitle {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.stepText {
+  margin: 8px 0 18px;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.mock {
+  margin-top: auto;
+  height: 232px;
+}
+
+/* ---------- Why CIRF ---------- */
+.why {
+  background: var(--pub-light);
+}
+
+.whyInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2.5fr);
+  gap: 56px;
+  padding-top: 64px;
+  padding-bottom: 64px;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 44px 0;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.feature {
+  display: flex;
+  gap: 16px;
+  padding: 0 28px;
+  border-left: 1px solid var(--pub-line);
+}
+
+.featureIcon {
   display: grid;
   place-items: center;
   width: 44px;
   height: 44px;
-  border: 0;
+  flex: none;
+  border-radius: 50%;
+  background: #dcebe2;
+  color: var(--pub-green);
+}
+
+.featureIcon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.featureTitle {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--pub-ink);
+}
+
+.featureText {
+  margin-top: 8px;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.whyIntro a {
+  margin-top: 26px;
+}
+
+/* ---------- Trust ---------- */
+.trust {
+  position: relative;
+  isolation: isolate;
+  color: rgb(255 255 255 / 0.85);
+}
+
+.trustPhoto {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 60%;
+}
+
+.trust::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgb(1 35 28 / 0.95) 0%, rgb(1 35 28 / 0.82) 32%, rgb(1 35 28 / 0.15) 62%, rgb(1 35 28 / 0.35) 100%);
+}
+
+.trustInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  min-height: 340px;
+  padding-top: 48px;
+  padding-bottom: 48px;
+}
+
+.trustText {
+  max-width: 470px;
+}
+
+.trustBody {
+  margin-top: 18px;
+  font-size: 14.5px;
+  line-height: 1.65;
+}
+
+.testimonial {
+  display: flex;
+  gap: 18px;
+  max-width: 380px;
+  margin: 0;
+  padding: 22px;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 14px;
+  background: rgb(3 43 33 / 0.78);
+  backdrop-filter: blur(6px);
+  align-self: flex-start;
+}
+
+.testimonialAvatar {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  flex: none;
   border-radius: 10px;
-  background: transparent;
+  background: #d8efe1;
+  font-weight: 700;
+  color: var(--pub-green);
+}
+
+.testimonial blockquote {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
   color: #fff;
 }
 
-.menuButton:hover {
-  background: rgb(255 255 255 / 0.08);
-}
-
-.menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 16px;
-  display: grid;
-  min-width: 210px;
-  padding: 8px;
-  border: 1px solid rgb(255 255 255 / 0.1);
-  border-radius: 12px;
-  background: rgb(4 18 16 / 0.92);
-  box-shadow: 0 18px 40px rgb(0 0 0 / 0.35);
-  backdrop-filter: blur(12px);
-}
-
-.menu a {
-  padding: 11px 12px;
-  border-radius: 8px;
-  font-size: 14.5px;
-  font-weight: 500;
-  text-decoration: none;
-}
-
-.menu a:hover {
-  background: rgb(255 255 255 / 0.08);
-}
-
-.content {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-top: auto;
-  padding: 48px 24px 26px 27px;
-}
-
-.heading {
-  font-size: 30px;
-  line-height: 1.04;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-}
-
-.accent {
-  color: var(--hero-green);
-}
-
-.intro {
+.testimonial figcaption {
   margin-top: 12px;
   font-size: 13px;
-  line-height: 19px;
-  color: rgb(255 255 255 / 0.94);
+  color: rgb(255 255 255 / 0.75);
 }
 
+/* ---------- Call to action ---------- */
 .cta {
-  margin-top: 22px;
+  background: var(--pub-night);
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
 }
 
-.features {
-  align-self: stretch;
-  margin-top: 30px;
+.ctaInner {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1.6fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 56px;
+  padding-top: 48px;
+  padding-bottom: 48px;
 }
 
-@media (min-width: 960px) {
-  .header {
-    padding: 28px clamp(32px, 5vw, 72px) 0;
-    --logo-size: 34px;
+.ctaPhoto {
+  width: 100%;
+  aspect-ratio: 5 / 4;
+  border-radius: 18px;
+  object-fit: cover;
+}
+
+.ctaTitle {
+  max-width: 560px;
+  margin-bottom: 26px;
+  font-size: clamp(26px, 2.3vw, 34px);
+}
+
+.ctaBrand {
+  --logo-size: 36px;
+  justify-self: center;
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.85);
+}
+
+.ctaBrand p {
+  margin-top: 12px;
+}
+
+/* ---------- Narrower screens ---------- */
+@media (max-width: 1200px) {
+  .howInner {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
   }
 
-  .content {
-    padding: 64px clamp(32px, 5vw, 72px);
+  .steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
   }
 
-  .heading {
-    font-size: clamp(48px, 5vw, 72px);
+  .problem {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   }
 
-  .intro {
-    font-size: 18px;
-    line-height: 1.5;
+  .problemPhoto {
+    grid-column: 1 / -1;
+    height: 360px;
+    margin: 0;
+  }
+
+  .whyInner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+
+  .whyIntro {
+    max-width: 560px;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    min-height: 100svh;
+  }
+
+  .hero::before {
+    background: linear-gradient(180deg, rgb(0 15 13 / 0.3) 0%, rgb(0 15 13 / 0.6) 34%, rgb(0 15 13 / 0.94) 62%);
+  }
+
+  .heroInner {
+    align-items: flex-end;
+    padding-top: 110px;
+    padding-bottom: 40px;
+  }
+
+  .handwritten,
+  .place {
+    display: none;
+  }
+
+  .problem {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .problemText {
+    margin: 0;
+    padding: 48px var(--gutter) 8px;
+    border-right: 0;
+  }
+
+  .stats {
+    padding: 32px var(--gutter) 40px;
   }
 
   .features {
-    align-self: flex-start;
-    width: min(560px, 100%);
-    margin-top: 48px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .trustInner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .trust::before {
+    background: linear-gradient(180deg, rgb(1 35 28 / 0.9) 0%, rgb(1 35 28 / 0.8) 100%);
+  }
+
+  .ctaInner {
+    grid-template-columns: 160px minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .ctaBrand {
+    display: none;
+  }
+}
+
+/* Phones: the six steps become a swipeable row. */
+@media (max-width: 760px) {
+  .steps {
+    display: flex;
+    gap: 14px;
+    margin: 0 calc(-1 * max(20px, calc(var(--gutter) - 32px)));
+    padding: 0 max(20px, calc(var(--gutter) - 32px)) 8px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 max(20px, calc(var(--gutter) - 32px));
+    scrollbar-width: none;
+  }
+
+  .step {
+    flex: 0 0 min(78vw, 300px);
+    scroll-snap-align: start;
+    padding: 18px 14px 14px;
+  }
+
+  .mock {
+    height: 250px;
+  }
+}
+
+@media (max-width: 600px) {
+  .features {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .feature {
+    padding: 0;
+    border-left: 0;
+  }
+
+  .ctaInner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ctaPhoto {
+    display: none;
   }
 }

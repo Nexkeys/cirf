@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router'
 import { GuestOnly, MemberOnly, SignedInOnly } from './auth/RouteGuards.jsx'
+import About from './pages/About.jsx'
 import Account from './pages/Account.jsx'
 import CheckEmail from './pages/CheckEmail.jsx'
 import ComingSoon from './pages/ComingSoon.jsx'
@@ -21,11 +22,12 @@ const UPCOMING = [
   ['/settings', 'Settings'],
 ]
 
-// Home -> Welcome -> Create Account / Sign In -> Overview
+// Home (and About) -> Welcome -> Create Account / Sign In -> Overview
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/about" element={<About />} />
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/signin" element={<GuestOnly><SignIn /></GuestOnly>} />
       <Route path="/signup" element={<GuestOnly><CreateAccount /></GuestOnly>} />

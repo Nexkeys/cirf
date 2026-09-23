@@ -1,6 +1,8 @@
 /* Design tokens, sampled from the CIRF screen designs (public/Images/SCREEN DESIGNS). */
 :root {
   --font: 'Inter Variable', Inter, 'Segoe UI', system-ui, sans-serif;
+  --serif: 'Source Serif 4 Variable', Georgia, 'Times New Roman', serif;
+  --script: 'Caveat Variable', 'Segoe Script', cursive;
 
   /* Light screens */
   --page: #f5f5f1;
@@ -31,6 +33,18 @@
   --hero-icon: #74d89c;
   --bright: #0e8a4f;
   --bright-end: #1f8c60;
+
+  /* Public pages (Home, About) */
+  --pub-night: #02241c;
+  --pub-deep: #0a3b2d;
+  --pub-light: #eef2ed;
+  --pub-green: #0e7151;
+  --pub-green-hover: #0b6045;
+  --pub-accent: #0b7a57;
+  --pub-mint: #7fd6a6;
+  --pub-ink: #0f2620;
+  --pub-text: #45544f;
+  --pub-line: #d6ddd7;
 
   /* Dashboards */
   --dash-page: #f3f7f5;
@@ -75,8 +89,13 @@ body {
 
 h1,
 h2,
+h3,
 p {
   margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 button,
