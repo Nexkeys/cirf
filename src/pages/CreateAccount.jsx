@@ -1,6 +1,6 @@
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth'
 import { LockKeyhole, Mail, MapPin, Phone, UserRound } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/AuthContext.js'
 import { AuthLayout } from '../components/AuthLayout.jsx'
@@ -35,6 +35,12 @@ async function createLogin(email, password, name) {
   }
 }
 
+// An existing account signed back in on the wrong tab (see AuthProvider's expectRole).
+const WRONG_TAB = {
+  resident: 'This email already has a resident account. Sign in on the Resident tab.',
+  admin: 'This email already has a community lead account. Sign in on the Community Lead tab.',
+}
+
 // Which API field each form field's errors come back under.
 const API_FIELDS = { name: 'name', phone: 'phone', estateId: 'estate', estateName: 'estate' }
 
@@ -45,7 +51,7 @@ const API_FIELDS = { name: 'name', phone: 'phone', estateId: 'estate', estateNam
 // step 2 failed last time) sees the same form without the email and password fields.
 export default function CreateAccount() {
   usePageTitle('Create Account')
-  const { status, user, error: accountError, refresh, signOut } = useAuth()
+  const { status, user, error: accountError, refresh, signOut, notice, expectRole } = useAuth()
   const [params, setParams] = useSearchParams()
   const role = params.get('role') === 'admin' ? 'admin' : 'resident'
 
@@ -62,7 +68,12 @@ export default function CreateAccount() {
   // While step 1 finishes, Firebase already counts as signed in. Don't swap the form mid-submit.
   const completing = status === 'needsProfile' && !busy
   const working = status === 'error' ? false : busy
-  const shownError = formError || (status === 'error' ? accountError : '')
+  const wrongTab = notice?.code === 'WRONG_ROLE' ? WRONG_TAB[notice.role] : ''
+  const shownError = formError || wrongTab || (status === 'error' ? accountError : '')
+
+  useEffect(() => () => expectRole(null), [expectRole])
+  // A wrong-tab account ends up signed out: stop the spinner.
+  if (busy && notice && status === 'signedOut') setBusy(false)
   const fullName = name ?? user?.displayName ?? ''
 
   const setRole = (next) => {
@@ -93,9 +104,12 @@ export default function CreateAccount() {
     try {
       if (!completing) {
         await rememberSession(true)
+        // An existing account signed back in below must match the tab, like on Sign In.
+        expectRole(role)
         const resumed = await createLogin(email.trim(), password, fullName.trim())
-        // Signed back in to an account that turns out to be fully set up: just go in.
-        if (resumed && (await api('/users/me').then(() => true, () => false))) return await refresh()
+        // Signed back in to an account that turns out to be fully set up: AuthProvider
+        // lets it in (right tab) or signs it back out with a notice (wrong tab).
+        if (resumed && (await api('/users/me').then(() => true, () => false))) return
       }
 
       await api('/users/register', {
@@ -121,6 +135,7 @@ export default function CreateAccount() {
       }
       if (error.code === 'auth/weak-password') fieldErrors.password = authMessage(error)
 
+      expectRole(null)
       setErrors(fieldErrors)
       if (Object.keys(fieldErrors).length === 0) setFormError(authMessage(error))
       setBusy(false)

@@ -1,6 +1,6 @@
 import { signInWithCustomToken, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
 import { LockKeyhole, UserRound } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import googleG from '../assets/images/google-g.png'
 import { useAuth } from '../auth/AuthContext.js'
@@ -17,12 +17,19 @@ import { isEmail, isPhone } from '../lib/validation.js'
 import shared from '../styles/auth.module.css'
 import styles from './SignIn.module.css'
 
-// Sign In. The tab doesn't limit who can sign in: people land on the screens for their
-// real role. It's kept in ?role= so a first-time Google user arrives on Create Account
-// with the same tab picked.
+// What to say when someone signs in on the wrong tab.
+const WRONG_TAB = {
+  resident: 'This is a resident account. Choose the Resident tab to sign in.',
+  admin: 'This is a community lead account. Choose the Community Lead tab to sign in.',
+}
+
+// Sign In. The Resident / Community Lead tab decides which kind of account may sign in
+// here: an account of the other kind is signed straight back out (see AuthProvider),
+// since leads and residents see different dashboards. The tab is kept in ?role= so a
+// first-time Google user arrives on Create Account with the same tab picked.
 export default function SignIn() {
   usePageTitle('Sign In')
-  const { status, error: accountError } = useAuth()
+  const { status, error: accountError, notice, expectRole } = useAuth()
   const [params, setParams] = useSearchParams()
   const role = params.get('role') === 'admin' ? 'admin' : 'resident'
 
@@ -35,7 +42,11 @@ export default function SignIn() {
 
   // Signed in, but the API couldn't load the account: stop the spinner and say why.
   const working = status === 'error' ? null : busy
-  const shownError = formError || (status === 'error' ? accountError : '')
+  const wrongTab = notice?.code === 'WRONG_ROLE' ? WRONG_TAB[notice.role] : ''
+  const shownError = formError || wrongTab || (status === 'error' ? accountError : '')
+
+  // Leaving Sign In drops the tab's restriction, so it can't affect Create Account.
+  useEffect(() => () => expectRole(null), [expectRole])
 
   const setRole = (next) => setParams(next === 'admin' ? { role: 'admin' } : {}, { replace: true })
 
@@ -52,6 +63,7 @@ export default function SignIn() {
 
     setBusy('password')
     try {
+      expectRole(role)
       await rememberSession(remember)
       if (isEmail(value)) {
         await signInWithEmailAndPassword(auth, value, password)
@@ -66,6 +78,7 @@ export default function SignIn() {
       }
       // AuthProvider sees the new session and GuestOnly moves on to the account screen.
     } catch (error) {
+      expectRole(null)
       setFormError(authMessage(error))
       setBusy(null)
     }
@@ -75,13 +88,18 @@ export default function SignIn() {
     setFormError('')
     setBusy('google')
     try {
+      expectRole(role)
       await rememberSession(remember)
       await signInWithPopup(auth, googleProvider)
     } catch (error) {
+      expectRole(null)
       if (!isCancelled(error)) setFormError(authMessage(error))
       setBusy(null)
     }
   }
+
+  // A wrong-tab sign-in ends with nobody signed in: stop the spinner.
+  if (busy && notice && status === 'signedOut') setBusy(null)
 
   return (
     <AuthLayout>
