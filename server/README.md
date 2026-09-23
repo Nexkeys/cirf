@@ -102,10 +102,12 @@ npm run dev:emulators       # Vite on :5173, signing in through the Auth emulato
 
 The settings live in `.env.emulators`, which holds no secrets. Emulator data disappears when the emulators stop. Google sign-in and Cloudinary uploads only work against the real project.
 
+To see the dashboards with realistic data, run `npm run seed:emulators` once the emulators are up. It wipes the emulators and creates Maple Estate: 62 members, a ₦3,500,000 transformer campaign with 13 days of verified contributions, three vendor quotes, and one resident waiting for approval. Sign in as `john@cirf.test` (community lead), `amina@cirf.test` (resident) or `kemi@cirf.test` (waiting for approval). Every password is `password123`. The script refuses to run unless the emulator settings are loaded, so it can't write to the real project.
+
 ## Tests
 
 ```bash
-npm test            # unit tests: reconciliation, levy and phone number maths
+npm test            # unit tests: reconciliation, levy, dashboard overview and phone number maths
 npm run test:e2e    # whole campaign lifecycle through the real API, on the Firebase emulators (needs Java)
 ```
 
