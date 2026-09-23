@@ -49,3 +49,9 @@ export const parseNaira = (text) => {
 
 // 2850000 -> "2,850,000", for showing an amount inside an input as it's typed.
 export const groupDigits = (value) => (value == null || value === '' ? '' : new Intl.NumberFormat('en-NG').format(value))
+
+// The campaign the dashboards focus on: the newest one still raising money or being
+// repaired, then the newest finished one, then (for admins, who can see them) a draft.
+const FEATURE_ORDER = ['fundraising', 'repairing', 'completed', 'reconciled', 'draft']
+export const pickFeatured = (campaigns) =>
+  FEATURE_ORDER.map((status) => campaigns.find((campaign) => campaign.status === status)).find(Boolean)

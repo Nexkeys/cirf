@@ -46,6 +46,12 @@ const quoteSchema = z.object({
   attachmentUrl: cloudinaryUrl.optional(),
   deliveryDays: z.number().int().positive().max(365).optional(),
   warrantyMonths: z.number().int().min(0).max(120).optional(),
+  // Who to talk to, and what the price covers, as shown on the Vendor Quotes screen.
+  contactPerson: z.string().trim().max(120).optional(),
+  vendorEmail: z.email('Enter a valid email address').optional(),
+  vendorAddress: z.string().trim().max(200).optional(),
+  scope: z.string().trim().max(120).optional(),
+  inclusions: z.array(z.string().trim().min(1).max(80)).max(8).optional(),
 })
 
 // POST /api/campaigns/:id/vendor-quotes
@@ -66,6 +72,11 @@ router.post('/campaigns/:id/vendor-quotes', adminOnly, async (req, res) => {
     attachmentUrl: body.attachmentUrl ?? null,
     deliveryDays: body.deliveryDays ?? null,
     warrantyMonths: body.warrantyMonths ?? null,
+    contactPerson: body.contactPerson ?? null,
+    vendorEmail: body.vendorEmail ?? null,
+    vendorAddress: body.vendorAddress ?? null,
+    scope: body.scope ?? null,
+    inclusions: body.inclusions ?? [],
     selected: false,
     selectedAt: null,
     selectionReason: null,

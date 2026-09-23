@@ -3,43 +3,6 @@
   gap: 22px;
 }
 
-/* Tabs under the header */
-.tabs {
-  display: flex;
-  gap: 4px;
-  overflow-x: auto;
-  border-bottom: 1px solid var(--card-line);
-  scrollbar-width: none;
-}
-
-.tabs a {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 12px 18px;
-  border-bottom: 2.5px solid transparent;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text);
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.tabs a:hover {
-  color: var(--ink);
-}
-
-.tabs svg {
-  width: 17px;
-  height: 17px;
-}
-
-.tabs .activeTab {
-  border-bottom-color: var(--paid);
-  font-weight: 700;
-  color: var(--ink);
-}
-
 /* Main grid: two columns of cards, with the side column on the right on wide screens
    and underneath on laptops. */
 .layout {

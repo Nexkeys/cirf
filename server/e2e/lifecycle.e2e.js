@@ -255,7 +255,19 @@ describe('campaign lifecycle', () => {
 
   it('requires a reason to pick a vendor that is not the cheapest', async () => {
     const path = `/api/campaigns/${state.campaignId}/vendor-quotes`
-    const expensive = await call(token.lead, 'POST', path, { vendorName: 'PowerFix Ltd', quotedAmount: 95_000 })
+    const expensive = await call(token.lead, 'POST', path, {
+      vendorName: 'PowerFix Ltd',
+      quotedAmount: 95_000,
+      contactPerson: 'Samuel Okafor',
+      vendorEmail: 'jobs@powerfix.example',
+      scope: 'Transformer Replacement (500kVA)',
+      inclusions: ['Supply & installation', 'Includes testing'],
+      deliveryDays: 3,
+      warrantyMonths: 24,
+    })
+    assert.equal(expensive.status, 201)
+    assert.deepEqual(expensive.data.quote.inclusions, ['Supply & installation', 'Includes testing'])
+    assert.equal((await call(token.lead, 'POST', path, { vendorName: 'Bad Email', quotedAmount: 1, vendorEmail: 'nope' })).status, 400)
     await call(token.lead, 'POST', path, { vendorName: 'Budget Volts', quotedAmount: 70_000 })
 
     const quotes = await call(token.ada, 'GET', path)

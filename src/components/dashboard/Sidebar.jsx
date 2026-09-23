@@ -1,5 +1,5 @@
 import { BadgeCheck, CirclePlus, Coins, FileText, House, LogOut, Scale, Settings, Store, X } from 'lucide-react'
-import { NavLink, useLocation } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { useAuth } from '../../auth/AuthContext.js'
 import sidebarPhoto from '../../assets/images/poles-street-800.webp'
 import { Logo } from '../Logo.jsx'
@@ -61,15 +61,28 @@ export function Sidebar({ open, onClose }) {
   )
 }
 
-// Links close the phone drawer as they're followed. Campaigns stays highlighted on a
-// campaign's own pages, but not on Create Campaign, which has its own link.
+// Sidebar links that open one section of a campaign (see CampaignSection).
+const SECTION_OF = { '/contributions': 'contributions', '/vendors': 'quotes', '/reconciliation': 'reconciliation', '/reports': 'report' }
+
+// Whether a sidebar link is the current page. A campaign's sections light up their own
+// link (Vendors & Quotes on /campaigns/:id/quotes); its other pages light up Campaigns.
+function isCurrent(to, pathname) {
+  const section = pathname.match(/^\/campaigns\/[^/]+\/([^/]+)/)?.[1]
+  if (SECTION_OF[to]) return pathname.startsWith(to) || section === SECTION_OF[to]
+  if (to === '/campaigns') {
+    return pathname.startsWith('/campaigns') && pathname !== '/campaigns/new' && !Object.values(SECTION_OF).includes(section)
+  }
+  return pathname === to || pathname.startsWith(`${to}/`)
+}
+
+// Links close the phone drawer as they're followed.
 function Item({ to, label, icon: Icon, onClick }) {
   const { pathname } = useLocation()
-  const highlighted = (isActive) => isActive && !(to === '/campaigns' && pathname === '/campaigns/new')
+  const current = isCurrent(to, pathname)
   return (
-    <NavLink to={to} end={to === '/campaigns/new'} onClick={onClick} className={({ isActive }) => `${styles.link} ${highlighted(isActive) ? styles.active : ''}`}>
+    <Link to={to} onClick={onClick} className={`${styles.link} ${current ? styles.active : ''}`} aria-current={current ? 'page' : undefined}>
       <Icon className={styles.icon} aria-hidden="true" />
       {label}
-    </NavLink>
+    </Link>
   )
 }

@@ -146,9 +146,24 @@ payers.forEach((person, index) => {
 
 // Vendor quotes; the cheapest one is selected, which moves the campaign into repairs.
 const quotes = [
-  { vendorName: 'Sunvolt Electrical Services', quotedAmount: 2_640_000, deliveryDays: 3, warrantyMonths: 12, notes: 'Supply and install a new 100kVA transformer, including testing.' },
-  { vendorName: 'Greenline Power Solutions', quotedAmount: 3_450_000, deliveryDays: 5, warrantyMonths: 6, notes: 'Rewind the existing transformer and replace the bushings.' },
-  { vendorName: 'BrightFix Electricals', quotedAmount: 3_750_000, deliveryDays: 4, warrantyMonths: 12, notes: 'New transformer with a surge arrester and a 12-month service plan.' },
+  {
+    vendorName: 'Sunvolt Electrical Services', quotedAmount: 2_640_000, deliveryDays: 3, warrantyMonths: 12,
+    contactPerson: 'Samuel Okafor', vendorPhone: '0803 123 4567', vendorEmail: 'sunvoltelectrical@example.com', vendorAddress: '12 Ojo Street, Alagbado, Lagos',
+    scope: 'Transformer Replacement (100kVA)', inclusions: ['Supply & installation', 'Includes testing & commissioning'],
+    notes: 'Supply and install a new 100kVA transformer, including testing.',
+  },
+  {
+    vendorName: 'Greenline Power Solutions', quotedAmount: 3_450_000, deliveryDays: 5, warrantyMonths: 6,
+    contactPerson: 'Amina Yusuf', vendorPhone: '0809 876 5432', vendorEmail: 'quotes@greenline.example', vendorAddress: '4 Iju Road, Agege, Lagos',
+    scope: 'Transformer Rewind (100kVA)', inclusions: ['Rewind and new bushings', 'Includes testing'],
+    notes: 'Rewind the existing transformer and replace the bushings.',
+  },
+  {
+    vendorName: 'BrightFix Electricals', quotedAmount: 3_750_000, deliveryDays: 4, warrantyMonths: 12,
+    contactPerson: 'Tunde Bello', vendorPhone: '0812 345 6789', vendorEmail: 'hello@brightfix.example', vendorAddress: '27 Abule Egba Road, Lagos',
+    scope: 'Transformer Replacement (100kVA)', inclusions: ['Supply & installation', 'Surge arrester fitted', 'Includes testing & maintenance'],
+    notes: 'New transformer with a surge arrester and a 12-month service plan.',
+  },
 ]
 const quoteRefs = quotes.map(() => collections.vendorQuotes.doc())
 quotes.forEach((quote, index) => {
@@ -157,12 +172,17 @@ quotes.forEach((quote, index) => {
     campaignId: campaignRef.id,
     estateId: estateRef.id,
     vendorName: quote.vendorName,
-    vendorPhone: null,
     quotedAmount: quote.quotedAmount,
     notes: quote.notes,
     attachmentUrl: null,
     deliveryDays: quote.deliveryDays,
     warrantyMonths: quote.warrantyMonths,
+    contactPerson: quote.contactPerson,
+    vendorPhone: quote.vendorPhone,
+    vendorEmail: quote.vendorEmail,
+    vendorAddress: quote.vendorAddress,
+    scope: quote.scope,
+    inclusions: quote.inclusions,
     selected: index === 0,
     selectedAt: index === 0 ? daysAgo(3) : null,
     selectedBy: index === 0 ? lead.id : null,

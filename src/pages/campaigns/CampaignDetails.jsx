@@ -3,13 +3,10 @@ import {
   CircleCheck,
   ClipboardCheck,
   Eye,
-  FileText,
   HandCoins,
   Info,
-  LayoutGrid,
   MapPin,
   Pencil,
-  Scale,
   ShieldCheck,
   Tag,
   Target,
@@ -24,6 +21,7 @@ import { useAuth } from '../../auth/AuthContext.js'
 import { Button } from '../../components/Button.jsx'
 import { AppShell } from '../../components/dashboard/AppShell.jsx'
 import { CampaignHeader } from '../../components/dashboard/CampaignHeader.jsx'
+import { CampaignTabs } from '../../components/dashboard/CampaignTabs.jsx'
 import { ContributionChart } from '../../components/dashboard/ContributionChart.jsx'
 import { ContributionsTable } from '../../components/dashboard/ContributionsTable.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
@@ -74,23 +72,7 @@ export default function CampaignDetails() {
 
         <CampaignHeader campaign={campaign} estate={estate} photo="right" photoCaption={PHOTO_CAPTIONS[campaign.status]} />
 
-        <nav className={styles.tabs} aria-label="Campaign sections">
-          <Link to={`/campaigns/${id}`} className={styles.activeTab} aria-current="page">
-            <LayoutGrid aria-hidden="true" /> Overview
-          </Link>
-          <Link to={`/contributions?campaign=${id}`}>
-            <HandCoins aria-hidden="true" /> Contributions
-          </Link>
-          <Link to={`/vendors?campaign=${id}`}>
-            <ClipboardCheck aria-hidden="true" /> Vendor Quotes
-          </Link>
-          <Link to={`/reconciliation?campaign=${id}`}>
-            <Scale aria-hidden="true" /> Reconciliation
-          </Link>
-          <Link to={`/reports?campaign=${id}`}>
-            <FileText aria-hidden="true" /> Transparency Report
-          </Link>
-        </nav>
+        <CampaignTabs campaignId={id} />
 
         <div className={styles.layout}>
           <div className={styles.main}>
@@ -120,7 +102,7 @@ export default function CampaignDetails() {
                 <h2 id="recent-title" className={shared.cardTitle}>
                   Recent Contributions
                 </h2>
-                <Link to={`/contributions?campaign=${id}`} className={shared.viewAll}>
+                <Link to={`/campaigns/${id}/contributions`} className={shared.viewAll}>
                   View All
                 </Link>
               </div>
@@ -152,19 +134,19 @@ export default function CampaignDetails() {
                   </Link>
                 )}
                 {isAdmin && campaign.status !== 'reconciled' && campaign.status !== 'completed' && (
-                  <Link to={`/vendors?campaign=${id}`}>
+                  <Link to={`/campaigns/${id}/quotes`}>
                     <ClipboardCheck aria-hidden="true" />
                     Add Vendor Quote
                   </Link>
                 )}
                 {isAdmin && campaign.status === 'repairing' && (
-                  <Link to={`/reconciliation?campaign=${id}`}>
+                  <Link to={`/campaigns/${id}/reconciliation`}>
                     <CircleCheck aria-hidden="true" />
                     Mark Complete
                   </Link>
                 )}
               </div>
-              <Link to={`/reports?campaign=${id}`} className={styles.reportLink}>
+              <Link to={`/campaigns/${id}/report`} className={styles.reportLink}>
                 <Eye size={17} aria-hidden="true" /> View Transparency Report
               </Link>
             </section>
@@ -239,7 +221,7 @@ function CampaignFacts({ campaign, estate, overview }) {
             <CircleCheck size={18} aria-hidden="true" />
             {progressNote(campaign, overview)}
           </p>
-          <Link to={`/reports?campaign=${campaign.id}`} className={styles.fullDetails}>
+          <Link to={`/campaigns/${campaign.id}/report`} className={styles.fullDetails}>
             View Full Details <span aria-hidden="true">→</span>
           </Link>
         </div>
@@ -279,7 +261,7 @@ function QuotesCard({ campaignId, quotes, selectedId }) {
         <h2 id="quotes-title" className={shared.cardTitle}>
           <ClipboardCheck aria-hidden="true" /> Vendor Quotes
         </h2>
-        <Link to={`/vendors?campaign=${campaignId}`} className={shared.viewAll}>
+        <Link to={`/campaigns/${campaignId}/quotes`} className={shared.viewAll}>
           View All
         </Link>
       </div>

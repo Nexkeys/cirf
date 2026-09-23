@@ -8,16 +8,11 @@ import { ContributionChart } from '../components/dashboard/ContributionChart.jsx
 import { PaymentDonut } from '../components/dashboard/PaymentDonut.jsx'
 import { FormAlert } from '../components/FormAlert.jsx'
 import { api } from '../lib/api.js'
+import { pickFeatured } from '../lib/campaigns.js'
 import { firstName, formatNaira, greeting } from '../lib/format.js'
 import { usePageTitle } from '../lib/usePageTitle.js'
 import { useVisibleInterval } from '../lib/useVisibleInterval.js'
 import styles from './Dashboard.module.css'
-
-// Which campaign the Overview features: the newest one still raising money or being
-// repaired, then the newest finished one, then (admins only) the newest draft.
-const FEATURE_ORDER = ['fundraising', 'repairing', 'completed', 'reconciled', 'draft']
-const pickFeatured = (campaigns) =>
-  FEATURE_ORDER.map((status) => campaigns.find((campaign) => campaign.status === status)).find(Boolean)
 
 // How often to check the featured campaign for new money. /progress costs one read.
 const POLL_MS = 15_000

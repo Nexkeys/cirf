@@ -128,7 +128,7 @@ export default function Contribute() {
                 <h2 id="recent-title" className={shared.cardTitle}>
                   Recent Contributions
                 </h2>
-                <Link to={`/contributions?campaign=${id}`} className={shared.viewAll}>
+                <Link to={`/campaigns/${id}/contributions`} className={shared.viewAll}>
                   View All
                 </Link>
               </div>

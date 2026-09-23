@@ -186,7 +186,7 @@ Phone numbers are stored as `+234...` and must be unique, so any usual way of wr
 | Method | Path | Access | Purpose |
 | --- | --- | --- | --- |
 | GET | `/api/campaigns/:id/vendor-quotes` | Resident | Quotes cheapest first, with a summary |
-| POST | `/api/campaigns/:id/vendor-quotes` | Admin | Body: `vendorName`, `quotedAmount`, `vendorPhone?`, `notes?`, `attachmentUrl?`, `deliveryDays?`, `warrantyMonths?` |
+| POST | `/api/campaigns/:id/vendor-quotes` | Admin | Body: `vendorName`, `quotedAmount`, `vendorPhone?`, `notes?`, `attachmentUrl?`, `deliveryDays?`, `warrantyMonths?`, `contactPerson?`, `vendorEmail?`, `vendorAddress?`, `scope?` (e.g. "Transformer Replacement (100kVA)"), `inclusions?` (up to 8 short lines) |
 | PUT | `/api/vendor-quotes/:id/select` | Admin | Select a vendor. `reason` is required if it isn't the cheapest quote. |
 
 ### Reconciliation and transparency
