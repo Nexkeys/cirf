@@ -1,0 +1,113 @@
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+
+.ring {
+  width: 168px;
+  flex: none;
+}
+
+.track,
+.fill {
+  fill: none;
+  stroke-width: 18;
+}
+
+.track {
+  stroke: #e2ebe7;
+}
+
+.fill {
+  stroke: var(--paid);
+  stroke-linecap: butt;
+  transition: stroke-dasharray 0.6s ease;
+}
+
+.percent {
+  font-size: 27px;
+  font-weight: 600;
+  fill: var(--ink);
+}
+
+.amount {
+  font-size: 12.5px;
+  font-weight: 600;
+  fill: var(--ink);
+}
+
+.caption {
+  font-size: 12px;
+  fill: var(--text);
+}
+
+.legend {
+  display: grid;
+  flex: 1;
+  margin: 0;
+}
+
+.legend > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 12px;
+  padding: 14px 0;
+}
+
+.legend > div + div {
+  border-top: 1px solid var(--card-line);
+}
+
+.legend dt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.legend dd {
+  grid-column: 1;
+  margin: 4px 0 0 23px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.legend .share {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.dot {
+  width: 11px;
+  height: 11px;
+  flex: none;
+  border-radius: 50%;
+}
+
+.collected {
+  background: var(--paid);
+}
+
+.remaining {
+  background: #c9d6d1;
+}
+
+@media (max-width: 480px) {
+  .progress {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .ring {
+    align-self: center;
+  }
+}

@@ -1,0 +1,110 @@
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  padding: 16px 22px;
+  border: 1px solid var(--card-line);
+  border-radius: 14px;
+  background: var(--card);
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+}
+
+.step:not(:last-child)::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  margin: 0 16px;
+  background: var(--card-line);
+}
+
+.step button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+}
+
+.step button:disabled {
+  cursor: default;
+}
+
+.marker {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border: 1px solid var(--card-line);
+  border-radius: 50%;
+  background: #f1f5f3;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.label {
+  overflow: hidden;
+  font-size: 14px;
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.current .marker,
+.done .marker {
+  border-color: var(--paid);
+  background: var(--paid);
+  color: #fff;
+}
+
+.current .label {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.done .label {
+  color: var(--ink);
+}
+
+.done button:hover .label {
+  text-decoration: underline;
+}
+
+/* Phones: numbers only, with the current step's name. */
+@media (max-width: 640px) {
+  .stepper {
+    padding: 14px 16px;
+  }
+
+  .stepper {
+    gap: 10px;
+  }
+
+  .step {
+    flex: none;
+  }
+
+  .step.current {
+    flex: 1;
+  }
+
+  .step:not(:last-child)::after {
+    display: none;
+  }
+
+  .step:not(.current) .label {
+    display: none;
+  }
+}

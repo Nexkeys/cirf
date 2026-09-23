@@ -1,0 +1,58 @@
+.heading {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: -10px 0 4px;
+  padding: 6px 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.back:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.eyebrow {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--link);
+}
+
+.title {
+  font-size: clamp(24px, 2.4vw, 34px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.subtitle {
+  max-width: 560px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+@media (max-width: 900px) {
+  .back {
+    margin-top: 0;
+    font-size: 14px;
+  }
+
+  .title {
+    font-size: 21px;
+  }
+
+  .subtitle {
+    display: none;
+  }
+}

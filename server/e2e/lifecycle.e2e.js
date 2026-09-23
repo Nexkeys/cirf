@@ -182,6 +182,14 @@ describe('campaign lifecycle', () => {
     assert.ok(state.publicToken)
 
     assert.equal((await call(token.lead, 'POST', `/api/campaigns/${state.campaignId}/publish`)).status, 409)
+
+    // The payment account can still be corrected after publishing, by the lead only.
+    const paymentPath = `/api/campaigns/${state.campaignId}/payment-details`
+    const account = { bankName: 'Moniepoint MFB', accountName: 'Katampe Gardens Repair Fund', accountNumber: '0123456789' }
+    assert.equal((await call(token.lead, 'PUT', paymentPath, { ...account, accountNumber: '12345' })).status, 400)
+    assert.equal((await call(token.ada, 'PUT', paymentPath, account)).status, 403)
+    const withAccount = await call(token.lead, 'PUT', paymentPath, account)
+    assert.deepEqual(withAccount.data.campaign.paymentDetails, account)
     assert.equal((await call(token.ada, 'GET', '/api/campaigns')).data.campaigns.length, 1)
   })
 

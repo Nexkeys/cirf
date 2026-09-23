@@ -1,5 +1,5 @@
-import { BadgeCheck, Coins, FileText, House, LogOut, Scale, Settings, Store, X } from 'lucide-react'
-import { NavLink } from 'react-router'
+import { BadgeCheck, CirclePlus, Coins, FileText, House, LogOut, Scale, Settings, Store, X } from 'lucide-react'
+import { NavLink, useLocation } from 'react-router'
 import { useAuth } from '../../auth/AuthContext.js'
 import sidebarPhoto from '../../assets/images/poles-street-800.webp'
 import { Logo } from '../Logo.jsx'
@@ -8,6 +8,7 @@ import styles from './Sidebar.module.css'
 const MAIN_LINKS = [
   { to: '/dashboard', label: 'Overview', icon: House },
   { to: '/campaigns', label: 'Campaigns', icon: BadgeCheck },
+  { to: '/campaigns/new', label: 'Create Campaign', icon: CirclePlus, adminOnly: true },
   { to: '/contributions', label: 'Contributions', icon: Coins },
   { to: '/vendors', label: 'Vendors & Quotes', icon: Store },
   { to: '/reconciliation', label: 'Reconciliation', icon: Scale },
@@ -15,7 +16,8 @@ const MAIN_LINKS = [
 ]
 
 export function Sidebar({ open, onClose }) {
-  const { signOut } = useAuth()
+  const { signOut, profile } = useAuth()
+  const links = MAIN_LINKS.filter((link) => !link.adminOnly || profile?.role === 'admin')
 
   return (
     <>
@@ -30,7 +32,7 @@ export function Sidebar({ open, onClose }) {
 
         <nav className={styles.nav}>
           <ul className={styles.list}>
-            {MAIN_LINKS.map((link) => (
+            {links.map((link) => (
               <li key={link.to}>
                 <Item {...link} onClick={onClose} />
               </li>
@@ -59,10 +61,13 @@ export function Sidebar({ open, onClose }) {
   )
 }
 
-// Links close the phone drawer as they're followed.
+// Links close the phone drawer as they're followed. Campaigns stays highlighted on a
+// campaign's own pages, but not on Create Campaign, which has its own link.
 function Item({ to, label, icon: Icon, onClick }) {
+  const { pathname } = useLocation()
+  const highlighted = (isActive) => isActive && !(to === '/campaigns' && pathname === '/campaigns/new')
   return (
-    <NavLink to={to} onClick={onClick} className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}>
+    <NavLink to={to} end={to === '/campaigns/new'} onClick={onClick} className={({ isActive }) => `${styles.link} ${highlighted(isActive) ? styles.active : ''}`}>
       <Icon className={styles.icon} aria-hidden="true" />
       {label}
     </NavLink>

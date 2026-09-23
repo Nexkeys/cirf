@@ -44,6 +44,8 @@ const quoteSchema = z.object({
   quotedAmount: naira,
   notes: z.string().trim().max(1000).optional(),
   attachmentUrl: cloudinaryUrl.optional(),
+  deliveryDays: z.number().int().positive().max(365).optional(),
+  warrantyMonths: z.number().int().min(0).max(120).optional(),
 })
 
 // POST /api/campaigns/:id/vendor-quotes
@@ -62,6 +64,8 @@ router.post('/campaigns/:id/vendor-quotes', adminOnly, async (req, res) => {
     quotedAmount: body.quotedAmount,
     notes: body.notes ?? null,
     attachmentUrl: body.attachmentUrl ?? null,
+    deliveryDays: body.deliveryDays ?? null,
+    warrantyMonths: body.warrantyMonths ?? null,
     selected: false,
     selectedAt: null,
     selectionReason: null,

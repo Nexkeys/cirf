@@ -53,3 +53,25 @@ export async function api(path, { method = 'GET', body, signedIn = true } = {}) 
   }
   return data
 }
+
+// Uploads an image through POST /api/uploads/image (Cloudinary) and returns its URL.
+// `purpose` files it under campaign, contribution-proof, receipt or quote.
+export async function uploadImage(file, purpose) {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('purpose', purpose)
+
+  let response
+  try {
+    response = await fetch(`${BASE_URL}/api/uploads/image`, {
+      method: 'POST',
+      headers: auth.currentUser ? { authorization: `Bearer ${await auth.currentUser.getIdToken()}` } : {},
+      body: form,
+    })
+  } catch {
+    throw new ApiError(0, "Can't reach CIRF right now. Check your connection and try again.")
+  }
+  const data = await response.json().catch(() => null)
+  if (!response.ok) throw new ApiError(response.status, data?.error?.message ?? 'The image could not be uploaded')
+  return data.url
+}

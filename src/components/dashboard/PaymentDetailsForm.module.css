@@ -1,0 +1,26 @@
+.form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.save {
+  display: grid;
+  grid-column: 1 / -1;
+  justify-items: end;
+  gap: 10px;
+}
+
+.save > button {
+  width: auto;
+}
+
+@media (max-width: 760px) {
+  .form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .save > button {
+    width: 100%;
+  }
+}

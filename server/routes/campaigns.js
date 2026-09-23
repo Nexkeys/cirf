@@ -37,11 +37,20 @@ const fields = {
   imageUrl: cloudinaryUrl.nullable(),
 }
 
+// Where residents send their money. Stored on the campaign, since an estate may collect
+// different repairs into different accounts.
+const paymentDetailsSchema = z.object({
+  bankName: z.string().trim().min(2, 'Enter the bank name').max(80),
+  accountName: z.string().trim().min(2, 'Enter the account name').max(120),
+  accountNumber: z.string().trim().regex(/^\d{10}$/, 'Nigerian account numbers have 10 digits'),
+})
+
 const createCampaignSchema = z.object({
   ...fields,
   levyMethod: fields.levyMethod.optional(),
   deadline: fields.deadline.optional(),
   imageUrl: fields.imageUrl.optional(),
+  paymentDetails: paymentDetailsSchema.nullable().optional(),
 })
 
 const updateCampaignSchema = z.object(fields).partial().refine(...notEmpty)
@@ -105,6 +114,7 @@ router.post('/campaigns', adminOnly, async (req, res) => {
     category: body.category,
     imageUrl: body.imageUrl ?? null,
     deadline: body.deadline ?? null,
+    paymentDetails: body.paymentDetails ?? null,
     targetAmount: body.targetAmount,
     ...levy,
     status: 'draft',
@@ -231,6 +241,30 @@ router.put('/campaigns/:id', adminOnly, async (req, res) => {
       actor: req.user,
       message: 'Campaign details updated before publishing',
       data: { fields: Object.keys(changes) },
+    })
+  })
+
+  res.json({ campaign: campaignJson(docToJson(await campaignRef.get())) })
+})
+
+// PUT /api/campaigns/:id/payment-details   body: { bankName, accountName, accountNumber } | null
+// The one thing a lead can still change after publishing, so a wrong account number can
+// be corrected. Every change goes into the audit trail, where residents can see it.
+router.put('/campaigns/:id/payment-details', adminOnly, async (req, res) => {
+  const campaign = await loadCampaignFor(req.user, req.params.id)
+  const paymentDetails = parse(paymentDetailsSchema.nullable(), req.body)
+  const campaignRef = collections.campaigns.doc(campaign.id)
+
+  await db.runTransaction(async (tx) => {
+    assertStatus((await tx.get(campaignRef)).data(), ['draft', ...ACCEPTS_CONTRIBUTIONS], 'change the payment details')
+    tx.update(campaignRef, { paymentDetails, updatedAt: FieldValue.serverTimestamp() })
+    recordEvent(tx, campaign.id, {
+      type: 'payment_details_updated',
+      actor: req.user,
+      message: paymentDetails
+        ? `Payment account set to ${paymentDetails.accountName}, ${paymentDetails.bankName} (${paymentDetails.accountNumber})`
+        : 'Payment account removed',
+      data: { paymentDetails },
     })
   })
 

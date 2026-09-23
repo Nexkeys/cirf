@@ -1,6 +1,6 @@
 /* Sizes follow the dashboard design at a 1440px-wide screen. */
 .shell {
-  --sidebar-width: 290px;
+  --sidebar-width: 250px;
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--dash-page);
@@ -180,7 +180,7 @@
 
 @media (max-width: 1100px) {
   .shell {
-    --sidebar-width: 250px;
+    --sidebar-width: 236px;
   }
 
   .topbar,

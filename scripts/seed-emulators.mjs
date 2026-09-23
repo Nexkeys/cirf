@@ -146,9 +146,9 @@ payers.forEach((person, index) => {
 
 // Vendor quotes; the cheapest one is selected, which moves the campaign into repairs.
 const quotes = [
-  { vendorName: 'Sunvolt Electrical Services', quotedAmount: 2_640_000, notes: 'Delivery in 3 days, 12 months warranty' },
-  { vendorName: 'Greenline Power Solutions', quotedAmount: 3_450_000, notes: 'Delivery in 5 days, 6 months warranty' },
-  { vendorName: 'BrightFix Electricals', quotedAmount: 3_750_000, notes: 'Delivery in 4 days, 12 months warranty' },
+  { vendorName: 'Sunvolt Electrical Services', quotedAmount: 2_640_000, deliveryDays: 3, warrantyMonths: 12, notes: 'Supply and install a new 100kVA transformer, including testing.' },
+  { vendorName: 'Greenline Power Solutions', quotedAmount: 3_450_000, deliveryDays: 5, warrantyMonths: 6, notes: 'Rewind the existing transformer and replace the bushings.' },
+  { vendorName: 'BrightFix Electricals', quotedAmount: 3_750_000, deliveryDays: 4, warrantyMonths: 12, notes: 'New transformer with a surge arrester and a 12-month service plan.' },
 ]
 const quoteRefs = quotes.map(() => collections.vendorQuotes.doc())
 quotes.forEach((quote, index) => {
@@ -161,6 +161,8 @@ quotes.forEach((quote, index) => {
     quotedAmount: quote.quotedAmount,
     notes: quote.notes,
     attachmentUrl: null,
+    deliveryDays: quote.deliveryDays,
+    warrantyMonths: quote.warrantyMonths,
     selected: index === 0,
     selectedAt: index === 0 ? daysAgo(3) : null,
     selectedBy: index === 0 ? lead.id : null,
@@ -180,6 +182,7 @@ writes.push([campaignRef, {
   category: 'transformer',
   imageUrl: null,
   deadline: dayString(12),
+  paymentDetails: { bankName: 'Moniepoint Microfinance Bank', accountName: 'Maple Estate Repair Fund', accountNumber: '0123456789' },
   targetAmount: 3_500_000,
   levyMethod: 'flat',
   levyPerHousehold: 50_000,

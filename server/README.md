@@ -172,6 +172,7 @@ Phone numbers are stored as `+234...` and must be unique, so any usual way of wr
 | GET | `/api/campaigns/:id/overview` | Resident | Dashboard figures: paid / pending / overdue households, money verified this week, quote count, refund or shortfall estimate, and a day-by-day running total for the chart. Counts only, no names. Refetch when `/progress` changes. |
 | PUT | `/api/campaigns/:id` | Admin | Edit while still a draft |
 | POST | `/api/campaigns/:id/publish` | Admin | Open to residents, creates the public link token |
+| PUT | `/api/campaigns/:id/payment-details` | Admin | Where residents pay: `{ bankName, accountName, accountNumber }` (10 digits) or `null`. Allowed until the repair is complete, even after publishing; every change goes into the audit trail. `POST /api/campaigns` also accepts `paymentDetails`. |
 | POST | `/api/campaigns/:id/reminders` | Admin | Notify every active resident who still owes |
 
 ### Contributions
@@ -185,7 +186,7 @@ Phone numbers are stored as `+234...` and must be unique, so any usual way of wr
 | Method | Path | Access | Purpose |
 | --- | --- | --- | --- |
 | GET | `/api/campaigns/:id/vendor-quotes` | Resident | Quotes cheapest first, with a summary |
-| POST | `/api/campaigns/:id/vendor-quotes` | Admin | Body: `vendorName`, `quotedAmount`, `vendorPhone?`, `notes?`, `attachmentUrl?` |
+| POST | `/api/campaigns/:id/vendor-quotes` | Admin | Body: `vendorName`, `quotedAmount`, `vendorPhone?`, `notes?`, `attachmentUrl?`, `deliveryDays?`, `warrantyMonths?` |
 | PUT | `/api/vendor-quotes/:id/select` | Admin | Select a vendor. `reason` is required if it isn't the cheapest quote. |
 
 ### Reconciliation and transparency
