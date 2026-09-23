@@ -10,6 +10,7 @@ import { readFileSync } from 'node:fs'
 import { cert, getApps, initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore } from 'firebase-admin/firestore'
+import { readPrivateKey } from '../lib/privateKey.js'
 
 function appOptions() {
   const {
@@ -28,8 +29,7 @@ function appOptions() {
       credential: cert({
         projectId: FIREBASE_PROJECT_ID,
         clientEmail: FIREBASE_CLIENT_EMAIL,
-        // Vercel stores the key on one line, with the newlines written as "\n".
-        privateKey: FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        privateKey: readPrivateKey(FIREBASE_PRIVATE_KEY),
       }),
     }
   }
