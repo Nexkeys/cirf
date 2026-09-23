@@ -3,13 +3,21 @@ import { FieldValue } from 'firebase-admin/firestore'
 import { z } from 'zod'
 import { assertSameEstate, isAdmin } from '../lib/access.js'
 import { docToJson, oldestFirst } from '../lib/firestore.js'
-import { badRequest, conflict, notFound } from '../lib/httpError.js'
-import { estateName, notEmpty } from '../lib/schemas.js'
+import { badRequest, conflict, forbidden, notFound } from '../lib/httpError.js'
+import { cloudinaryUrl, documentId, estateName, notEmpty } from '../lib/schemas.js'
 import { parse } from '../lib/validate.js'
 import { adminOnly, registered } from '../middleware/guards.js'
 import { CAMPAIGN_STATUSES, loadCampaignFor } from '../services/campaigns.js'
 import { collections } from '../services/collections.js'
-import { estateJson, generateJoinCode, loadEstate, newEstate, searchableName } from '../services/estates.js'
+import {
+  COMMUNITY_TYPES,
+  estateJson,
+  estateOwnerId,
+  generateJoinCode,
+  loadEstate,
+  newEstate,
+  searchableName,
+} from '../services/estates.js'
 import { db } from '../services/firebaseAdmin.js'
 import { paymentStatus } from '../services/levy.js'
 import { notify } from '../services/notifications.js'
@@ -84,6 +92,8 @@ const updateEstateSchema = z
     address,
     totalHouseholds: count,
     totalUnits: count,
+    communityType: z.enum(COMMUNITY_TYPES),
+    imageUrl: cloudinaryUrl.nullable(),
     // Community Access settings
     allowRegistration: z.boolean(),
     requireApproval: z.boolean(),
@@ -207,6 +217,15 @@ const updateResidentSchema = z
   })
   .refine((body) => Object.keys(body).length > 0, 'Send at least one field to update')
 
+// Co-admins can manage residents, but never the estate's owner: nobody can demote,
+// suspend or remove them. Ownership only moves when the owner transfers it.
+async function assertNotOwner(estateId, userId, changesStanding) {
+  if (!changesStanding) return
+  if (estateOwnerId(await loadEstate(estateId)) === userId) {
+    throw badRequest("The estate's owner can't be demoted, suspended or removed")
+  }
+}
+
 // Loads a resident of this estate, or 404s.
 async function loadResident(estateId, userId) {
   const snapshot = await collections.users.doc(userId).get()
@@ -225,6 +244,7 @@ router.put('/estates/:id/residents/:userId', adminOnly, async (req, res) => {
   if (req.params.userId === req.user.id && (body.status || body.role)) {
     throw badRequest("You can't change your own role or suspend yourself")
   }
+  await assertNotOwner(req.params.id, req.params.userId, body.status || body.role)
 
   const snapshot = await loadResident(req.params.id, req.params.userId)
   await snapshot.ref.update({ ...body, updatedAt: FieldValue.serverTimestamp() })
@@ -239,12 +259,55 @@ router.put('/estates/:id/residents/:userId', adminOnly, async (req, res) => {
 router.delete('/estates/:id/residents/:userId', adminOnly, async (req, res) => {
   assertSameEstate(req.user, req.params.id)
   if (req.params.userId === req.user.id) throw badRequest("You can't remove yourself from the estate")
+  await assertNotOwner(req.params.id, req.params.userId, true)
 
   const snapshot = await loadResident(req.params.id, req.params.userId)
   await snapshot.ref.update({ estateId: null, updatedAt: FieldValue.serverTimestamp() })
   forgetUserProfile(req.params.userId)
 
   res.status(204).end()
+})
+
+const transferSchema = z.object({ userId: documentId })
+
+// POST /api/estates/:id/transfer-ownership   body: { userId }
+// The owner hands the estate to another member, who becomes an admin if they weren't.
+// The old owner stays on as a co-admin, so nothing is lost if it was a mistake.
+router.post('/estates/:id/transfer-ownership', adminOnly, async (req, res) => {
+  assertSameEstate(req.user, req.params.id)
+  const { userId } = parse(transferSchema, req.body)
+  const estateRef = collections.estates.doc(req.params.id)
+  const userRef = collections.users.doc(userId)
+
+  await db.runTransaction(async (tx) => {
+    const [estateSnapshot, userSnapshot] = await Promise.all([tx.get(estateRef), tx.get(userRef)])
+    if (estateOwnerId(estateSnapshot.data()) !== req.user.id) {
+      throw forbidden("Only the estate's owner can transfer ownership")
+    }
+    if (userId === req.user.id) throw badRequest('You already own this estate')
+    if (!userSnapshot.exists || userSnapshot.get('estateId') !== req.params.id) {
+      throw notFound('Resident not found in this estate')
+    }
+    if (userSnapshot.get('status') === 'suspended') {
+      throw badRequest('Reactivate this resident before handing them the estate')
+    }
+
+    tx.update(estateRef, { ownerId: userId, updatedAt: FieldValue.serverTimestamp() })
+    tx.update(userRef, { role: 'admin', updatedAt: FieldValue.serverTimestamp() })
+  })
+  forgetUserProfile(userId)
+
+  const estate = await loadEstate(req.params.id)
+  await notify([
+    {
+      userId,
+      type: 'ownership_transferred',
+      title: `You now own ${estate.name}`,
+      message: `${req.user.name} handed the estate to you. You can manage residents, campaigns and settings.`,
+    },
+  ])
+
+  res.json({ estate: estateJson(estate, req.user) })
 })
 
 // Answers someone's request to join this estate. A transaction, so an approval and the

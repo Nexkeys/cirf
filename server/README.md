@@ -153,11 +153,12 @@ Phone numbers are stored as `+234...` and must be unique, so any usual way of wr
 | --- | --- | --- | --- |
 | POST | `/api/estates` | Admin | Create the admin's estate. Body: `name`, `address?`, `totalHouseholds?`, `totalUnits?` |
 | GET | `/api/estates/:id` | Resident | Details and stats (join code and `joinRequestCount` for admins only) |
-| PUT | `/api/estates/:id` | Admin | Update details, `allowRegistration`, `requireApproval`, or `regenerateJoinCode: true` for a new code |
+| PUT | `/api/estates/:id` | Admin | Update `name`, `address`, `totalHouseholds`, `totalUnits`, `communityType` (`residential_estate`/`street`/`compound`/`other`), `imageUrl`, `allowRegistration`, `requireApproval`, or `regenerateJoinCode: true` for a new code |
 | GET | `/api/estates/:id/residents?campaignId=` | Admin | Residents, pending invites, `joinRequests`, and paid/unpaid status for a campaign |
 | POST | `/api/estates/:id/residents` | Admin | Add an existing user or invite an email. Body: `email`, `unitNumber?`, `units?` |
-| PUT | `/api/estates/:id/residents/:userId` | Admin | Change `unitNumber`, `units`, `status` (`active`/`suspended`), `role` |
-| DELETE | `/api/estates/:id/residents/:userId` | Admin | Remove from estate (their contributions stay on record) |
+| PUT | `/api/estates/:id/residents/:userId` | Admin | Change `unitNumber`, `units`, `status` (`active`/`suspended`), `role`. Nobody can change their own role or status, or the estate owner's. |
+| DELETE | `/api/estates/:id/residents/:userId` | Admin | Remove from estate (their contributions stay on record). The owner can't be removed. |
+| POST | `/api/estates/:id/transfer-ownership` | Owner | `{ userId }`: hand the estate to another member, who becomes an admin. The old owner stays a co-admin. The owner is `ownerId`, or `createdBy` until the first transfer. |
 | POST | `/api/estates/:id/join-requests/:userId/approve` | Admin | Let someone in. Body: `unitNumber?`, `units?` |
 | DELETE | `/api/estates/:id/join-requests/:userId` | Admin | Decline a request |
 | DELETE | `/api/estates/:id/invites/:email` | Admin | Cancel an invite |

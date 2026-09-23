@@ -472,4 +472,28 @@ describe('campaign lifecycle', () => {
     assert.equal((await call(token.funmi, 'DELETE', '/api/users/me/join-request')).status, 204)
     assert.equal((await call(token.funmi, 'DELETE', '/api/users/me/join-request')).status, 404)
   })
+
+  it("protects the estate's owner and lets them hand the estate on", async () => {
+    const estatePath = `/api/estates/${state.estate.id}`
+    const leadId = (await call(token.lead, 'GET', '/api/users/me')).data.user.id
+    const adaId = (await call(token.ada, 'GET', '/api/users/me')).data.user.id
+
+    // The estate's photo and community type can be set in Estate Settings.
+    const updated = await call(token.lead, 'PUT', estatePath, { communityType: 'compound' })
+    assert.equal(updated.data.estate.communityType, 'compound')
+    assert.equal((await call(token.lead, 'PUT', estatePath, { communityType: 'castle' })).status, 400)
+
+    // Ada becomes a co-admin, but still can't touch the owner or take the estate.
+    await call(token.lead, 'PUT', `${estatePath}/residents/${adaId}`, { role: 'admin' })
+    assert.equal((await call(token.ada, 'PUT', `${estatePath}/residents/${leadId}`, { role: 'resident' })).status, 400)
+    assert.equal((await call(token.ada, 'DELETE', `${estatePath}/residents/${leadId}`)).status, 400)
+    assert.equal((await call(token.ada, 'POST', `${estatePath}/transfer-ownership`, { userId: adaId })).status, 403)
+
+    // The owner hands it over and stays on as a co-admin.
+    const handed = await call(token.lead, 'POST', `${estatePath}/transfer-ownership`, { userId: adaId })
+    assert.equal(handed.data.estate.ownerId, adaId)
+    assert.equal((await call(token.lead, 'GET', '/api/users/me')).data.user.role, 'admin')
+    // Now the old owner is an ordinary co-admin the new owner can manage.
+    assert.equal((await call(token.ada, 'PUT', `${estatePath}/residents/${leadId}`, { role: 'resident' })).status, 200)
+  })
 })

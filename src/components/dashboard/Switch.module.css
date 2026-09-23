@@ -1,0 +1,36 @@
+.switch {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #c9d4d0;
+  transition: background-color 0.2s;
+}
+
+.knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+  transition: transform 0.2s;
+}
+
+.on {
+  background: var(--link);
+}
+
+.on .knob {
+  transform: translateX(20px);
+}
+
+.switch:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

@@ -15,6 +15,7 @@ import CreateAccount from './pages/CreateAccount.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
 import Home from './pages/Home.jsx'
+import Settings from './pages/settings/Settings.jsx'
 import SignIn from './pages/SignIn.jsx'
 import Welcome from './pages/Welcome.jsx'
 
@@ -24,7 +25,6 @@ const UPCOMING = [
   ['/campaigns/:id/contributions', 'Contributions'],
   ['/campaigns/:id/report', 'Transparency Report'],
   ['/notifications', 'Notifications'],
-  ['/settings', 'Settings'],
 ]
 
 // Sidebar links that open one section of the featured campaign (see CampaignSection).
@@ -55,6 +55,7 @@ export default function App() {
       <Route path="/campaigns/:id/contribute" element={<MemberOnly><Contribute /></MemberOnly>} />
       <Route path="/campaigns/:id/quotes" element={<MemberOnly><VendorQuotes /></MemberOnly>} />
       <Route path="/campaigns/:id/reconciliation" element={<MemberOnly><Reconciliation /></MemberOnly>} />
+      <Route path="/settings" element={<MemberOnly><Settings /></MemberOnly>} />
       {SECTIONS.map(([path, section, title]) => (
         <Route key={path} path={path} element={<MemberOnly><CampaignSection section={section} title={title} /></MemberOnly>} />
       ))}

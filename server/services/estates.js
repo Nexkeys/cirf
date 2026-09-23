@@ -42,6 +42,11 @@ export function estateJson(estate, viewer) {
 // single spaces is stored next to the name for Firestore to range-match on.
 export const searchableName = (name) => name.trim().toLowerCase().replace(/\s+/g, ' ')
 
+export const COMMUNITY_TYPES = ['residential_estate', 'street', 'compound', 'other']
+
+// The person who created the estate owns it, until they hand it on (Transfer ownership).
+export const estateOwnerId = (estate) => estate.ownerId ?? estate.createdBy
+
 // The fields every new estate starts with. Only the name is required, because that's all
 // the Create Account screen asks a community lead for. The address and household counts
 // are added in Estate Settings before the first campaign (see assertLevyCounts).
@@ -53,6 +58,8 @@ export async function newEstate({ name, address, totalHouseholds, totalUnits }, 
     totalHouseholds: totalHouseholds ?? null,
     totalUnits: totalUnits ?? totalHouseholds ?? null,
     joinCode: await generateJoinCode(),
+    communityType: 'residential_estate',
+    imageUrl: null,
     // "Community Access" in Estate Settings. By default residents can find the estate
     // and ask to join, and an admin approves each request before they see anything.
     allowRegistration: true,
