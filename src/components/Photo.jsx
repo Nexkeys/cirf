@@ -23,8 +23,9 @@ const PHOTOS = {
 }
 
 // `sizes` says how wide the photo shows, e.g. "(min-width: 900px) 40vw, 100vw".
-// Photos below the fold load lazily unless `priority` is set.
-export function Photo({ name, sizes = '100vw', alt = '', priority = false, className = '' }) {
+// Photos below the fold load lazily unless `priority` is set. Other props (data-reveal,
+// say) go on the <img>.
+export function Photo({ name, sizes = '100vw', alt = '', priority = false, className = '', ...rest }) {
   const [small, large] = PHOTOS[name]
   return (
     <img
@@ -36,6 +37,7 @@ export function Photo({ name, sizes = '100vw', alt = '', priority = false, class
       loading={priority ? 'eager' : 'lazy'}
       fetchPriority={priority ? 'high' : undefined}
       decoding="async"
+      {...rest}
     />
   )
 }

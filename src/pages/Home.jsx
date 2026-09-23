@@ -14,6 +14,7 @@ import {
 import { PublicFooter } from '../components/public/PublicFooter.jsx'
 import { PublicHeader } from '../components/public/PublicHeader.jsx'
 import { usePageTitle } from '../lib/usePageTitle.js'
+import { useScrollReveal } from '../lib/useScrollReveal.js'
 import { useScrollToHash } from '../lib/useScrollToHash.js'
 import pub from '../styles/public.module.css'
 import styles from './Home.module.css'
@@ -87,6 +88,7 @@ const FEATURES = [
 // The public landing page, from HOME-PAGE-DESIGN.png.
 export default function Home() {
   usePageTitle(null)
+  useScrollReveal()
   useScrollToHash()
   const { status } = useAuth()
   const start = status === 'ready' ? '/dashboard' : '/welcome'
@@ -143,7 +145,7 @@ export default function Home() {
 
         {/* The problem */}
         <section className={styles.problem} aria-labelledby="problem-title">
-          <div className={styles.problemText}>
+          <div className={styles.problemText} data-reveal>
             <p className={`${pub.eyebrow} ${pub.eyebrowRule}`}>The problem</p>
             <h2 id="problem-title" className={`${pub.title} ${styles.sectionTitle}`}>
               The money always <br className={styles.wideBreak} />
@@ -158,7 +160,7 @@ export default function Home() {
             <p className={styles.strong}>That gap is not hypothetical. It is happening right now.</p>
           </div>
 
-          <div className={styles.stats}>
+          <div className={styles.stats} data-reveal>
             <Stat value="₦20,000">
               Per household levy charged to residents of General Alagbado, Lagos, after a transformer fault left the area
               without power for over a week.
@@ -178,20 +180,21 @@ export default function Home() {
             sizes="(min-width: 1000px) 34vw, 100vw"
             alt="A transformer mounted on wooden poles above a residential street"
             className={styles.problemPhoto}
+            data-reveal
           />
         </section>
 
         {/* How it works */}
         <section id="how-it-works" className={`${styles.how} ${pub.onDark}`} aria-labelledby="how-title">
           <div className={`${pub.container} ${styles.howInner}`}>
-            <div className={styles.howIntro}>
+            <div className={styles.howIntro} data-reveal>
               <p className={pub.eyebrow}>How it works</p>
               <h2 id="how-title" className={`${pub.title} ${styles.sectionTitle}`}>
                 From fault to fully accounted for, <br className={styles.wideBreak} />
                 <span className={pub.accent}>in six steps.</span>
               </h2>
             </div>
-            <div className={styles.howAside}>
+            <div className={styles.howAside} data-reveal>
               <p className={styles.howLead}>A simple, transparent process that keeps your community informed at every stage.</p>
               <Link to="/about" className={`${pub.outline} ${styles.small}`}>
                 See the Full Process <ArrowRight size={16} aria-hidden="true" />
@@ -200,7 +203,7 @@ export default function Home() {
 
             <ol className={styles.steps}>
               {STEPS.map(({ title, text, mock: Mock }, index) => (
-                <li key={title} className={styles.step}>
+                <li key={title} className={styles.step} data-reveal>
                   <span className={styles.number}>{String(index + 1).padStart(2, '0')}</span>
                   <h3 className={styles.stepTitle}>{title}</h3>
                   <p className={styles.stepText}>{text}</p>
@@ -216,7 +219,7 @@ export default function Home() {
         {/* Why CIRF */}
         <section id="features" className={styles.why} aria-labelledby="why-title">
           <div className={`${pub.container} ${styles.whyInner}`}>
-            <div className={styles.whyIntro}>
+            <div className={styles.whyIntro} data-reveal>
               <p className={pub.eyebrow}>Why CIRF</p>
               <h2 id="why-title" className={`${pub.title} ${styles.sectionTitle}`}>
                 Built around fairness, not just fundraising.
@@ -232,7 +235,7 @@ export default function Home() {
 
             <ul className={styles.features}>
               {FEATURES.map(({ icon: Icon, title, text }) => (
-                <li key={title} className={styles.feature}>
+                <li key={title} className={styles.feature} data-reveal>
                   <span className={styles.featureIcon} aria-hidden="true">
                     <Icon />
                   </span>
@@ -250,7 +253,7 @@ export default function Home() {
         <section className={`${styles.trust} ${pub.onDark}`} aria-labelledby="trust-title">
           <Photo name="community-walk" sizes="100vw" className={styles.trustPhoto} />
           <div className={`${pub.container} ${styles.trustInner}`}>
-            <div className={styles.trustText}>
+            <div className={styles.trustText} data-reveal>
               <p className={pub.eyebrow}>Trust</p>
               <h2 id="trust-title" className={`${pub.title} ${styles.sectionTitle}`}>
                 Open data.
@@ -263,7 +266,7 @@ export default function Home() {
                 back to a real contribution, a real quote, or a real receipt.
               </p>
             </div>
-            <figure className={styles.testimonial}>
+            <figure className={styles.testimonial} data-reveal>
               <span className={styles.testimonialAvatar} aria-hidden="true">
                 CL
               </span>
@@ -281,8 +284,8 @@ export default function Home() {
         {/* Call to action */}
         <section className={`${styles.cta} ${pub.onDark}`} aria-labelledby="cta-title">
           <div className={`${pub.container} ${styles.ctaInner}`}>
-            <Photo name="evening-street" sizes="240px" className={styles.ctaPhoto} />
-            <div className={styles.ctaText}>
+            <Photo name="evening-street" sizes="240px" className={styles.ctaPhoto} data-reveal />
+            <div className={styles.ctaText} data-reveal>
               <h2 id="cta-title" className={`${pub.title} ${styles.ctaTitle}`}>
                 Your community already pools money for repairs. Now it can be accountable for it too.
               </h2>
@@ -290,7 +293,7 @@ export default function Home() {
                 Get Started <ArrowRight size={18} aria-hidden="true" />
               </Link>
             </div>
-            <div className={styles.ctaBrand}>
+            <div className={styles.ctaBrand} data-reveal>
               <Logo tone="splash" />
               <p>
                 Stronger Communities

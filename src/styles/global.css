@@ -141,3 +141,18 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Scroll reveal on the public pages (see lib/useScrollReveal.js). Only blocks still below
+   the fold are hidden, and only once JavaScript has run. Once shown, a block drops these
+   classes and is back to its own opacity, transform and transitions. */
+.reveal-pending {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.reveal-pending,
+.revealed {
+  transition:
+    opacity 0.45s ease-out var(--reveal-delay, 0s),
+    transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) var(--reveal-delay, 0s);
+}

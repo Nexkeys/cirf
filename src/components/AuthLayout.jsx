@@ -11,9 +11,18 @@ import { WelcomeStory } from './WelcomeStory.jsx'
 // frosted card over it. Wide screens show the photo panel with the welcome story on the
 // left and the form on the cream right-hand side.
 //   header="tagline"  logo on the left, "Community Infrastructure / Repair Fund Tracker" on the right
-//   header="back"     back arrow, then the logo (Reset Password)
+//   header="back"     back arrow (to `backTo`, labelled `backLabel`), then the logo (Reset Password)
 //   header="logo"     logo only (Check Your Email)
-export function AuthLayout({ header = 'tagline', backTo = '/signin', className = '', children }) {
+// Every version also has "Back to Home": a glass pill over the photo on phones, a plain
+// link on wide screens. It sits above the header, or on the header row beside the back arrow.
+export function AuthLayout({ header = 'tagline', backTo = '/signin', backLabel = 'Back to Sign In', className = '', children }) {
+  const homeLink = (
+    <Link to="/" className={`${styles.home} ${header === 'back' ? styles.homeInline : ''}`}>
+      <ArrowLeft size={17} strokeWidth={2} aria-hidden="true" />
+      Back to Home
+    </Link>
+  )
+
   return (
     <div className={styles.page}>
       <div className={styles.backdrop} aria-hidden="true">
@@ -36,9 +45,10 @@ export function AuthLayout({ header = 'tagline', backTo = '/signin', className =
       </aside>
 
       <main className={`${styles.main} ${className}`}>
+        {header !== 'back' && homeLink}
         <header className={`${styles.header} ${header === 'back' ? styles.withBack : ''}`}>
           {header === 'back' && (
-            <Link to={backTo} className={styles.back} aria-label="Back">
+            <Link to={backTo} className={styles.back} aria-label={backLabel} title={backLabel}>
               <ArrowLeft size={22} strokeWidth={1.75} />
             </Link>
           )}
@@ -52,6 +62,8 @@ export function AuthLayout({ header = 'tagline', backTo = '/signin', className =
               Repair Fund Tracker
             </p>
           )}
+          {/* Beside the back arrow, so the screen doesn't stack two "back" controls. */}
+          {header === 'back' && homeLink}
         </header>
         <div className={styles.body}>{children}</div>
       </main>

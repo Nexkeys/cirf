@@ -6,6 +6,7 @@ import { MockCollect, MockQuotes, MockReconciliation, MockReport } from '../comp
 import { PublicFooter } from '../components/public/PublicFooter.jsx'
 import { PublicHeader } from '../components/public/PublicHeader.jsx'
 import { usePageTitle } from '../lib/usePageTitle.js'
+import { useScrollReveal } from '../lib/useScrollReveal.js'
 import pub from '../styles/public.module.css'
 import styles from './About.module.css'
 
@@ -25,6 +26,7 @@ const PLATFORM = [
 // About CIRF, from ABOUT-SCREEN.png.
 export default function About() {
   usePageTitle('About')
+  useScrollReveal()
   const { status } = useAuth()
   const start = status === 'ready' ? '/dashboard' : '/welcome'
 
@@ -58,7 +60,7 @@ export default function About() {
 
         {/* The origin */}
         <section className={`${pub.container} ${styles.origin}`} aria-labelledby="origin-title">
-          <div className={styles.originText}>
+          <div className={styles.originText} data-reveal>
             <p className={pub.eyebrow}>The origin</p>
             <h2 id="origin-title" className={`${pub.title} ${styles.sectionTitle}`}>
               Built for the part of repair nobody else owns.
@@ -75,14 +77,16 @@ export default function About() {
             sizes="(min-width: 1000px) 20vw, 50vw"
             alt="A pole-mounted transformer against the sky"
             className={styles.originTall}
+            data-reveal
           />
           <Photo
             name="evening-street"
             sizes="(min-width: 1000px) 17vw, 50vw"
             alt="A quiet residential street lined with houses and palm trees"
             className={styles.originShort}
+            data-reveal
           />
-          <div className={styles.stats}>
+          <div className={styles.stats} data-reveal>
             <div>
               <p className={styles.statValue}>₦20,000</p>
               <p className={styles.statText}>
@@ -103,13 +107,13 @@ export default function About() {
         {/* What CIRF is */}
         <section className={`${styles.what} ${pub.onDark}`} aria-labelledby="what-title">
           <div className={styles.whatInner}>
-            <div className={styles.whatText}>
+            <div className={styles.whatText} data-reveal>
               <p className={pub.eyebrow}>What CIRF is</p>
               <h2 id="what-title" className={`${pub.title} ${styles.whatTitle}`}>
                 CIRF turns community-funded repairs into an accountable process.
               </h2>
             </div>
-            <ul className={styles.pillars}>
+            <ul className={styles.pillars} data-reveal>
               {PILLARS.map(([title, text]) => (
                 <li key={title}>
                   <h3>{title}</h3>
@@ -118,7 +122,7 @@ export default function About() {
               ))}
             </ul>
           </div>
-          <div className={styles.whatPhotoBox}>
+          <div className={styles.whatPhotoBox} data-reveal>
             <Photo
               name="lineman"
               sizes="(min-width: 1000px) 27vw, 100vw"
@@ -137,7 +141,7 @@ export default function About() {
 
         {/* The platform */}
         <section className={`${pub.container} ${styles.platform}`} aria-labelledby="platform-title">
-          <div>
+          <div data-reveal>
             <p className={pub.eyebrow}>The platform</p>
             <h2 id="platform-title" className={`${pub.title} ${styles.sectionTitle}`}>
               From contribution to accountability.
@@ -145,7 +149,7 @@ export default function About() {
           </div>
           <ol className={styles.cards}>
             {PLATFORM.map(({ title, text, mock }) => (
-              <li key={title}>
+              <li key={title} data-reveal>
                 <div className={styles.mock}>{mock}</div>
                 <h3 className={styles.cardTitle}>{title}</h3>
                 <p className={styles.cardText}>{text}</p>
@@ -158,10 +162,10 @@ export default function About() {
         <section className={`${styles.band} ${pub.onDark}`} aria-labelledby="band-title">
           <Photo name="community-walk" sizes="100vw" className={styles.bandPhoto} />
           <div className={`${pub.container} ${styles.bandInner}`}>
-            <h2 id="band-title" className={`${pub.title} ${styles.bandTitle}`}>
+            <h2 id="band-title" className={`${pub.title} ${styles.bandTitle}`} data-reveal>
               Designed around how communities already solve problems.
             </h2>
-            <p className={styles.bandText}>
+            <p className={styles.bandText} data-reveal>
               CIRF does not replace community organization; it gives it structure, visibility and accountability.
             </p>
           </div>
@@ -170,7 +174,7 @@ export default function About() {
         {/* Call to action */}
         <section className={styles.cta} aria-labelledby="cta-title">
           <Photo name="skyline" sizes="(min-width: 900px) 32vw, 100vw" className={styles.ctaPhoto} />
-          <div className={styles.ctaText}>
+          <div className={styles.ctaText} data-reveal>
             <h2 id="cta-title" className={`${pub.title} ${styles.ctaTitle}`}>
               Every naira should have a traceable destination.
             </h2>

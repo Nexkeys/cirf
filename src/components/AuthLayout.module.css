@@ -42,6 +42,35 @@
   padding: max(22px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
 }
 
+/* "Back to Home": a glass pill over the photo, like Welcome's Back button. */
+.home {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  margin: 0 0 14px 6px;
+  padding: 0 14px 0 10px;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 999px;
+  background: rgb(2 11 14 / 0.35);
+  backdrop-filter: blur(8px);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #fff;
+  text-decoration: none;
+  transition: background-color 0.15s;
+}
+
+.home:hover {
+  background: rgb(255 255 255 / 0.12);
+}
+
+.home.homeInline {
+  align-self: center;
+  margin: 0 0 0 auto;
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -157,6 +186,26 @@
     justify-content: center;
     max-width: 460px;
     padding: 48px var(--pad-x);
+  }
+
+  /* A plain link on the cream side, like "Back to Dashboard" on the dashboards. */
+  .home {
+    min-height: 0;
+    margin: 0 0 28px;
+    padding: 6px 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    backdrop-filter: none;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .home:hover {
+    background: none;
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   /* The panel already shows the logo and name. */
