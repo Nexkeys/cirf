@@ -1,0 +1,188 @@
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar-width);
+  padding: 52px 16px 16px;
+  overflow-y: auto;
+  background: linear-gradient(180deg, var(--sidebar-top), var(--sidebar-bottom));
+  color: var(--nav-text);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 30px;
+  margin-bottom: 46px;
+}
+
+.logo {
+  --logo-size: 40px;
+}
+
+.close {
+  display: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.06);
+  color: #fff;
+}
+
+.list {
+  display: grid;
+  gap: 9px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.secondary {
+  margin-top: 76px;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  width: 100%;
+  height: 51px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--nav-text);
+  text-decoration: none;
+  transition: background-color 0.15s;
+}
+
+.link:hover {
+  background: rgb(255 255 255 / 0.05);
+  color: #fff;
+}
+
+.active,
+.active:hover {
+  background: linear-gradient(90deg, var(--nav-active-start), var(--nav-active-end));
+  box-shadow: 0 6px 18px rgb(3 75 41 / 0.35);
+  color: #fff;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  stroke-width: 1.8;
+}
+
+.promo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  min-height: 316px;
+  margin: auto 0 0;
+  padding: 36px 28px;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: 12px;
+  background: #082c39;
+  isolation: isolate;
+}
+
+.nav {
+  margin-bottom: 40px;
+}
+
+/* The photo sits at the bottom of the card, fading into its teal top where the text is. */
+.promoPhoto {
+  position: absolute;
+  inset: 0;
+  z-index: -2; /* under the teal ::before overlay */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 62% 100%;
+  filter: grayscale(1) brightness(0.9) contrast(1.1);
+}
+
+.promo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, #0a3140 0%, rgb(10 49 64 / 0.94) 40%, rgb(14 70 78 / 0.6) 72%, rgb(8 52 54 / 0.55));
+}
+
+.promoTitle {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #fff;
+}
+
+.promoText {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.78);
+}
+
+.backdrop {
+  display: none;
+}
+
+@media (max-height: 820px) {
+  .promo {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: min(300px, 86vw);
+    padding-top: 20px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+
+  .open {
+    transform: none;
+    box-shadow: 12px 0 40px rgb(0 0 0 / 0.3);
+  }
+
+  .top {
+    padding-left: 18px;
+  }
+
+  .logo {
+    --logo-size: 34px;
+  }
+
+  .close {
+    display: grid;
+  }
+
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    display: block;
+    background: rgb(1 23 22 / 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+
+  .show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}

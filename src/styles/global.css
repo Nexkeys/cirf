@@ -32,6 +32,24 @@
   --bright: #0e8a4f;
   --bright-end: #1f8c60;
 
+  /* Dashboards */
+  --dash-page: #f3f7f5;
+  --card: #f9fbfa;
+  --card-line: #e2ebe7;
+  --sidebar-top: #011716;
+  --sidebar-bottom: #021f1e;
+  --nav-text: #c9d6d2;
+  --nav-active-start: #034b29;
+  --nav-active-end: #0a6841;
+  --icon-bg: #d6f1e6;
+  --icon-ink: #0d6b43;
+  --progress: #06794b;
+  --track: #e8efed;
+  --paid: #0f4f34;
+  --pending: #f4ba65;
+  --overdue: #e5432f;
+  --avatar: #042020;
+
   --radius: 9px;
   --pad-x: clamp(24px, 9.5vw, 40px);
 

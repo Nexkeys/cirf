@@ -1,0 +1,229 @@
+/* Sizes follow the dashboard design at a 1440px-wide screen. */
+.shell {
+  --sidebar-width: 290px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--dash-page);
+}
+
+.main {
+  margin-left: var(--sidebar-width);
+  min-width: 0;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 66px 40px 0 42px;
+}
+
+.heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.menuButton {
+  display: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border: 1px solid var(--card-line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  align-self: flex-start;
+  margin-top: -14px;
+}
+
+.divider {
+  width: 1px;
+  height: 30px;
+  background: var(--card-line);
+}
+
+.bell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: var(--ink);
+}
+
+.bell:hover {
+  background: var(--track);
+}
+
+.dot {
+  position: absolute;
+  top: 7px;
+  right: 9px;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--dash-page);
+  border-radius: 50%;
+  background: var(--overdue);
+}
+
+.user {
+  position: relative;
+}
+
+.userButton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 6px 4px 4px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  text-align: left;
+}
+
+.userButton:hover {
+  background: var(--track);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--avatar);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.who {
+  display: grid;
+  line-height: 1.25;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.role {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.chevron {
+  color: var(--muted);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: 240px;
+  padding: 6px;
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgb(6 41 30 / 0.12);
+}
+
+.menuHeader {
+  display: grid;
+  gap: 2px;
+  padding: 10px 10px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.menuHeader strong {
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font-size: 14px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.menuItem:hover {
+  background: var(--track);
+}
+
+.content {
+  padding: 30px 40px 40px 42px;
+}
+
+@media (max-width: 1100px) {
+  .shell {
+    --sidebar-width: 250px;
+  }
+
+  .topbar,
+  .content {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+}
+
+/* Phones and small tablets: the sidebar becomes a drawer. */
+@media (max-width: 900px) {
+  .main {
+    margin-left: 0;
+  }
+
+  .topbar {
+    padding: 16px 16px 0;
+    gap: 12px;
+  }
+
+  .menuButton {
+    display: grid;
+  }
+
+  .actions {
+    gap: 8px;
+    margin-top: 0;
+    align-self: center;
+  }
+
+  .divider,
+  .who,
+  .chevron {
+    display: none;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .content {
+    padding: 20px 16px 32px;
+  }
+}

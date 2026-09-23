@@ -22,6 +22,7 @@ import { assertLevyCounts, loadEstate } from '../services/estates.js'
 import { db } from '../services/firebaseAdmin.js'
 import { LEVY_METHODS, computeLevy, paymentStatus } from '../services/levy.js'
 import { notify, toEach } from '../services/notifications.js'
+import { campaignOverview } from '../services/overview.js'
 import { estateMembers } from '../services/users.js'
 
 const router = Router()
@@ -175,6 +176,28 @@ router.get('/campaigns/:id/progress', registered, async (req, res) => {
       targetReachedAt: campaign.targetReachedAt,
       updatedAt: campaign.updatedAt,
     },
+  })
+})
+
+// GET /api/campaigns/:id/overview
+// Everything the dashboard's Overview screen shows beyond the campaign itself. Residents
+// get it too: the counts are estate-wide totals with no names, which is the transparency
+// CIRF is for. Heavier than /progress, so refetch it only when /progress changes.
+router.get('/campaigns/:id/overview', registered, async (req, res) => {
+  const campaign = await loadCampaignFor(req.user, req.params.id)
+  const [members, contributionsSnapshot, quotesSnapshot] = await Promise.all([
+    estateMembers(campaign.estateId),
+    collections.contributions.where('campaignId', '==', campaign.id).get(),
+    collections.vendorQuotes.where('campaignId', '==', campaign.id).get(),
+  ])
+
+  res.json({
+    overview: campaignOverview({
+      campaign,
+      members,
+      contributions: contributionsSnapshot.docs.map(docToJson),
+      quotes: quotesSnapshot.docs.map(docToJson),
+    }),
   })
 })
 

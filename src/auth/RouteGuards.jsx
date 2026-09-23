@@ -8,7 +8,7 @@ export function GuestOnly({ children }) {
   const { status } = useAuth()
   const { pathname, search } = useLocation()
 
-  if (status === 'ready' || status === 'suspended') return <Navigate to="/account" replace />
+  if (status === 'ready' || status === 'suspended') return <Navigate to="/dashboard" replace />
   if (status === 'needsProfile' && pathname !== '/signup') return <Navigate to={`/signup${search}`} replace />
   return children
 }
@@ -21,4 +21,14 @@ export function SignedInOnly({ children }) {
   if (status === 'signedOut') return <Navigate to="/signin" replace />
   if (status === 'needsProfile') return <Navigate to="/signup" replace />
   return children
+}
+
+// The dashboards: signed in and a member of an estate. Everyone else (waiting for
+// approval, no estate yet, suspended, API unreachable) is looked after by /account.
+export function MemberOnly({ children }) {
+  const { status, estate } = useAuth()
+
+  if (status === 'loading') return null
+  if (status === 'ready' && estate) return children
+  return <SignedInOnly><Navigate to="/account" replace /></SignedInOnly>
 }

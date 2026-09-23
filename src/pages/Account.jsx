@@ -1,5 +1,6 @@
 import { Building2, CircleAlert, Hourglass, MapPin } from 'lucide-react'
 import { useState } from 'react'
+import { Navigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext.js'
 import { AuthLayout } from '../components/AuthLayout.jsx'
 import { Button } from '../components/Button.jsx'
@@ -12,11 +13,9 @@ import { usePageTitle } from '../lib/usePageTitle.js'
 import shared from '../styles/auth.module.css'
 import s from '../styles/status.module.css'
 
-const ROLE_NAMES = { admin: 'the Community Lead', resident: 'a resident' }
-
-// Where people land after signing in, until the dashboards are built. It covers every
-// state an account can be in: in an estate, waiting for approval, no estate yet,
-// suspended, or the API unreachable.
+// Where signed-in people land when they can't use the dashboards yet: waiting for
+// approval, no estate yet, suspended, or the API unreachable. Members of an estate are
+// sent on to the Overview.
 export default function Account() {
   usePageTitle('My Account')
   const { status, user, profile, estate, joinRequest, error, refresh, signOut } = useAuth()
@@ -39,6 +38,8 @@ export default function Account() {
     }
   }
 
+  if (status === 'ready' && estate) return <Navigate to="/dashboard" replace />
+
   let screen
   if (status === 'suspended') {
     screen = <Status icon={CircleAlert} title="Account Suspended" text={error} />
@@ -49,19 +50,6 @@ export default function Account() {
           Try Again
         </Button>
       </Status>
-    )
-  } else if (estate) {
-    screen = (
-      <Status
-        icon={Building2}
-        title={`Welcome, ${profile.name.split(' ')[0]}`}
-        text={
-          <>
-            You&apos;re signed in as {ROLE_NAMES[profile.role]} of <strong>{estate.name}</strong>. Your dashboard is
-            coming next.
-          </>
-        }
-      />
     )
   } else if (joinRequest) {
     screen = (

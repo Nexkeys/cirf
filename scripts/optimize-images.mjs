@@ -17,12 +17,14 @@ const OUT = 'src/assets/images'
 await mkdir(OUT, { recursive: true })
 
 const photos = {
-  'hero-skyline': 'Auth-Screen-Image2.png', // Welcome screen and the desktop sign-in panel
-  'hero-street': 'Auth-Screen-Image1.png', // Home screen
+  'hero-skyline': 'Auth_Screen_Images/Auth-Screen-Image2.png', // Welcome screen and the desktop sign-in panel
+  'hero-street': 'Auth_Screen_Images/Auth-Screen-Image1.png', // Home screen
+  'poles-street': 'Homepage_Screen_Images/Hero image.png', // dashboard sidebar card
+  transformer: 'Homepage_Screen_Images/Problem-section image.png', // campaigns without an uploaded photo
 }
 for (const [name, file] of Object.entries(photos)) {
   for (const width of [800, 1600]) {
-    await sharp(`${ORIGINALS}/Auth_Screen_Images/${file}`)
+    await sharp(`${ORIGINALS}/${file}`)
       .resize({ width })
       .webp({ quality: 80 })
       .toFile(`${OUT}/${name}-${width}.webp`)

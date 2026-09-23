@@ -1,0 +1,279 @@
+.greeting {
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.subtitle {
+  margin-top: 10px;
+  font-size: 17px;
+  color: var(--muted);
+}
+
+.layout {
+  display: grid;
+  gap: 26px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1.2fr 1.15fr 1fr 1fr;
+  gap: 26px;
+}
+
+.stat,
+.card,
+.empty {
+  border: 1px solid var(--card-line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.stat {
+  min-width: 0;
+  padding: 20px 22px 16px;
+}
+
+.statIcon {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--icon-bg);
+  color: var(--icon-ink);
+}
+
+.statIcon svg {
+  width: 23px;
+  height: 23px;
+  stroke-width: 1.9;
+}
+
+.statLabel {
+  margin-top: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.statValue {
+  margin-top: 10px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.of {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.statNote {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--link);
+}
+
+.quiet {
+  color: var(--muted);
+}
+
+.danger {
+  color: var(--danger);
+}
+
+.miniBar {
+  height: 5px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--track);
+}
+
+.miniBar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #0b3928 80%, #3fbf7f);
+}
+
+.charts {
+  display: grid;
+  grid-template-columns: minmax(0, 1.24fr) minmax(0, 1fr);
+  gap: 26px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 24px 28px 16px;
+}
+
+.cardTitle {
+  margin-bottom: 8px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.donutBox {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  padding: 10px 6px 0 6px;
+}
+
+.donutBox > * {
+  flex: 1;
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  margin-top: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--link);
+  text-underline-offset: 3px;
+}
+
+.problem {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  max-width: 560px;
+}
+
+.retry {
+  padding: 10px 18px;
+  border: 1px solid var(--card-line);
+  border-radius: 9px;
+  background: var(--card);
+  font-weight: 500;
+}
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  max-width: 720px;
+  padding: 36px;
+}
+
+.emptyTitle {
+  margin-top: 6px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.emptyText {
+  max-width: 560px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.emptyAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 13px 22px;
+  border-radius: 9px;
+  background: linear-gradient(180deg, var(--primary-top), var(--primary));
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+}
+
+.shimmer {
+  border-radius: 14px;
+  background: linear-gradient(90deg, var(--track) 30%, #f4f8f6 50%, var(--track) 70%) 0 0 / 300% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.heroSkeleton {
+  height: 318px;
+}
+
+.statSkeleton {
+  height: 216px;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -150% 0;
+  }
+}
+
+@media (max-width: 1280px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .charts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .greeting {
+    font-size: 20px;
+  }
+
+  .subtitle {
+    display: none;
+  }
+
+  .layout,
+  .stats,
+  .charts {
+    gap: 16px;
+  }
+
+  .stat {
+    padding: 16px;
+  }
+
+  .statIcon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .statLabel {
+    margin-top: 14px;
+    font-size: 14px;
+  }
+
+  .statValue {
+    margin-top: 8px;
+    font-size: 21px;
+  }
+
+  .statNote {
+    margin-top: 8px;
+    font-size: 13px;
+  }
+
+  .card {
+    padding: 20px 16px;
+  }
+
+  .empty {
+    padding: 24px;
+  }
+}

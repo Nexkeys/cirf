@@ -1,0 +1,41 @@
+.chart {
+  width: 100%;
+  min-width: 0;
+}
+
+.chart svg {
+  display: block;
+  overflow: visible;
+}
+
+.grid {
+  stroke: var(--track);
+  stroke-width: 1;
+}
+
+.axis {
+  font-size: 13px;
+  fill: var(--text);
+}
+
+.line {
+  fill: none;
+  stroke: var(--progress);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.point {
+  fill: var(--progress);
+}
+
+.bubble {
+  fill: var(--primary);
+}
+
+.bubbleText {
+  font-size: 13px;
+  font-weight: 600;
+  fill: #fff;
+}

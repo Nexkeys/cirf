@@ -264,6 +264,14 @@ describe('campaign lifecycle', () => {
     const campaign = await call(token.ada, 'GET', `/api/campaigns/${state.campaignId}`)
     assert.equal(campaign.data.campaign.status, 'repairing')
     assert.equal(campaign.data.campaign.selectedVendorName, 'PowerFix Ltd')
+
+    // The dashboard overview: residents see estate-wide counts, with no names.
+    const { overview } = (await call(token.ada, 'GET', `/api/campaigns/${state.campaignId}/overview`)).data
+    assert.deepEqual(overview.contributors, { total: 4, paid: 3, pending: 1, overdue: 0 }) // the lead paid 20k of 25k
+    assert.deepEqual(overview.quotes, { count: 2, selected: true })
+    assert.deepEqual(overview.estimate, { basis: 'quote', cost: 95_000, difference: 5_000 })
+    assert.equal(overview.collectedThisWeek, 100_000)
+    assert.equal(overview.timeline.at(-1).total, 100_000)
   })
 
   it('completes the repair and reconciles the fund once', async () => {
@@ -351,6 +359,7 @@ describe('campaign lifecycle', () => {
       ['GET', `/api/estates/${state.estate.id}/residents`],
       ['POST', `/api/estates/${state.estate.id}/residents`, { email: 'spy@example.com' }],
       ['GET', `/api/campaigns/${state.campaignId}`],
+      ['GET', `/api/campaigns/${state.campaignId}/overview`],
       ['GET', `/api/campaigns/${state.campaignId}/contributions`],
       ['POST', `/api/campaigns/${state.campaignId}/contributions`, { amount: 1_000, method: 'cash' }],
       ['GET', `/api/campaigns/${state.campaignId}/vendor-quotes`],

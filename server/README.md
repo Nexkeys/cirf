@@ -42,7 +42,7 @@ Browsers never talk to Firestore. `firestore.rules` denies all direct access; th
 
 Vendors are not accounts. They are quote records an admin enters, so they have no access at all.
 
-The e2e test checks all of this. It includes an admin of a second estate being refused on 13 routes of the first estate, and a resident waiting for approval being refused until they're let in.
+The e2e test checks all of this. It includes an admin of a second estate being refused on 14 routes of the first estate, and a resident waiting for approval being refused until they're let in.
 
 **What must stay secret:** the service account key (`FIREBASE_PRIVATE_KEY` on Vercel, `firebase-admin-sdk-.json` locally, which is gitignored) and `CLOUDINARY_API_SECRET`. Anyone with the service account key bypasses every rule above, so rotate it in the Google Cloud console if it ever leaks. `FIREBASE_API_KEY` is not a secret; it only identifies the project.
 
@@ -167,6 +167,7 @@ Phone numbers are stored as `+234...` and must be unique, so any usual way of wr
 | POST | `/api/campaigns` | Admin | Create a draft. Body: `title`, `description`, `category`, `targetAmount`, `levyMethod?` (`flat`/`per_unit`), `deadline?` (YYYY-MM-DD), `imageUrl?`. Refused until the estate has its household (or unit) count. |
 | GET | `/api/campaigns/:id` | Resident | Full detail with `myPayment` |
 | GET | `/api/campaigns/:id/progress` | Resident | Lightweight polling endpoint (one read) |
+| GET | `/api/campaigns/:id/overview` | Resident | Dashboard figures: paid / pending / overdue households, money verified this week, quote count, refund or shortfall estimate, and a day-by-day running total for the chart. Counts only, no names. Refetch when `/progress` changes. |
 | PUT | `/api/campaigns/:id` | Admin | Edit while still a draft |
 | POST | `/api/campaigns/:id/publish` | Admin | Open to residents, creates the public link token |
 | POST | `/api/campaigns/:id/reminders` | Admin | Notify every active resident who still owes |

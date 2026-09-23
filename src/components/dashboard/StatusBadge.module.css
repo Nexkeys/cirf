@@ -1,0 +1,35 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 7px;
+  background: #b8efc9;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #0b5a34;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.draft {
+  background: #e6e9e7;
+  color: #3d4744;
+}
+
+.repairing {
+  background: #fde6bf;
+  color: #7a4b05;
+}
+
+.completed,
+.reconciled {
+  background: #d6ebf7;
+  color: #0d4a6b;
+}

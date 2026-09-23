@@ -9,6 +9,7 @@
     "emulators": "npx --yes firebase-tools@15.30.0 emulators:start --only auth,firestore --project demo-cirf",
     "dev:api:emulators": "node --watch --env-file=.env.emulators server/dev.js",
     "dev:emulators": "vite --mode emulators",
+    "seed:emulators": "node --env-file=.env.emulators scripts/seed-emulators.mjs",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",

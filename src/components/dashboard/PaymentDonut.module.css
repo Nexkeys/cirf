@@ -1,0 +1,76 @@
+.donut {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.ring {
+  width: 172px;
+  flex: none;
+}
+
+.track,
+.arc {
+  fill: none;
+  stroke-width: 26;
+}
+
+.track {
+  stroke: var(--track);
+}
+
+.total {
+  font-size: 30px;
+  font-weight: 600;
+  fill: var(--ink);
+}
+
+.totalLabel {
+  font-size: 15px;
+  fill: var(--text);
+}
+
+.legend {
+  display: grid;
+  flex: 1;
+  gap: 20px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  font-size: 15px;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.swatch {
+  width: 11px;
+  height: 11px;
+  flex: none;
+  border-radius: 50%;
+}
+
+.label {
+  flex: 1;
+  color: var(--text);
+}
+
+.count {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 480px) {
+  .donut {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+  }
+
+  .ring {
+    align-self: center;
+  }
+}
