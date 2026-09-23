@@ -21,7 +21,7 @@ app.disable('x-powered-by')
 app.use(express.json({ limit: '100kb' }))
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString() })
+  res.json({ status: 'ok', time: new Date().toISOString(), node: process.version })
 })
 
 // Each router declares its full paths (e.g. /campaigns/:id/contributions), grouped by
