@@ -25,6 +25,17 @@
   fill: var(--ink);
 }
 
+.money {
+  font-size: 14.5px;
+  font-weight: 700;
+  fill: var(--ink);
+}
+
+.moneyLabel {
+  font-size: 11.5px;
+  fill: var(--text);
+}
+
 .totalLabel {
   font-size: 15px;
   fill: var(--text);

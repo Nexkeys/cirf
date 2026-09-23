@@ -65,13 +65,20 @@
 
 .dot {
   position: absolute;
-  top: 7px;
-  right: 9px;
-  width: 8px;
-  height: 8px;
+  top: 3px;
+  right: 3px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
   border: 1.5px solid var(--dash-page);
-  border-radius: 50%;
+  border-radius: 99px;
   background: var(--overdue);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
 }
 
 .user {

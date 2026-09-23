@@ -663,29 +663,6 @@ button.doc:hover {
   color: #8a5200;
 }
 
-.pager {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 14px;
-  font-size: 13px;
-  color: var(--text);
-}
-
-.pager button {
-  padding: 7px 14px;
-  border: 1px solid #c9d6d1;
-  border-radius: 7px;
-  background: #fff;
-  font-size: 13px;
-}
-
-.pager button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
 /* Dialogs */
 .dialogForm {
   display: grid;

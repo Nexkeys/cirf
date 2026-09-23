@@ -27,3 +27,24 @@
 p.footer {
   padding-top: 30px;
 }
+
+/* "Have a join code?" under the estate field */
+.switchJoin {
+  display: block;
+  margin: 6px 0 0 auto;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--link);
+}
+
+.switchJoin:hover {
+  text-decoration: underline;
+}
+
+.switchJoin:disabled {
+  color: var(--muted);
+  text-decoration: none;
+}

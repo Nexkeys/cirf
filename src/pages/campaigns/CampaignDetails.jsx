@@ -29,6 +29,8 @@ import { ProgressRing } from '../../components/dashboard/ProgressRing.jsx'
 import { Pylons } from '../../components/dashboard/Pylons.jsx'
 import { StatusBadge } from '../../components/dashboard/StatusBadge.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
+import { PageSkeleton } from '../../components/Loading.jsx'
+import { useToast } from '../../components/ToastContext.js'
 import { api } from '../../lib/api.js'
 import { acceptsContributions, categoryLabel } from '../../lib/campaigns.js'
 import { formatDate, formatNaira } from '../../lib/format.js'
@@ -57,7 +59,7 @@ export default function CampaignDetails() {
   if (data.status !== 'ready') {
     return (
       <AppShell heading={heading}>
-        {data.status === 'loading' ? <p className={shared.loading}>Loading the campaign…</p> : <FormAlert>{data.message}</FormAlert>}
+        {data.status === 'loading' ? <PageSkeleton layout="detail" label="Please wait, loading the campaign…" /> : <FormAlert>{data.message}</FormAlert>}
       </AppShell>
     )
   }
@@ -307,6 +309,7 @@ function QuotesCard({ campaignId, quotes, selectedId }) {
 }
 
 function DraftBanner({ campaign, onPublished }) {
+  const toast = useToast()
   const [busy, setBusy] = useState(false)
   const [problem, setProblem] = useState('')
 
@@ -315,6 +318,7 @@ function DraftBanner({ campaign, onPublished }) {
     setProblem('')
     try {
       await api(`/campaigns/${campaign.id}/publish`, { method: 'POST' })
+      toast.success('Campaign published. Residents can now see it and contribute.')
       onPublished()
     } catch (error) {
       setProblem(error.message)

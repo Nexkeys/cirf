@@ -4,19 +4,31 @@ import { notFound } from '../lib/httpError.js'
 import { registered } from '../middleware/guards.js'
 import { collections } from '../services/collections.js'
 import { db } from '../services/firebaseAdmin.js'
+import { categoryOf } from '../services/notifications.js'
 
 const router = Router()
 
-const LIST_LIMIT = 50
+const LIST_LIMIT = 200
 
 // GET /api/users/me/notifications
+// Newest first, each with its category (the filter tabs on the Notifications screen)
+// and the title of the campaign it's about.
 router.get('/users/me/notifications', registered, async (req, res) => {
   const snapshot = await collections.notifications.where('userId', '==', req.user.id).get()
-  const notifications = snapshot.docs.map(docToJson).sort(newestFirst('createdAt'))
+  const all = snapshot.docs.map(docToJson).sort(newestFirst('createdAt'))
+  const notifications = all.slice(0, LIST_LIMIT)
+
+  const campaignIds = [...new Set(notifications.map((n) => n.campaignId).filter(Boolean))]
+  const campaigns = campaignIds.length ? await db.getAll(...campaignIds.map((id) => collections.campaigns.doc(id))) : []
+  const titles = new Map(campaigns.map((snap) => [snap.id, snap.get('title') ?? null]))
 
   res.json({
-    notifications: notifications.slice(0, LIST_LIMIT),
-    unreadCount: notifications.filter((n) => !n.read).length,
+    notifications: notifications.map((n) => ({
+      ...n,
+      category: categoryOf(n.type),
+      campaignTitle: n.campaignId ? (titles.get(n.campaignId) ?? null) : null,
+    })),
+    unreadCount: all.filter((n) => !n.read).length,
   })
 })
 

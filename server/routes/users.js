@@ -4,13 +4,13 @@ import { z } from 'zod'
 import { isAdmin } from '../lib/access.js'
 import { docToJson } from '../lib/firestore.js'
 import { badRequest, conflict, forbidden, notFound } from '../lib/httpError.js'
-import { documentId, estateName, phoneNumber } from '../lib/schemas.js'
+import { documentId, estateName, phoneNumber, unitNumber, units } from '../lib/schemas.js'
 import { parse } from '../lib/validate.js'
 import { registered, signedIn } from '../middleware/guards.js'
 import { collections } from '../services/collections.js'
 import { estateJson, loadEstate, newEstate, resolveJoin } from '../services/estates.js'
 import { db } from '../services/firebaseAdmin.js'
-import { notify, toEach } from '../services/notifications.js'
+import { notificationPrefs, notify, PREFERENCE_KEYS, toEach } from '../services/notifications.js'
 import { estateMembers, forgetUserProfile, publicProfile } from '../services/users.js'
 
 const router = Router()
@@ -147,18 +147,31 @@ router.get('/users/me', registered, async (req, res) => {
     }
   }
 
-  res.json({ user: publicProfile(req.user), estate, joinRequest })
+  res.json({ user: { ...publicProfile(req.user), notificationPrefs: notificationPrefs(req.user) }, estate, joinRequest })
 })
 
 const updateMeSchema = z
-  .object({ name: name.optional(), phone: phoneNumber.optional() })
+  .object({
+    name: name.optional(),
+    phone: phoneNumber.optional(),
+    // Admins only (see below)
+    unitNumber: unitNumber.nullable().optional(),
+    units: units.optional(),
+    // Which kinds of notification to get; leaving a key out keeps its current setting.
+    notificationPrefs: z.partialRecord(z.enum(PREFERENCE_KEYS), z.boolean()).optional(),
+  })
   .refine((body) => Object.keys(body).length > 0, 'Send at least one field to update')
 
 // PUT /api/users/me
-// Residents can change their name and phone. Unit details affect how much someone owes,
-// so only an admin can change those (PUT /api/estates/:id/residents/:userId).
+// Everyone can change their name, phone and notification settings. Unit details affect
+// how much someone owes, so a resident's are changed by an admin (PUT
+// /api/estates/:id/residents/:userId). Admins can already do that for anyone, so they may
+// change their own here too.
 router.put('/users/me', registered, async (req, res) => {
-  const body = parse(updateMeSchema, req.body)
+  const { notificationPrefs: prefs, ...body } = parse(updateMeSchema, req.body)
+  if ((body.unitNumber !== undefined || body.units !== undefined) && !isAdmin(req.user)) {
+    throw forbidden('Ask your community lead to change your unit details')
+  }
   const userRef = collections.users.doc(req.user.id)
 
   // A transaction, so the old number is released and the new one claimed together.
@@ -170,11 +183,14 @@ router.put('/users/me', registered, async (req, res) => {
       if (current.phone) tx.delete(collections.phoneNumbers.doc(current.phone))
       tx.create(phoneRef, { uid: req.user.id, createdAt: FieldValue.serverTimestamp() })
     }
-    tx.update(userRef, { ...body, updatedAt: FieldValue.serverTimestamp() })
+    const changes = { ...body, updatedAt: FieldValue.serverTimestamp() }
+    if (prefs) changes.notificationPrefs = { ...notificationPrefs(current), ...prefs }
+    tx.update(userRef, changes)
   })
   forgetUserProfile(req.user.id)
 
-  res.json({ user: publicProfile(docToJson(await userRef.get())) })
+  const saved = docToJson(await userRef.get())
+  res.json({ user: { ...publicProfile(saved), notificationPrefs: notificationPrefs(saved) } })
 })
 
 const joinRequestSchema = z

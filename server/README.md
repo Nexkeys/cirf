@@ -138,12 +138,12 @@ Access: **Public** needs no token, **Signed in** means any Firebase user even be
 | Method | Path | Access | Purpose |
 | --- | --- | --- | --- |
 | POST | `/api/users/register` | Signed in | Create the profile after Firebase sign-up. Body: `name`, `phone?`, `role?` (`resident`/`admin`), `unitNumber?`. Residents add `estateId?` or `joinCode?`, leads add `estateName?`. |
-| GET | `/api/users/me` | Resident | Profile, estate, and `joinRequest` (the estate they're waiting for, or null) |
-| PUT | `/api/users/me` | Resident | Update `name`, `phone` |
+| GET | `/api/users/me` | Resident | Profile (with `notificationPrefs`), estate, and `joinRequest` (the estate they're waiting for, or null) |
+| PUT | `/api/users/me` | Resident | Update `name`, `phone`, and `notificationPrefs` (any of `campaigns`, `contributions`, `repairs`, `reminders`, `reports`: true/false). Admins may also change their own `unitNumber` and `units`; residents get 403. |
 | POST | `/api/users/me/join-request` | Resident | Residents with no estate ask to join one. Body: `estateId` or `joinCode`. |
 | DELETE | `/api/users/me/join-request` | Resident | Withdraw a request that hasn't been answered |
 | GET | `/api/users/me/contributions` | Resident | Own contribution history across campaigns |
-| GET | `/api/users/me/notifications` | Resident | Latest 50 notifications and unread count |
+| GET | `/api/users/me/notifications` | Resident | Latest 200 notifications, each with `category` and `campaignTitle`, and the unread count. Kinds switched off in `notificationPrefs` aren't sent; account notices (join requests, approvals, ownership) always are. Admins get a `contribution_recorded` notice for each resident contribution waiting to be verified. |
 | PUT | `/api/users/me/notifications/read-all` | Resident | Mark all as read |
 
 Phone numbers are stored as `+234...` and must be unique, so any usual way of writing a number signs in to the same account.

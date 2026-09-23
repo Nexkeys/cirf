@@ -1,4 +1,4 @@
-import { Building2, CircleAlert, Hourglass, MapPin } from 'lucide-react'
+import { Building2, CircleAlert, Hourglass, KeyRound, MapPin } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext.js'
@@ -23,6 +23,8 @@ export default function Account() {
   const [problem, setProblem] = useState('')
   const [picked, setPicked] = useState(null)
   const [estateName, setEstateName] = useState('')
+  const [useCode, setUseCode] = useState(false)
+  const [joinCode, setJoinCode] = useState('')
 
   // Runs an API call, then reloads the account so the screen matches the new state.
   async function run(action) {
@@ -104,18 +106,56 @@ export default function Account() {
     )
   } else {
     screen = (
-      <Status icon={MapPin} title="Join Your Estate" text="Choose your estate. Its community lead will approve your request.">
+      <Status
+        icon={MapPin}
+        title="Join Your Estate"
+        text={
+          useCode
+            ? 'Enter the join code your community lead shared. It lets you straight in.'
+            : 'Choose your estate. Its community lead will approve your request.'
+        }
+      >
         <form
           className={s.form}
           onSubmit={(event) => {
             event.preventDefault()
+            if (useCode) {
+              const code = joinCode.trim().toUpperCase()
+              if (!/^[A-Z0-9]{6}$/.test(code)) return setProblem('Enter the 6-character code from your community lead')
+              return run(() => api('/users/me/join-request', { method: 'POST', body: { joinCode: code } }))
+            }
             if (!picked) return setProblem('Choose your estate from the list')
             run(() => api('/users/me/join-request', { method: 'POST', body: { estateId: picked.id } }))
           }}
         >
-          <EstatePicker selected={picked} onSelect={setPicked} disabled={busy} />
+          {useCode ? (
+            <TextField
+              label="Estate Join Code"
+              icon={KeyRound}
+              placeholder="e.g. 7KQ2MX"
+              autoComplete="off"
+              autoCapitalize="characters"
+              maxLength={6}
+              value={joinCode}
+              onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
+              disabled={busy}
+            />
+          ) : (
+            <EstatePicker selected={picked} onSelect={setPicked} disabled={busy} />
+          )}
+          <button
+            type="button"
+            className={s.switchJoin}
+            disabled={busy}
+            onClick={() => {
+              setUseCode((on) => !on)
+              setProblem('')
+            }}
+          >
+            {useCode ? 'Choose your estate from the list instead' : 'Have a join code from your community lead?'}
+          </button>
           <Button type="submit" arrow busy={busy}>
-            Ask to Join
+            {useCode ? 'Join Estate' : 'Ask to Join'}
           </Button>
         </form>
       </Status>

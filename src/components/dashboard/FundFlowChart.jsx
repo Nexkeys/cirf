@@ -8,7 +8,8 @@ const PAD = { top: 16, right: 16, bottom: 36, left: 58 }
 
 // "Fund Flow Overview" from the Transparency Report design: one line per series over
 // the same days, the first series shaded underneath. `series` is
-// [{ label, color, values: [one number per date] }] and `dates` the matching days.
+// [{ label, color, values: [one number per date], dashed? }] and `dates` the matching
+// days. A dashed series (a target pace, say) is drawn without dots.
 export function FundFlowChart({ dates, series }) {
   const box = useRef(null)
   const width = useWidth(box)
@@ -75,8 +76,16 @@ export function FundFlowChart({ dates, series }) {
                       fill={`url(#${gradientId})`}
                     />
                   )}
-                  <path d={line} fill="none" stroke={one.color} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
-                  {points.map((p) => (
+                  <path
+                    d={line}
+                    fill="none"
+                    stroke={one.color}
+                    strokeWidth="2.2"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    strokeDasharray={one.dashed ? '6 6' : undefined}
+                  />
+                  {!one.dashed && points.map((p) => (
                     <circle key={p.index} cx={x(p.index)} cy={y(p.value)} r="3.3" fill={one.color} />
                   ))}
                 </g>

@@ -27,12 +27,16 @@ import { CampaignTabs } from '../../components/dashboard/CampaignTabs.jsx'
 import { FormField } from '../../components/dashboard/FormField.jsx'
 import { Modal } from '../../components/dashboard/Modal.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
+import { Pagination } from '../../components/dashboard/Pagination.jsx'
 import { QuoteComparison } from '../../components/dashboard/QuoteComparison.jsx'
 import { StatusBadge } from '../../components/dashboard/StatusBadge.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
+import { PageSkeleton } from '../../components/Loading.jsx'
+import { useToast } from '../../components/ToastContext.js'
 import { api, uploadImage } from '../../lib/api.js'
 import { categoryLabel, groupDigits, parseNaira } from '../../lib/campaigns.js'
 import { formatDate, formatNaira, initials } from '../../lib/format.js'
+import { usePaged } from '../../lib/usePaged.js'
 import { usePageTitle } from '../../lib/usePageTitle.js'
 import shared from './campaigns.module.css'
 import styles from './VendorQuotes.module.css'
@@ -40,6 +44,7 @@ import styles from './VendorQuotes.module.css'
 // Quotes can be added until the repair is complete, and a vendor chosen (or changed)
 // while money is still being raised or the repair is underway.
 const CAN_ADD = ['draft', 'fundraising', 'repairing']
+const QUOTES_PER_PAGE = 6
 const CAN_SELECT = ['fundraising', 'repairing']
 
 // Vendor Quotes, from Vendor-Quotes.png.
@@ -53,6 +58,7 @@ export default function VendorQuotes() {
   const [selecting, setSelecting] = useState(null)
   const listRef = useRef(null)
   const detailsRef = useRef(null)
+  const toast = useToast()
   usePageTitle('Vendor Quotes')
 
   const load = useCallback(() => {
@@ -66,12 +72,13 @@ export default function VendorQuotes() {
   }, [id])
 
   useEffect(load, [load])
+  const paged = usePaged(state.quotes ?? [], QUOTES_PER_PAGE)
 
   const heading = <PageHeading back={{ to: `/campaigns/${id}`, label: 'Back to Campaign' }} />
   if (state.status !== 'ready') {
     return (
       <AppShell heading={heading}>
-        {state.status === 'loading' ? <p className={shared.loading}>Loading quotes…</p> : <FormAlert>{state.message}</FormAlert>}
+        {state.status === 'loading' ? <PageSkeleton layout="detail" label="Please wait, loading vendor quotes…" /> : <FormAlert>{state.message}</FormAlert>}
       </AppShell>
     )
   }
@@ -134,11 +141,11 @@ export default function VendorQuotes() {
                     <span>Actions</span>
                   </div>
                   <ol className={styles.rows}>
-                    {quotes.map((quote, index) => (
+                    {paged.rows.map((quote, index) => (
                       <QuoteRow
                         key={quote.id}
                         quote={quote}
-                        number={index + 1}
+                        number={paged.from + index}
                         selectedId={selectedId}
                         lowest={summary.lowest}
                         focused={focused?.id === quote.id}
@@ -153,6 +160,7 @@ export default function VendorQuotes() {
                       />
                     ))}
                   </ol>
+                  <Pagination paged={paged} noun="quotes" />
                 </div>
               )}
             </section>
@@ -194,6 +202,7 @@ export default function VendorQuotes() {
           onClose={() => setAdding(false)}
           onAdded={(quote) => {
             setAdding(false)
+            toast.success(`Quote from ${quote.vendorName} added`)
             setFocusId(quote.id)
             load()
           }}
@@ -206,6 +215,7 @@ export default function VendorQuotes() {
           current={quotes.find((quote) => quote.id === selectedId)}
           onClose={() => setSelecting(null)}
           onSelected={() => {
+            toast.success(`${selecting.vendorName} selected as the vendor. Residents have been told.`)
             setSelecting(null)
             setFocusId(selecting.id)
             load()

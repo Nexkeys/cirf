@@ -9,7 +9,7 @@ export function axisLabel(value) {
   return `₦${value}`
 }
 
-// Four or five round-number steps from ₦0 up past the highest value, e.g. ₦0–₦4.0M.
+// Four or five round-number steps from ₦0 up past the highest value, e.g. ₦0 to ₦4.0M.
 export function yTicks(max) {
   if (!max) return [0, 250_000, 500_000, 750_000, 1_000_000]
   const rough = max / 4

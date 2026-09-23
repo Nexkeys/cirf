@@ -7,6 +7,7 @@ import { CampaignHero } from '../components/dashboard/CampaignHero.jsx'
 import { ContributionChart } from '../components/dashboard/ContributionChart.jsx'
 import { PaymentDonut } from '../components/dashboard/PaymentDonut.jsx'
 import { FormAlert } from '../components/FormAlert.jsx'
+import { LoadingNote } from '../components/Loading.jsx'
 import { api } from '../lib/api.js'
 import { pickFeatured } from '../lib/campaigns.js'
 import { firstName, formatNaira, greeting } from '../lib/format.js'
@@ -172,7 +173,7 @@ function StatCard({ icon: Icon, label, value, note, quiet = false, danger = fals
 // Collected minus the repair cost: a refund when positive, a shortfall when negative.
 function RefundCard({ estimate }) {
   if (!estimate) {
-    return <StatCard icon={Banknote} label="Estimated Refund" value="—" note="(once a quote is selected)" quiet />
+    return <StatCard icon={Banknote} label="Estimated Refund" value="₦0" note="(once a quote is selected)" quiet />
   }
   const shortfall = estimate.difference < 0
   const prefix = estimate.basis === 'actual' ? '' : 'Estimated '
@@ -215,12 +216,17 @@ function NoCampaigns({ isAdmin }) {
 
 function Skeleton() {
   return (
-    <div className={styles.layout} aria-busy="true" aria-label="Loading your dashboard">
+    <div className={styles.layout} aria-busy="true">
+      <LoadingNote>Please wait, loading your dashboard…</LoadingNote>
       <div className={`${styles.shimmer} ${styles.heroSkeleton}`} />
       <div className={styles.stats}>
         {[1, 2, 3, 4].map((key) => (
           <div key={key} className={`${styles.shimmer} ${styles.statSkeleton}`} />
         ))}
+      </div>
+      <div className={styles.charts}>
+        <div className={`${styles.shimmer} ${styles.chartSkeleton}`} />
+        <div className={`${styles.shimmer} ${styles.chartSkeleton}`} />
       </div>
     </div>
   )

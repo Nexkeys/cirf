@@ -10,8 +10,9 @@ const SEGMENTS = [
 ]
 
 // Households that have paid in full, still owe, or owe past the deadline.
-// `counts` is overview.contributors from GET /campaigns/:id/overview.
-export function PaymentDonut({ counts }) {
+// `counts` is overview.contributors from GET /campaigns/:id/overview. The middle shows the
+// household count, or `center` ({ value, label }) when given, e.g. the total collected.
+export function PaymentDonut({ counts, center }) {
   const { total } = counts
   const percent = (value) => (total ? Math.round((value / total) * 100) : 0)
 
@@ -43,11 +44,11 @@ export function PaymentDonut({ counts }) {
             />
           ))}
         </g>
-        <text x="80" y="76" textAnchor="middle" className={styles.total}>
-          {total}
+        <text x="80" y={center ? 80 : 76} textAnchor="middle" className={center ? styles.money : styles.total}>
+          {center ? center.value : total}
         </text>
-        <text x="80" y="100" textAnchor="middle" className={styles.totalLabel}>
-          Total
+        <text x="80" y="100" textAnchor="middle" className={center ? styles.moneyLabel : styles.totalLabel}>
+          {center ? center.label : 'Total'}
         </text>
       </svg>
 

@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { assertSameEstate, isAdmin } from '../lib/access.js'
 import { docToJson, oldestFirst } from '../lib/firestore.js'
 import { badRequest, conflict, forbidden, notFound } from '../lib/httpError.js'
-import { cloudinaryUrl, documentId, estateName, notEmpty } from '../lib/schemas.js'
+import { cloudinaryUrl, documentId, estateName, notEmpty, unitNumber, units } from '../lib/schemas.js'
 import { parse } from '../lib/validate.js'
 import { adminOnly, registered } from '../middleware/guards.js'
 import { CAMPAIGN_STATUSES, loadCampaignFor } from '../services/campaigns.js'
@@ -158,9 +158,6 @@ router.get('/estates/:id/residents', adminOnly, async (req, res) => {
     joinRequests: requestsSnapshot.docs.map(docToJson).map(publicProfile).sort(oldestFirst('requestedAt')),
   })
 })
-
-const unitNumber = z.string().trim().max(40)
-const units = z.number().int().positive().max(1_000)
 
 const addResidentSchema = z.object({
   email: z.email().transform((email) => email.toLowerCase()),

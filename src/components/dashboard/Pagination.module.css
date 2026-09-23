@@ -1,0 +1,66 @@
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.summary {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.pages {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.pages button {
+  display: grid;
+  place-items: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--card-line);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.pages button:hover:not(:disabled) {
+  border-color: #b9cbc3;
+}
+
+.pages button:disabled {
+  color: #b6c2bd;
+  cursor: default;
+}
+
+.pages .current,
+.pages .current:hover:not(:disabled) {
+  border-color: var(--paid);
+  background: var(--paid);
+  color: #fff;
+}
+
+.gap {
+  padding: 0 2px;
+  color: var(--muted);
+}
+
+@media (max-width: 480px) {
+  .pager {
+    justify-content: center;
+  }
+
+  .summary {
+    width: 100%;
+    text-align: center;
+  }
+}

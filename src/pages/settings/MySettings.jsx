@@ -1,49 +1,16 @@
-import { CircleCheck, House, LogOut, Mail, MapPin, Phone, UserRound } from 'lucide-react'
-import { useState } from 'react'
+import { LogOut, MapPin, UserRound } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.js'
-import { Button } from '../../components/Button.jsx'
 import { AppShell } from '../../components/dashboard/AppShell.jsx'
-import { FormField } from '../../components/dashboard/FormField.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
-import { FormAlert } from '../../components/FormAlert.jsx'
 import { Photo } from '../../components/Photo.jsx'
-import { api } from '../../lib/api.js'
 import { sizedPhoto } from '../../lib/images.js'
 import shared from '../campaigns/campaigns.module.css'
+import { ProfileForm } from './ProfileForm.jsx'
 import styles from './settings.module.css'
 
 // Settings for residents: their own name and phone, and their estate's details.
 export default function MySettings() {
-  const { profile, estate, refresh, signOut } = useAuth()
-  const [name, setName] = useState(profile.name)
-  const [phone, setPhone] = useState(profile.phone ? profile.phone.replace(/^\+234/, '0') : '')
-  const [errors, setErrors] = useState({})
-  const [problem, setProblem] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [saved, setSaved] = useState(false)
-
-  async function submit(event) {
-    event.preventDefault()
-    setBusy(true)
-    setErrors({})
-    setProblem('')
-    setSaved(false)
-    try {
-      await api('/users/me', { method: 'PUT', body: { name: name.trim(), ...(phone.trim() && { phone: phone.trim() }) } })
-      await refresh()
-      setSaved(true)
-    } catch (error) {
-      const found = {}
-      for (const field of ['name', 'phone']) {
-        const message = error.fieldMessage?.(field)
-        if (message) found[field] = message
-      }
-      setErrors(found)
-      if (!Object.keys(found).length) setProblem(error.message)
-    } finally {
-      setBusy(false)
-    }
-  }
+  const { estate, signOut } = useAuth()
 
   return (
     <AppShell heading={<PageHeading back={{ to: '/dashboard', label: 'Back to Dashboard' }} title="Settings" subtitle="Your profile and your estate." />}>
@@ -52,26 +19,7 @@ export default function MySettings() {
           <h2 id="profile-title" className={`${shared.cardTitle} ${styles.sideTitle}`}>
             <UserRound aria-hidden="true" /> My Profile
           </h2>
-          <form onSubmit={submit} noValidate className={styles.dialogForm}>
-            <FormField label="Full Name" required icon={UserRound} value={name} onChange={(event) => setName(event.target.value)} error={errors.name} />
-            <FormField label="Phone Number" icon={Phone} type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} error={errors.phone} hint="You can also sign in with it." />
-            <FormField label="Email Address" icon={Mail} value={profile.email} readOnly hint="Your sign-in email can’t be changed here." />
-            <div className={styles.twoFields}>
-              <FormField label="Unit" icon={House} value={profile.unitNumber ?? 'Not set'} readOnly />
-              <FormField label="Units" value={String(profile.units ?? 1)} readOnly hint="Set by your community lead" />
-            </div>
-            {problem && <FormAlert>{problem}</FormAlert>}
-            <div className={styles.saveRow}>
-              {saved && (
-                <span className={styles.savedNote} role="status">
-                  <CircleCheck size={17} aria-hidden="true" /> Saved
-                </span>
-              )}
-              <Button type="submit" busy={busy} className={styles.saveButton}>
-                Save Changes
-              </Button>
-            </div>
-          </form>
+          <ProfileForm />
         </section>
 
         <div className={styles.residentSide}>

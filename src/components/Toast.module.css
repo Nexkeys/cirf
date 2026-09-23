@@ -1,0 +1,72 @@
+.stack {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  display: grid;
+  gap: 10px;
+  width: min(380px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 14px 14px 16px;
+  border-radius: 12px;
+  background: #0b3a29;
+  box-shadow: 0 12px 32px rgb(6 41 30 / 22%);
+  font-size: 14px;
+  line-height: 1.4;
+  color: #fff;
+  pointer-events: auto;
+  animation: rise 0.22s ease-out;
+}
+
+.toast > svg {
+  flex: none;
+  margin-top: 1px;
+  color: #7fe0a8;
+}
+
+.toast span {
+  flex: 1;
+}
+
+.toast button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  padding: 2px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: rgb(255 255 255 / 75%);
+}
+
+.toast button:hover {
+  color: #fff;
+}
+
+.error {
+  background: #6b1a12;
+}
+
+.error > svg {
+  color: #ffb4a8;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@media (max-width: 560px) {
+  .stack {
+    right: 16px;
+    bottom: 16px;
+  }
+}

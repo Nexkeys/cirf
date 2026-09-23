@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router'
+import { FullPageLoader } from '../components/Loading.jsx'
 import { useAuth } from './AuthContext.js'
 
 // Sign In, Create Account and password reset are for people who aren't in yet.
@@ -17,7 +18,7 @@ export function GuestOnly({ children }) {
 export function SignedInOnly({ children }) {
   const { status } = useAuth()
 
-  if (status === 'loading') return null
+  if (status === 'loading') return <FullPageLoader />
   if (status === 'signedOut') return <Navigate to="/signin" replace />
   if (status === 'needsProfile') return <Navigate to="/signup" replace />
   return children
@@ -28,7 +29,7 @@ export function SignedInOnly({ children }) {
 export function MemberOnly({ children }) {
   const { status, estate } = useAuth()
 
-  if (status === 'loading') return null
+  if (status === 'loading') return <FullPageLoader />
   if (status === 'ready' && estate) return children
   return <SignedInOnly><Navigate to="/account" replace /></SignedInOnly>
 }

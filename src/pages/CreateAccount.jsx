@@ -1,5 +1,5 @@
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth'
-import { LockKeyhole, Mail, MapPin, Phone, UserRound } from 'lucide-react'
+import { KeyRound, LockKeyhole, Mail, MapPin, Phone, UserRound } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/AuthContext.js'
@@ -42,7 +42,7 @@ const WRONG_TAB = {
 }
 
 // Which API field each form field's errors come back under.
-const API_FIELDS = { name: 'name', phone: 'phone', estateId: 'estate', estateName: 'estate' }
+const API_FIELDS = { name: 'name', phone: 'phone', estateId: 'estate', estateName: 'estate', joinCode: 'joinCode' }
 
 // Create Account. Two steps behind one form:
 //   1. Firebase Auth account (email + password)
@@ -61,6 +61,10 @@ export default function CreateAccount() {
   const [estate, setEstate] = useState(null) // residents: the estate picked from the list
   const [estateText, setEstateText] = useState('') // residents: what they typed; leads: the new estate's name
   const [password, setPassword] = useState('')
+  // Residents: the code their community lead shared, instead of picking the estate. It lets
+  // them straight in, without waiting for approval.
+  const [useCode, setUseCode] = useState(false)
+  const [joinCode, setJoinCode] = useState('')
   const [errors, setErrors] = useState({})
   const [formError, setFormError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -88,7 +92,8 @@ export default function CreateAccount() {
     if (!isPhone(phone)) found.phone = 'Enter a valid phone number, e.g. 08012345678'
     if (role === 'admin' && estateText.trim().length < 2) found.estate = 'Enter your estate or community name'
     // Left empty is allowed: an admin may have invited this email, and the API checks that.
-    if (role === 'resident' && estateText.trim() && !estate) found.estate = 'Choose your estate from the list'
+    if (role === 'resident' && useCode && !/^[A-Za-z0-9]{6}$/.test(joinCode.trim())) found.joinCode = 'Enter the 6-character code from your community lead'
+    if (role === 'resident' && !useCode && estateText.trim() && !estate) found.estate = 'Choose your estate from the list'
     if (!completing && password.length < MIN_PASSWORD_LENGTH) found.password = `Use at least ${MIN_PASSWORD_LENGTH} characters`
     return found
   }
@@ -119,7 +124,8 @@ export default function CreateAccount() {
           phone: phone.trim(),
           role,
           ...(role === 'admin' && { estateName: estateText.trim() }),
-          ...(role === 'resident' && estate && { estateId: estate.id }),
+          ...(role === 'resident' && useCode && { joinCode: joinCode.trim().toUpperCase() }),
+          ...(role === 'resident' && !useCode && estate && { estateId: estate.id }),
         },
       })
       // Loading the new profile makes GuestOnly move on to the account screen.
@@ -189,7 +195,21 @@ export default function CreateAccount() {
         />
 
         <div className={styles.field}>
-          {role === 'resident' ? (
+          {role === 'resident' && useCode && (
+            <TextField
+              label="Estate Join Code"
+              icon={KeyRound}
+              placeholder="e.g. 7KQ2MX"
+              autoComplete="off"
+              autoCapitalize="characters"
+              maxLength={6}
+              value={joinCode}
+              onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
+              error={errors.joinCode}
+              disabled={working}
+            />
+          )}
+          {role === 'resident' && !useCode && (
             <EstatePicker
               selected={estate}
               onSelect={setEstate}
@@ -197,7 +217,21 @@ export default function CreateAccount() {
               error={errors.estate}
               disabled={working}
             />
-          ) : (
+          )}
+          {role === 'resident' && (
+            <button
+              type="button"
+              className={styles.switchJoin}
+              disabled={working}
+              onClick={() => {
+                setUseCode((on) => !on)
+                setErrors((current) => ({ ...current, estate: undefined, joinCode: undefined }))
+              }}
+            >
+              {useCode ? 'Choose your estate from the list instead' : 'Have a join code from your community lead?'}
+            </button>
+          )}
+          {role === 'admin' && (
             <TextField
               label="Community / Estate"
               icon={MapPin}

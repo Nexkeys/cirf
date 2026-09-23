@@ -5,14 +5,19 @@ import { useAuth } from '../../auth/AuthContext.js'
 import { AppShell } from '../../components/dashboard/AppShell.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
 import { StatusBadge } from '../../components/dashboard/StatusBadge.jsx'
+import { Pagination } from '../../components/dashboard/Pagination.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
+import { PageSkeleton } from '../../components/Loading.jsx'
 import { api } from '../../lib/api.js'
 import { categoryLabel } from '../../lib/campaigns.js'
 import { formatDate, formatNaira } from '../../lib/format.js'
 import { sizedPhoto } from '../../lib/images.js'
+import { usePaged } from '../../lib/usePaged.js'
 import { usePageTitle } from '../../lib/usePageTitle.js'
 import shared from './campaigns.module.css'
 import styles from './CampaignsList.module.css'
+
+const PAGE_SIZE = 9
 
 const FILTERS = [
   { key: 'all', label: 'All', statuses: null },
@@ -42,6 +47,7 @@ export default function CampaignsList() {
   const filters = FILTERS.filter((option) => isAdmin || !option.adminOnly)
   const statuses = filters.find((option) => option.key === filter)?.statuses
   const campaigns = state.campaigns?.filter((campaign) => !statuses || statuses.includes(campaign.status)) ?? []
+  const paged = usePaged(campaigns, PAGE_SIZE, filter)
 
   const heading = (
     <div className={styles.heading}>
@@ -75,7 +81,7 @@ export default function CampaignsList() {
           ))}
         </div>
 
-        {state.status === 'loading' && <p className={shared.loading}>Loading campaigns…</p>}
+        {state.status === 'loading' && <PageSkeleton layout="cards" label="Please wait, loading campaigns…" />}
         {state.status === 'error' && <FormAlert>{state.message}</FormAlert>}
         {state.status === 'ready' && campaigns.length === 0 && (
           <section className={`${shared.card} ${styles.empty}`}>
@@ -95,12 +101,13 @@ export default function CampaignsList() {
         )}
 
         <ul className={styles.grid}>
-          {campaigns.map((campaign) => (
+          {paged.rows.map((campaign) => (
             <li key={campaign.id}>
               <CampaignCard campaign={campaign} isAdmin={isAdmin} />
             </li>
           ))}
         </ul>
+        <Pagination paged={paged} noun="campaigns" />
       </div>
     </AppShell>
   )

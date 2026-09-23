@@ -55,3 +55,19 @@ export function greeting(now = new Date()) {
 
 // The Nigerian calendar day of a timestamp, as "YYYY-MM-DD" (WAT is UTC+1 all year).
 export const lagosDay = (iso) => new Date(new Date(iso).getTime() + 3_600_000).toISOString().slice(0, 10)
+
+// "Just now", "28 min ago", "2 hrs ago", "Yesterday, 6:24 PM", "Sep 28, 2026, 8:45 PM"
+export function timeAgo(iso, now = new Date()) {
+  if (!iso) return ''
+  const then = new Date(iso)
+  const minutes = Math.round((now - then) / 60_000)
+  if (minutes < 1) return 'Just now'
+  if (minutes < 60) return `${minutes} min ago`
+  const time = then.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'Africa/Lagos' })
+  if (lagosDay(iso) === lagosDay(now.toISOString())) {
+    const hours = Math.floor(minutes / 60)
+    return `${hours} ${hours === 1 ? 'hr' : 'hrs'} ago`
+  }
+  if (lagosDay(iso) === lagosDay(new Date(now.getTime() - 86_400_000).toISOString())) return `Yesterday, ${time}`
+  return `${formatDate(iso)}, ${time}`
+}

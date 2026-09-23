@@ -6,6 +6,8 @@ import {
   Copy,
   Download,
   Hash,
+  Mail,
+  Phone,
   HandCoins,
   House,
   ImagePlus,
@@ -18,6 +20,7 @@ import {
   Search,
   ShieldCheck,
   UserPlus,
+  UserRound,
   Users,
   Wrench,
 } from 'lucide-react'
@@ -28,14 +31,19 @@ import { AppShell } from '../../components/dashboard/AppShell.jsx'
 import { FormField } from '../../components/dashboard/FormField.jsx'
 import { Modal } from '../../components/dashboard/Modal.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
+import { Pagination } from '../../components/dashboard/Pagination.jsx'
 import { Switch } from '../../components/dashboard/Switch.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
+import { PageSkeleton } from '../../components/Loading.jsx'
+import { useToast } from '../../components/ToastContext.js'
 import { Photo } from '../../components/Photo.jsx'
 import { api, uploadImage } from '../../lib/api.js'
 import { dayFromToday, parseNaira, pickFeatured } from '../../lib/campaigns.js'
 import { formatDate, initials } from '../../lib/format.js'
 import { sizedPhoto } from '../../lib/images.js'
+import { usePaged } from '../../lib/usePaged.js'
 import shared from '../campaigns/campaigns.module.css'
+import { ProfileForm } from './ProfileForm.jsx'
 import styles from './settings.module.css'
 
 const COMMUNITY_TYPES = {
@@ -46,6 +54,8 @@ const COMMUNITY_TYPES = {
 }
 
 const RESIDENTS_PER_PAGE = 10
+const REQUESTS_PER_PAGE = 5
+const INVITES_PER_PAGE = 5
 
 const PAYMENT_LABELS = {
   paid: ['Paid', 'paid'],
@@ -61,9 +71,11 @@ export default function EstateSettings() {
   const [save, setSave] = useState('saved') // saved | saving | failed
   const [dialog, setDialog] = useState(null)
   const [section, setSection] = useState('details')
+  const toast = useToast()
   const detailsRef = useRef(null)
   const residentsRef = useRef(null)
   const adminRef = useRef(null)
+  const profileRef = useRef(null)
 
   const load = useCallback(() => {
     let current = true
@@ -106,7 +118,7 @@ export default function EstateSettings() {
   if (state.status !== 'ready') {
     return (
       <AppShell heading={heading}>
-        {state.status === 'loading' ? <p className={shared.loading}>Loading settings…</p> : <FormAlert>{state.message}</FormAlert>}
+        {state.status === 'loading' ? <PageSkeleton layout="detail" label="Please wait, loading your estate settings…" /> : <FormAlert>{state.message}</FormAlert>}
       </AppShell>
     )
   }
@@ -116,7 +128,7 @@ export default function EstateSettings() {
   const isOwner = ownerId === profile.id
   const goTo = (key) => {
     setSection(key)
-    const target = { details: detailsRef, residents: residentsRef, admin: adminRef }[key]
+    const target = { details: detailsRef, residents: residentsRef, admin: adminRef, profile: profileRef }[key]
     target.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
@@ -128,6 +140,7 @@ export default function EstateSettings() {
             ['details', 'Estate Details'],
             ['residents', 'Residents'],
             ['admin', 'Administration'],
+            ['profile', 'My Profile'],
           ].map(([key, label]) => (
             <button key={key} type="button" className={section === key ? styles.activeTab : ''} onClick={() => goTo(key)}>
               {label}
@@ -142,7 +155,7 @@ export default function EstateSettings() {
             </div>
 
             <div className={styles.tiles}>
-              <Tile icon={House} value={estate.totalHouseholds ?? '—'} label="Households" />
+              <Tile icon={House} value={estate.totalHouseholds ?? 'Not set'} label="Households" />
               <Tile icon={Users} value={paymentSummary ? paymentSummary.paid + paymentSummary.partial : stats.residentCount} label={paymentSummary ? 'Active Contributors' : 'Members'} />
               <Tile icon={HandCoins} value={stats.campaignCount} label="Campaigns" />
               <Tile icon={Wrench} value={stats.campaignsByStatus.repairing} label="Active Repairs" />
@@ -165,6 +178,9 @@ export default function EstateSettings() {
           </div>
 
           <aside ref={adminRef} className={`${styles.side} ${styles.anchor}`}>
+            <div ref={profileRef} className={styles.anchor}>
+              <MyProfile profile={profile} isOwner={isOwner} onEdit={() => setDialog({ type: 'profile' })} />
+            </div>
             <Administrators residents={residents} ownerId={ownerId} onManage={() => goTo('residents')} />
             <CommunityAccess estate={estate} onSave={saveEstate} />
             {isOwner && <DangerZone onTransfer={() => setDialog({ type: 'transfer' })} />}
@@ -172,6 +188,17 @@ export default function EstateSettings() {
         </div>
       </div>
 
+      {dialog?.type === 'profile' && (
+        <Modal title="Edit My Profile" description="Your name and phone show to residents on campaigns and receipts." onClose={() => setDialog(null)}>
+          <ProfileForm
+            onCancel={() => setDialog(null)}
+            onSaved={() => {
+              setDialog(null)
+              load()
+            }}
+          />
+        </Modal>
+      )}
       {dialog?.type === 'estate' && <EditEstate estate={estate} onClose={() => setDialog(null)} onSave={saveEstate} />}
       {dialog?.type === 'add' && (
         <AddResident
@@ -188,8 +215,9 @@ export default function EstateSettings() {
           estate={estate}
           residents={residents.filter((person) => person.id !== profile.id && person.status !== 'suspended')}
           onClose={() => setDialog(null)}
-          onDone={() => {
+          onDone={(owner) => {
             setDialog(null)
+            toast.success(`${owner?.name ?? 'The new owner'} now owns the estate. You stay on as a co-admin.`)
             refresh()
             load()
           }}
@@ -301,7 +329,7 @@ function EstateInfo({ estate, onEdit, onSave }) {
                 <RefreshCw size={16} />
               </button>
             </dd>
-            <p>Share it with residents: anyone with the code joins straight away, without approval.</p>
+            <p>Residents enter this on Create Account ("Have a join code?") to join straight away, without waiting for approval.</p>
           </div>
         </dl>
         {problem && <FormAlert>{problem}</FormAlert>}
@@ -320,6 +348,8 @@ function EstateInfo({ estate, onEdit, onSave }) {
 /* ---------------------------------------------------------------- Join requests */
 
 function JoinRequests({ requests, estateId, onChanged }) {
+  const toast = useToast()
+  const paged = usePaged(requests, REQUESTS_PER_PAGE)
   const [busy, setBusy] = useState(null)
   const [units, setUnits] = useState({})
   const [problem, setProblem] = useState('')
@@ -335,6 +365,7 @@ function JoinRequests({ requests, estateId, onChanged }) {
       } else {
         await api(path, { method: 'DELETE' })
       }
+      toast.success(approve ? `${person.name} approved and added to the estate` : `${person.name}'s request declined`)
       onChanged()
     } catch (error) {
       setProblem(error.message)
@@ -350,7 +381,7 @@ function JoinRequests({ requests, estateId, onChanged }) {
       </h2>
       <p className={shared.cardText}>These people found your estate and asked to join. They can’t see anything until you approve them.</p>
       <ul className={styles.requestList}>
-        {requests.map((person) => (
+        {paged.rows.map((person) => (
           <li key={person.id}>
             <span className={styles.avatar} aria-hidden="true">
               {initials(person.name)}
@@ -379,6 +410,7 @@ function JoinRequests({ requests, estateId, onChanged }) {
           </li>
         ))}
       </ul>
+      <Pagination paged={paged} noun="requests" />
       {problem && <FormAlert>{problem}</FormAlert>}
     </section>
   )
@@ -391,7 +423,7 @@ function Residents({ estate, residents, invites, featured, ownerId, myId, onChan
   const [filter, setFilter] = useState('all')
   const [problem, setProblem] = useState('')
   const [editing, setEditing] = useState(null)
-  const [page, setPage] = useState(1)
+  const toast = useToast()
   const overdue = featured?.deadline && featured.deadline < dayFromToday(0)
 
   const shown = residents.filter((person) => {
@@ -402,9 +434,8 @@ function Residents({ estate, residents, invites, featured, ownerId, myId, onChan
     if (filter === 'owing') return person.payment && person.payment.status !== 'paid'
     return true
   })
-  const pages = Math.max(Math.ceil(shown.length / RESIDENTS_PER_PAGE), 1)
-  const current = Math.min(page, pages)
-  const pageRows = shown.slice((current - 1) * RESIDENTS_PER_PAGE, current * RESIDENTS_PER_PAGE)
+  const paged = usePaged(shown, RESIDENTS_PER_PAGE, `${query}|${filter}`)
+  const invitesPaged = usePaged(invites, INVITES_PER_PAGE)
 
   async function act(person, change) {
     setProblem('')
@@ -415,6 +446,7 @@ function Residents({ estate, residents, invites, featured, ownerId, myId, onChan
       } else {
         await api(`/estates/${estate.id}/residents/${person.id}`, { method: 'PUT', body: change })
       }
+      toast.success(changeMessage(person, change, estate))
       onChanged()
     } catch (error) {
       setProblem(error.message)
@@ -466,19 +498,13 @@ function Residents({ estate, residents, invites, featured, ownerId, myId, onChan
             type="search"
             placeholder="Search residents…"
             value={query}
-            onChange={(event) => {
-              setQuery(event.target.value)
-              setPage(1)
-            }}
+            onChange={(event) => setQuery(event.target.value)}
             aria-label="Search residents"
           />
         </label>
         <select
           value={filter}
-          onChange={(event) => {
-            setFilter(event.target.value)
-            setPage(1)
-          }}
+          onChange={(event) => setFilter(event.target.value)}
           aria-label="Filter residents"
           className={styles.filter}
         >
@@ -511,7 +537,7 @@ function Residents({ estate, residents, invites, featured, ownerId, myId, onChan
             </tr>
           </thead>
           <tbody>
-            {pageRows.map((person) => {
+            {paged.rows.map((person) => {
               const [label, tone] = person.payment
                 ? person.payment.status !== 'paid' && overdue
                   ? ['Overdue', 'overdue']
@@ -530,8 +556,8 @@ function Residents({ estate, residents, invites, featured, ownerId, myId, onChan
                       </span>
                     </span>
                   </td>
-                  <td>{person.unitNumber ?? '—'}</td>
-                  <td>{person.phone ? person.phone.replace(/^\+234/, '0') : '—'}</td>
+                  <td>{person.unitNumber ?? 'Not set'}</td>
+                  <td>{person.phone ? person.phone.replace(/^\+234/, '0') : 'Not added'}</td>
                   {featured && (
                     <td>
                       <span className={`${styles.pill} ${styles[tone]}`}>{label}</span>
@@ -558,25 +584,13 @@ function Residents({ estate, residents, invites, featured, ownerId, myId, onChan
         </table>
         {shown.length === 0 && <p className={styles.empty}>No residents match.</p>}
       </div>
-      {pages > 1 && (
-        <div className={styles.pager}>
-          <span>
-            {(current - 1) * RESIDENTS_PER_PAGE + 1}–{Math.min(current * RESIDENTS_PER_PAGE, shown.length)} of {shown.length}
-          </span>
-          <button type="button" disabled={current === 1} onClick={() => setPage(current - 1)}>
-            Previous
-          </button>
-          <button type="button" disabled={current === pages} onClick={() => setPage(current + 1)}>
-            Next
-          </button>
-        </div>
-      )}
+      <Pagination paged={paged} noun="residents" />
 
       {invites.length > 0 && (
         <div className={styles.invites}>
           <h3>Invited, not signed up yet</h3>
           <ul>
-            {invites.map((invite) => (
+            {invitesPaged.rows.map((invite) => (
               <li key={invite.id}>
                 <span>
                   {invite.email}
@@ -586,7 +600,10 @@ function Residents({ estate, residents, invites, featured, ownerId, myId, onChan
                   type="button"
                   onClick={() =>
                     api(`/estates/${estate.id}/invites/${encodeURIComponent(invite.email)}`, { method: 'DELETE' })
-                      .then(onChanged)
+                      .then(() => {
+                        toast.success(`Invite for ${invite.email} cancelled`)
+                        onChanged()
+                      })
                       .catch((error) => setProblem(error.message))
                   }
                 >
@@ -595,6 +612,7 @@ function Residents({ estate, residents, invites, featured, ownerId, myId, onChan
               </li>
             ))}
           </ul>
+          <Pagination paged={invitesPaged} noun="invites" />
         </div>
       )}
 
@@ -604,6 +622,7 @@ function Residents({ estate, residents, invites, featured, ownerId, myId, onChan
           person={editing}
           onClose={() => setEditing(null)}
           onSaved={() => {
+            toast.success(`Unit details for ${editing.name} saved`)
             setEditing(null)
             onChanged()
           }}
@@ -611,6 +630,16 @@ function Residents({ estate, residents, invites, featured, ownerId, myId, onChan
       )}
     </section>
   )
+}
+
+// What a change to a resident did, for the confirmation message.
+function changeMessage(person, change, estate) {
+  if (change === 'remove') return `${person.name} removed from ${estate.name}`
+  if (change.role === 'admin') return `${person.name} is now a co-admin`
+  if (change.role === 'resident') return `${person.name} is no longer an admin`
+  if (change.status === 'suspended') return `${person.name} has been suspended`
+  if (change.status === 'active') return `${person.name} can use CIRF again`
+  return 'Changes saved'
 }
 
 function ResidentMenu({ person, locked, onEdit, onAct }) {
@@ -649,6 +678,42 @@ function ResidentMenu({ person, locked, onEdit, onAct }) {
 }
 
 /* ---------------------------------------------------------------- Side column */
+
+function MyProfile({ profile, isOwner, onEdit }) {
+  return (
+    <section className={shared.card} aria-labelledby="me-title">
+      <div className={shared.cardHead}>
+        <h2 id="me-title" className={shared.cardTitle}>
+          <UserRound aria-hidden="true" /> My Profile
+        </h2>
+        <button type="button" className={styles.edit} onClick={onEdit}>
+          <Pencil size={16} aria-hidden="true" /> Edit
+        </button>
+      </div>
+      <div className={styles.me}>
+        <span className={styles.bigAvatar} aria-hidden="true">
+          {initials(profile.name)}
+        </span>
+        <span>
+          <strong>{profile.name}</strong>
+          {isOwner ? 'Community Lead (owner)' : 'Co-admin'}
+        </span>
+      </div>
+      <ul className={styles.meFacts}>
+        <li>
+          <Mail aria-hidden="true" /> {profile.email}
+        </li>
+        <li>
+          <Phone aria-hidden="true" /> {profile.phone ? profile.phone.replace(/^\+234/, '0') : 'No phone number yet'}
+        </li>
+        <li>
+          <House aria-hidden="true" /> {profile.unitNumber ? `Unit ${profile.unitNumber}` : 'No unit set'}
+          {profile.units > 1 && ` (${profile.units} units)`}
+        </li>
+      </ul>
+    </section>
+  )
+}
 
 function Administrators({ residents, ownerId, onManage }) {
   const admins = residents.filter((person) => person.role === 'admin').sort((a, b) => (b.id === ownerId) - (a.id === ownerId))
@@ -918,7 +983,7 @@ function TransferOwnership({ estate, residents, onClose, onDone }) {
     setError('')
     try {
       await api(`/estates/${estate.id}/transfer-ownership`, { method: 'POST', body: { userId } })
-      onDone()
+      onDone(residents.find((person) => person.id === userId))
     } catch (problem) {
       setError(problem.message)
       setBusy(false)

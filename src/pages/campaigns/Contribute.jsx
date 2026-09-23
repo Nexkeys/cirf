@@ -27,6 +27,8 @@ import { PaymentDetailsForm } from '../../components/dashboard/PaymentDetailsFor
 import { ProgressRing } from '../../components/dashboard/ProgressRing.jsx'
 import { Pylons } from '../../components/dashboard/Pylons.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
+import { PageSkeleton } from '../../components/Loading.jsx'
+import { useToast } from '../../components/ToastContext.js'
 import { api } from '../../lib/api.js'
 import { PAYMENT_METHODS, acceptsContributions, groupDigits, methodLabel, parseNaira, transferReference } from '../../lib/campaigns.js'
 import { formatDate, formatNaira } from '../../lib/format.js'
@@ -51,7 +53,7 @@ export default function Contribute() {
   if (data.status !== 'ready') {
     return (
       <AppShell heading={heading}>
-        {data.status === 'loading' ? <p className={shared.loading}>Loading the campaign…</p> : <FormAlert>{data.message}</FormAlert>}
+        {data.status === 'loading' ? <PageSkeleton layout="detail" label="Please wait, loading the campaign…" /> : <FormAlert>{data.message}</FormAlert>}
       </AppShell>
     )
   }
@@ -150,6 +152,7 @@ export default function Contribute() {
 }
 
 function ContributionForm({ campaign, estate, profile, onRecorded }) {
+  const toast = useToast()
   const isAdmin = profile.role === 'admin'
   const owed = campaign.myPayment?.balance
   const [amount, setAmount] = useState(owed ? String(owed) : '')
@@ -199,6 +202,7 @@ function ContributionForm({ campaign, estate, profile, onRecorded }) {
         },
       })
       setRecorded(contribution)
+      toast.success(contribution.status === 'verified' ? `${formatNaira(contribution.amount)} recorded and verified` : `${formatNaira(contribution.amount)} recorded. Your community lead will verify it.`)
       onRecorded()
     } catch (error) {
       const message = error.fieldMessage?.('amount')

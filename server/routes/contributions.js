@@ -139,6 +139,20 @@ router.post('/campaigns/:id/contributions', registered, async (req, res) => {
   })
 
   if (targetJustReached) await announceTargetReached(campaign.id, campaign.estateId, campaign.title)
+  if (status === 'pending') {
+    const admins = (await estateMembers(campaign.estateId)).filter(isAdmin)
+    await notify(
+      toEach(
+        admins.map((admin) => admin.id),
+        {
+          type: 'contribution_recorded',
+          campaignId: campaign.id,
+          title: 'Contribution to verify',
+          message: `${payer.name} says they paid ${formatNaira(body.amount)} toward ${campaign.title}. Check it against the bank alert, then verify or reject it.`,
+        },
+      ),
+    )
+  }
 
   res.status(201).json({ contribution: docToJson(await contributionRef.get()) })
 })

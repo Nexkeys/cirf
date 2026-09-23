@@ -5,6 +5,7 @@ import { useAuth } from '../../auth/AuthContext.js'
 import { AppShell } from '../../components/dashboard/AppShell.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
+import { LoadingNote } from '../../components/Loading.jsx'
 import { api } from '../../lib/api.js'
 import { pickFeatured } from '../../lib/campaigns.js'
 import shared from './campaigns.module.css'
@@ -34,7 +35,7 @@ export default function CampaignSection({ section, title }) {
 
   return (
     <AppShell heading={<PageHeading title={title} />}>
-      {state.status === 'loading' && <p className={shared.loading}>Loading…</p>}
+      {state.status === 'loading' && <LoadingNote>Please wait, opening {title}…</LoadingNote>}
       {state.status === 'error' && <FormAlert>{state.message}</FormAlert>}
       {state.status === 'ready' && (
         <section className={`${shared.card} ${styles.empty}`}>

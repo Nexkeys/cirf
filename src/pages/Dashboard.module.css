@@ -214,6 +214,10 @@
   height: 216px;
 }
 
+.chartSkeleton {
+  height: 340px;
+}
+
 @keyframes shimmer {
   to {
     background-position: -150% 0;

@@ -23,6 +23,10 @@ export const notEmpty = [(body) => Object.keys(body).length > 0, 'Send at least 
 // A Firestore document id sent by the client. Checked so a "/" can't point at another path.
 export const documentId = z.string().trim().regex(/^[A-Za-z0-9_-]{1,128}$/, 'That id is not valid')
 
+// A resident's unit ("B12") and how many units they hold, which sets their levy.
+export const unitNumber = z.string().trim().max(40)
+export const units = z.number().int().positive().max(1_000)
+
 export const estateName = z.string().trim().min(2, 'Enter the estate or community name').max(120)
 
 // Any usual way of writing a phone number, stored in E.164 form (see lib/phone.js).

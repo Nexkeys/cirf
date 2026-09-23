@@ -512,32 +512,6 @@
   color: var(--danger);
 }
 
-.pager {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 14px;
-  font-size: 13px;
-  color: var(--text);
-}
-
-.pager span {
-  margin-right: auto;
-}
-
-.pager button {
-  padding: 7px 14px;
-  border: 1px solid #c9d6d1;
-  border-radius: 7px;
-  background: #fff;
-  font-size: 13px;
-}
-
-.pager button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
 
 .empty {
   padding: 24px;
@@ -951,4 +925,47 @@
   .tiles {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* My Profile card (leads) */
+.me {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.me span:last-child {
+  display: grid;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.me strong {
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.meFacts {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--card-line);
+  list-style: none;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.meFacts li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-wrap: anywhere;
+}
+
+.meFacts svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  color: var(--paid);
 }

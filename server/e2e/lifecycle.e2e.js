@@ -58,6 +58,8 @@ async function call(token, method, path, body) {
   return { status: response.status, type, data }
 }
 
+const unread = async (who) => (await call(who, 'GET', '/api/users/me/notifications')).data.unreadCount
+
 const token = {}
 const state = {}
 
@@ -374,6 +376,43 @@ describe('campaign lifecycle', () => {
 
     const all = await call(token.ada, 'PUT', '/api/users/me/notifications/read-all')
     assert.equal(all.data.markedRead, data.unreadCount - 1)
+  })
+
+  it('tells admins what to verify, and lets people choose what they hear about', async () => {
+    // Each resident's own record reached the lead as something to check.
+    const lead = (await call(token.lead, 'GET', '/api/users/me/notifications')).data
+    const toCheck = lead.notifications.filter((n) => n.type === 'contribution_recorded')
+    assert.ok(toCheck.length >= 3, 'Ada, Bola and Bola again')
+    assert.equal(toCheck[0].category, 'contributions')
+    assert.ok(toCheck[0].campaignTitle)
+
+    // Everything starts switched on; switching one off leaves the others alone.
+    const me = (await call(token.ada, 'GET', '/api/users/me')).data.user
+    assert.equal(me.notificationPrefs.reminders, true)
+    const off = await call(token.ada, 'PUT', '/api/users/me', { notificationPrefs: { reminders: false } })
+    assert.deepEqual(off.data.user.notificationPrefs, { campaigns: true, contributions: true, repairs: true, reminders: false, reports: true })
+    assert.equal((await call(token.ada, 'PUT', '/api/users/me', { notificationPrefs: { spam: true } })).status, 400)
+
+    // A reminder now skips Ada but still reaches Bola; account notices always go out.
+    const bola = (await call(token.bola, 'GET', '/api/users/me')).data.user
+    const { notify } = await import('../services/notifications.js')
+    const before = { ada: await unread(token.ada), bola: await unread(token.bola) }
+    await notify([
+      { userId: me.id, type: 'payment_reminder', title: 'Reminder', message: 'Please pay' },
+      { userId: bola.id, type: 'payment_reminder', title: 'Reminder', message: 'Please pay' },
+      { userId: me.id, type: 'join_approved', title: 'Welcome', message: 'You are in' },
+    ])
+    assert.equal(await unread(token.ada), before.ada + 1)
+    assert.equal(await unread(token.bola), before.bola + 1)
+  })
+
+  it('lets admins, but not residents, change their own unit details', async () => {
+    const lead = await call(token.lead, 'PUT', '/api/users/me', { name: 'Lead Person', unitNumber: 'L1', units: 2 })
+    assert.equal(lead.status, 200)
+    assert.equal(lead.data.user.unitNumber, 'L1')
+    assert.equal(lead.data.user.units, 2)
+    assert.equal((await call(token.ada, 'PUT', '/api/users/me', { units: 5 })).status, 403)
+    assert.equal((await call(token.ada, 'PUT', '/api/users/me', { name: 'Ada Renamed' })).data.user.name, 'Ada Renamed')
   })
 
   it("keeps an estate's data away from admins of other estates", async () => {

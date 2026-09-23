@@ -81,3 +81,19 @@ main.page {
   font-size: 12.5px;
   color: var(--link);
 }
+
+/* "Have a join code?" under the estate field on Join Your Estate */
+.switchJoin {
+  justify-self: end;
+  margin-top: -10px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--link);
+}
+
+.switchJoin:hover {
+  text-decoration: underline;
+}

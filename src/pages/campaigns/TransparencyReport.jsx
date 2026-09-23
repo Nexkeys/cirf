@@ -23,12 +23,17 @@ import { AppShell } from '../../components/dashboard/AppShell.jsx'
 import { CampaignTabs } from '../../components/dashboard/CampaignTabs.jsx'
 import { FundFlowChart } from '../../components/dashboard/FundFlowChart.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
+import { Pagination } from '../../components/dashboard/Pagination.jsx'
 import { Pylons } from '../../components/dashboard/Pylons.jsx'
 import { SpendingDonut } from '../../components/dashboard/SpendingDonut.jsx'
+import { StatRow, StatTile } from '../../components/dashboard/StatTile.jsx'
+import { PageSkeleton } from '../../components/Loading.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
 import { api, downloadFile } from '../../lib/api.js'
+import { saveCsv } from '../../lib/csv.js'
 import { methodLabel } from '../../lib/campaigns.js'
 import { formatDate, formatNaira, lagosDay } from '../../lib/format.js'
+import { usePaged } from '../../lib/usePaged.js'
 import { usePageTitle } from '../../lib/usePageTitle.js'
 import shared from './campaigns.module.css'
 import styles from './TransparencyReport.module.css'
@@ -59,7 +64,7 @@ export default function TransparencyReport() {
   if (state.status !== 'ready') {
     return (
       <AppShell heading={heading}>
-        {state.status === 'loading' ? <p className={shared.loading}>Loading the report…</p> : <FormAlert>{state.message}</FormAlert>}
+        {state.status === 'loading' ? <PageSkeleton label="Please wait, loading the transparency report…" /> : <FormAlert>{state.message}</FormAlert>}
       </AppShell>
     )
   }
@@ -80,7 +85,12 @@ export default function TransparencyReport() {
   }
 
   const downloadPdf = () => run(() => downloadFile(`/campaigns/${id}/transparency-report/pdf`, `${campaign.title} - transparency report.pdf`))
-  const downloadCsv = () => saveCsv(`${campaign.title} - transactions.csv`, transactions)
+  const downloadCsv = () =>
+    saveCsv(
+      `${campaign.title} - transactions.csv`,
+      ['Date', 'Type', 'Description', 'From / To', 'Reference', 'Amount (NGN)', 'Status'],
+      transactions.map((row) => [row.at, TYPES[row.type], row.description, row.party, row.reference, row.amount, row.status]),
+    )
   const share = () =>
     run(async () => {
       if (!publicLink) throw new Error('The public link appears once the campaign is published.')
@@ -103,15 +113,15 @@ export default function TransparencyReport() {
         </header>
         <CampaignTabs campaignId={id} />
 
-        <div className={styles.stats}>
-          <Stat icon={CircleDollarSign} label="Total Funds Collected" value={formatNaira(campaign.totalCollected)} note={`${Math.round(campaign.percentFunded)}% of the ${formatNaira(campaign.targetAmount)} target`} />
-          <Stat
+        <StatRow>
+          <StatTile icon={CircleDollarSign} label="Total Funds Collected" value={formatNaira(campaign.totalCollected)} note={`${Math.round(campaign.percentFunded)}% of the ${formatNaira(campaign.targetAmount)} target`} />
+          <StatTile
             icon={Wallet}
             label="Total Paid to Vendors"
             value={formatNaira(paid)}
             note={campaign.actualCost != null ? `To ${campaign.selectedVendorName}` : campaign.selectedVendorName ? 'Paid when the repair is complete' : 'No vendor selected yet'}
           />
-          <Stat
+          <StatTile
             icon={FileText}
             label={balance < 0 ? 'Shortfall' : 'Balance Remaining'}
             value={formatNaira(Math.abs(balance))}
@@ -124,13 +134,13 @@ export default function TransparencyReport() {
             }
             warn={balance < 0}
           />
-          <Stat
+          <StatTile
             icon={Users}
             label="Total Contributors"
             value={`${overview.contributors.paid} / ${overview.contributors.total}`}
             note={`${overview.contributors.total ? Math.round((overview.contributors.paid / overview.contributors.total) * 100) : 0}% participation`}
           />
-        </div>
+        </StatRow>
 
         <div className={styles.charts}>
           <section className={shared.card} aria-labelledby="flow-title">
@@ -204,21 +214,6 @@ export default function TransparencyReport() {
         </div>
       </div>
     </AppShell>
-  )
-}
-
-function Stat({ icon: Icon, label, value, note, warn = false }) {
-  return (
-    <section className={styles.stat}>
-      <span className={styles.statIcon} aria-hidden="true">
-        <Icon />
-      </span>
-      <div>
-        <h2>{label}</h2>
-        <p className={styles.statValue}>{value}</p>
-        <p className={`${styles.statNote} ${warn ? styles.warn : ''}`}>{note}</p>
-      </div>
-    </section>
   )
 }
 
@@ -331,15 +326,12 @@ function buildTransactions(campaign, report) {
 function Transactions({ rows }) {
   const [query, setQuery] = useState('')
   const [type, setType] = useState('all')
-  const [page, setPage] = useState(1)
   const shown = rows.filter(
     (row) =>
       (type === 'all' || row.type === type) &&
       (!query || `${row.description} ${row.party} ${row.reference}`.toLowerCase().includes(query.toLowerCase())),
   )
-  const pages = Math.max(Math.ceil(shown.length / PAGE_SIZE), 1)
-  const current = Math.min(page, pages)
-  const pageRows = shown.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE)
+  const paged = usePaged(shown, PAGE_SIZE, `${query}|${type}`)
 
   return (
     <div>
@@ -356,19 +348,13 @@ function Transactions({ rows }) {
               placeholder="Search by name, reference or description…"
               aria-label="Search transactions"
               value={query}
-              onChange={(event) => {
-                setQuery(event.target.value)
-                setPage(1)
-              }}
+              onChange={(event) => setQuery(event.target.value)}
             />
           </label>
           <select
             aria-label="Transaction type"
             value={type}
-            onChange={(event) => {
-              setType(event.target.value)
-              setPage(1)
-            }}
+            onChange={(event) => setType(event.target.value)}
           >
             <option value="all">All Types</option>
             <option value="contribution">Contributions</option>
@@ -393,7 +379,7 @@ function Transactions({ rows }) {
             </tr>
           </thead>
           <tbody>
-            {pageRows.map((row, index) => (
+            {paged.rows.map((row, index) => (
               <tr key={`${row.at}-${index}`}>
                 <td>
                   {formatDate(row.at)}
@@ -416,9 +402,7 @@ function Transactions({ rows }) {
                       <Download size={17} />
                     </a>
                   ) : (
-                    <span className={styles.noReceipt} aria-label="No receipt">
-                      —
-                    </span>
+                    <span className={styles.noReceipt}>None</span>
                   )}
                 </td>
               </tr>
@@ -428,31 +412,7 @@ function Transactions({ rows }) {
         {shown.length === 0 && <p className={styles.none}>No transactions match.</p>}
       </div>
 
-      <div className={styles.pager}>
-        <span>
-          Showing {pageRows.length} of {shown.length} transactions
-        </span>
-        {pages > 1 && (
-          <span className={styles.pages}>
-            <button type="button" disabled={current === 1} onClick={() => setPage(current - 1)} aria-label="Previous page">
-              ‹
-            </button>
-            {Array.from({ length: pages }, (_, i) => i + 1)
-              .filter((n) => n === 1 || n === pages || Math.abs(n - current) <= 1)
-              .map((n, i, list) => (
-                <span key={n} className={styles.pageGroup}>
-                  {i > 0 && n - list[i - 1] > 1 && <span className={styles.gap}>…</span>}
-                  <button type="button" className={n === current ? styles.currentPage : ''} aria-current={n === current ? 'page' : undefined} onClick={() => setPage(n)}>
-                    {n}
-                  </button>
-                </span>
-              ))}
-            <button type="button" disabled={current === pages} onClick={() => setPage(current + 1)} aria-label="Next page">
-              ›
-            </button>
-          </span>
-        )}
-      </div>
+      <Pagination paged={paged} noun="transactions" />
     </div>
   )
 }
@@ -491,7 +451,7 @@ function VendorPayments({ campaign, quotes }) {
                     {quote.selected ? (campaign.actualCost != null ? 'Paid' : 'Selected') : 'Not used'}
                   </span>
                 </td>
-                <td className={styles.wrap}>{quote.selected ? (quote.selectionReason ?? 'Lowest quote') : '—'}</td>
+                <td className={styles.wrap}>{quote.selected ? (quote.selectionReason ?? 'Lowest quote') : 'Not chosen'}</td>
               </tr>
             ))}
           </tbody>
@@ -504,6 +464,7 @@ function VendorPayments({ campaign, quotes }) {
 
 function Receipts({ campaign, report }) {
   const proofs = report.contributions.filter((c) => c.proofUrl)
+  const paged = usePaged(proofs, PAGE_SIZE)
   return (
     <div>
       <div className={styles.recordHead}>
@@ -525,7 +486,7 @@ function Receipts({ campaign, report }) {
             </a>
           )}
         </li>
-        {proofs.map((c, index) => (
+        {paged.rows.map((c, index) => (
           <li key={`${c.contributor}-${index}`}>
             <Receipt aria-hidden="true" />
             <span>
@@ -538,7 +499,7 @@ function Receipts({ campaign, report }) {
           </li>
         ))}
       </ul>
-      {proofs.length === 0 && <p className={styles.none}>No contribution proofs uploaded.</p>}
+      {proofs.length === 0 ? <p className={styles.none}>No contribution proofs uploaded.</p> : <Pagination paged={paged} noun="proofs" />}
     </div>
   )
 }
@@ -591,14 +552,4 @@ function Documents({ report, publicLink, onPdf }) {
       </ul>
     </div>
   )
-}
-
-function saveCsv(filename, rows) {
-  const header = ['Date', 'Type', 'Description', 'From / To', 'Reference', 'Amount (NGN)', 'Status']
-  const lines = rows.map((row) => [row.at ?? '', TYPES[row.type], row.description, row.party, row.reference, row.amount, row.status])
-  const csv = [header, ...lines].map((line) => line.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\r\n')
-  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
-  const link = Object.assign(document.createElement('a'), { href: url, download: filename })
-  link.click()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }

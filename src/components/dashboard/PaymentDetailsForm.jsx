@@ -2,6 +2,7 @@ import { Hash, Landmark, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../Button.jsx'
 import { FormAlert } from '../FormAlert.jsx'
+import { useToast } from '../ToastContext.js'
 import { FormField } from './FormField.jsx'
 import styles from './PaymentDetailsForm.module.css'
 
@@ -11,6 +12,7 @@ const EMPTY = { bankName: '', accountName: '', accountNumber: '' }
 // Controlled by the parent through `value`/`onChange` (the Create Campaign wizard), or,
 // given `onSave`, a small form of its own with a Save button (Make a Contribution).
 export function PaymentDetailsForm({ value, onChange, onSave, errors = {} }) {
+  const toast = useToast()
   const [draft, setDraft] = useState(value ?? EMPTY)
   const [busy, setBusy] = useState(false)
   const [problem, setProblem] = useState('')
@@ -30,6 +32,7 @@ export function PaymentDetailsForm({ value, onChange, onSave, errors = {} }) {
     setFieldErrors({})
     try {
       await onSave(details)
+      toast.success('Payment details saved')
     } catch (error) {
       const found = {}
       for (const field of Object.keys(EMPTY)) {

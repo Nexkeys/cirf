@@ -26,10 +26,14 @@ import { CampaignTabs } from '../../components/dashboard/CampaignTabs.jsx'
 import { FormField } from '../../components/dashboard/FormField.jsx'
 import { Modal } from '../../components/dashboard/Modal.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
+import { Pagination } from '../../components/dashboard/Pagination.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
+import { PageSkeleton } from '../../components/Loading.jsx'
+import { useToast } from '../../components/ToastContext.js'
 import { api, downloadFile, uploadImage } from '../../lib/api.js'
 import { groupDigits, parseNaira } from '../../lib/campaigns.js'
 import { formatDate, formatNaira, initials } from '../../lib/format.js'
+import { usePaged } from '../../lib/usePaged.js'
 import { usePageTitle } from '../../lib/usePageTitle.js'
 import shared from './campaigns.module.css'
 import styles from './Reconciliation.module.css'
@@ -59,6 +63,7 @@ export default function Reconciliation() {
   const isAdmin = profile.role === 'admin'
   const [state, setState] = useState({ status: 'loading' })
   const [dialog, setDialog] = useState(null) // 'complete' | 'reconcile'
+  const toast = useToast()
   usePageTitle('Reconciliation')
 
   const load = useCallback(() => {
@@ -77,7 +82,7 @@ export default function Reconciliation() {
   if (state.status !== 'ready') {
     return (
       <AppShell heading={heading}>
-        {state.status === 'loading' ? <p className={shared.loading}>Loading reconciliation…</p> : <FormAlert>{state.message}</FormAlert>}
+        {state.status === 'loading' ? <PageSkeleton layout="detail" label="Please wait, loading reconciliation…" /> : <FormAlert>{state.message}</FormAlert>}
       </AppShell>
     )
   }
@@ -144,6 +149,7 @@ export default function Reconciliation() {
           onClose={() => setDialog(null)}
           onDone={() => {
             setDialog(null)
+            toast.success('Repair marked as complete. You can now run reconciliation.')
             load()
           }}
         />
@@ -154,6 +160,7 @@ export default function Reconciliation() {
           onClose={() => setDialog(null)}
           onDone={() => {
             setDialog(null)
+            toast.success('Campaign reconciled. Every contributor can see their refund or balance.')
             load()
           }}
         />
@@ -192,7 +199,7 @@ function FinancialSummary({ campaign, reconciliation }) {
   const rows = [
     [Target, 'Target Amount', formatNaira(campaign.targetAmount)],
     [CircleDollarSign, 'Total Collected', formatNaira(campaign.totalCollected)],
-    [Landmark, campaign.actualCost != null ? 'Total Vendor Payment' : 'Selected Quote', cost != null ? formatNaira(cost) : '—'],
+    [Landmark, campaign.actualCost != null ? 'Total Vendor Payment' : 'Selected Quote', cost != null ? formatNaira(cost) : 'Not chosen yet'],
     [Hourglass, 'Awaiting Verification', formatNaira(campaign.pendingAmount ?? 0)],
   ]
 
@@ -212,7 +219,7 @@ function FinancialSummary({ campaign, reconciliation }) {
           <dt>
             <CircleCheck aria-hidden="true" /> {resultLabel}
           </dt>
-          <dd>{difference == null ? '—' : formatNaira(Math.abs(difference))}</dd>
+          <dd>{difference == null ? 'Not known yet' : formatNaira(Math.abs(difference))}</dd>
         </div>
       </dl>
     </section>
@@ -505,10 +512,7 @@ function Activity({ campaignId, timeline }) {
 
 // After reconciling: what each contributor gets back or still owes.
 function Adjustments({ reconciliation, myName }) {
-  const [page, setPage] = useState(1)
-  const rows = reconciliation.perContributor
-  const pages = Math.max(Math.ceil(rows.length / PAGE_SIZE), 1)
-  const shown = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const paged = usePaged(reconciliation.perContributor, PAGE_SIZE)
   const outcome = {
     refund: `The repair cost less than was collected. ${formatNaira(reconciliation.variance)} goes back to contributors in proportion to what each paid.`,
     balance_owed: `The repair cost more than was collected. The ${formatNaira(-reconciliation.variance)} shortfall is shared in proportion to what each paid.`,
@@ -532,7 +536,7 @@ function Adjustments({ reconciliation, myName }) {
             </tr>
           </thead>
           <tbody>
-            {shown.map((row) => (
+            {paged.rows.map((row) => (
               <tr key={row.contributor} className={row.contributor === myName ? styles.mine : ''}>
                 <td>
                   <span className={styles.person}>
@@ -546,26 +550,14 @@ function Adjustments({ reconciliation, myName }) {
                 <td>{formatNaira(row.paid)}</td>
                 <td>{row.sharePercent}%</td>
                 <td className={row.adjustment > 0 ? styles.refund : row.adjustment < 0 ? styles.owed : ''}>
-                  {row.adjustment > 0 ? `Refund ${formatNaira(row.adjustment)}` : row.adjustment < 0 ? `Owes ${formatNaira(-row.adjustment)}` : '—'}
+                  {row.adjustment > 0 ? `Refund ${formatNaira(row.adjustment)}` : row.adjustment < 0 ? `Owes ${formatNaira(-row.adjustment)}` : 'Settled'}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {pages > 1 && (
-        <div className={styles.pager}>
-          <button type="button" disabled={page === 1} onClick={() => setPage(page - 1)}>
-            Previous
-          </button>
-          <span>
-            Page {page} of {pages}
-          </span>
-          <button type="button" disabled={page === pages} onClick={() => setPage(page + 1)}>
-            Next
-          </button>
-        </div>
-      )}
+      <Pagination paged={paged} noun="contributors" />
     </section>
   )
 }

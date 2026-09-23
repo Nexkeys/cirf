@@ -30,6 +30,8 @@ import { Pylons } from '../../components/dashboard/Pylons.jsx'
 import { StatusBadge } from '../../components/dashboard/StatusBadge.jsx'
 import { Stepper } from '../../components/dashboard/Stepper.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
+import { PageSkeleton } from '../../components/Loading.jsx'
+import { useToast } from '../../components/ToastContext.js'
 import { api, uploadImage } from '../../lib/api.js'
 import { CATEGORIES, categoryLabel, dayFromToday, groupDigits, parseNaira } from '../../lib/campaigns.js'
 import { daysUntil, formatDate, formatNaira } from '../../lib/format.js'
@@ -65,6 +67,7 @@ export default function CreateCampaign() {
   const { id: draftId } = useParams()
   const { profile, estate, refresh } = useAuth()
   const navigate = useNavigate()
+  const toast = useToast()
   usePageTitle(draftId ? 'Edit Campaign' : 'Create Campaign')
 
   const [step, setStep] = useState(1)
@@ -201,6 +204,7 @@ export default function CreateCampaign() {
       if (publish) await api(`/campaigns/${campaignId}/publish`, { method: 'POST' })
 
       refresh()
+      toast.success(publish ? 'Campaign published. Residents can now see it and contribute.' : 'Draft saved. Only admins can see it until you publish.')
       navigate(`/campaigns/${campaignId}`)
     } catch (error) {
       const fieldErrors = {}
@@ -233,7 +237,7 @@ export default function CreateCampaign() {
   if (loading) {
     return (
       <AppShell heading={heading}>
-        <p className={shared.loading}>Loading the draft…</p>
+        <PageSkeleton layout="form" label="Please wait, loading your draft…" />
       </AppShell>
     )
   }
@@ -502,7 +506,7 @@ function CampaignPreview({ form, estate, count, target }) {
           <dt>
             <Target aria-hidden="true" /> Target Amount
           </dt>
-          <dd>{target ? formatNaira(target) : '—'}</dd>
+          <dd>{target ? formatNaira(target) : 'Not set'}</dd>
         </div>
         <div>
           <dt>
@@ -524,11 +528,11 @@ function CampaignPreview({ form, estate, count, target }) {
             <dt>Collected</dt>
           </div>
           <div>
-            <dd>{target ? formatNaira(target) : '—'}</dd>
+            <dd>{target ? formatNaira(target) : 'Not set'}</dd>
             <dt>Target Amount</dt>
           </div>
           <div>
-            <dd>0 / {count || '—'}</dd>
+            <dd>0 / {count || 0}</dd>
             <dt>Contributors</dt>
           </div>
         </dl>
@@ -646,7 +650,7 @@ function StepLevy({ form, estate, errors, update, count, onBack, onNext }) {
                 {categoryLabel(form.category)} repair
               </span>
               <span className={styles.breakdownValue}>
-                <strong>{target ? formatNaira(target) : '—'}</strong>
+                <strong>{target ? formatNaira(target) : 'Not set'}</strong>
                 (100%)
               </span>
             </li>
@@ -659,7 +663,7 @@ function StepLevy({ form, estate, errors, update, count, onBack, onNext }) {
                 {perUnit ? 'Units across the estate' : 'Estimated households in this estate'}
               </span>
               <span className={styles.breakdownValue}>
-                <strong>{count ?? '—'}</strong>
+                <strong>{count ?? 'Not set'}</strong>
                 (100%)
               </span>
             </li>
@@ -672,7 +676,7 @@ function StepLevy({ form, estate, errors, update, count, onBack, onNext }) {
                 {perUnit ? 'Amount charged for each unit' : 'Amount each household will contribute'}
               </span>
               <span className={styles.breakdownValue}>
-                <strong>{form.levy ? formatNaira(form.levy) : '—'}</strong>
+                <strong>{form.levy ? formatNaira(form.levy) : 'Not set'}</strong>
                 {perUnit ? '(per unit)' : '(per household)'}
               </span>
             </li>
@@ -741,11 +745,11 @@ function SummaryCard({ form, estate, count, target }) {
         </div>
         <div>
           <dt>Target Amount</dt>
-          <dd>{target ? formatNaira(target) : '—'}</dd>
+          <dd>{target ? formatNaira(target) : 'Not set'}</dd>
         </div>
         <div>
           <dt>Levy ({perUnit ? 'per unit' : 'per household'})</dt>
-          <dd>{form.levy ? formatNaira(form.levy) : '—'}</dd>
+          <dd>{form.levy ? formatNaira(form.levy) : 'Not set'}</dd>
         </div>
       </dl>
       <div className={styles.summaryBoxes}>
@@ -753,7 +757,7 @@ function SummaryCard({ form, estate, count, target }) {
           <UsersRound aria-hidden="true" />
           <span>
             {perUnit ? 'Total Units' : 'Estimated Households'}
-            <strong>{count ?? '—'}</strong>
+            <strong>{count ?? 'Not set'}</strong>
           </span>
         </div>
         <div>
@@ -809,9 +813,9 @@ function StepReview({ form, estate, errors, update, count, busy, onBack, onEdit,
     ['Category', categoryLabel(form.category), 1],
     ['Deadline', form.deadline ? formatDate(form.deadline) : 'Not set', 1],
     ['Contribution Type', perUnit ? 'By Unit Count' : 'Flat Split', 2],
-    [perUnit ? 'Per-Unit Levy' : 'Per-Household Levy', form.levy ? formatNaira(form.levy) : '—', 2],
-    [perUnit ? 'Total Units' : 'Households', count ?? '—', 2],
-    ['Target Amount', target ? formatNaira(target) : '—', 2],
+    [perUnit ? 'Per-Unit Levy' : 'Per-Household Levy', form.levy ? formatNaira(form.levy) : 'Not set', 2],
+    [perUnit ? 'Total Units' : 'Households', count ?? 'Not set', 2],
+    ['Target Amount', target ? formatNaira(target) : 'Not set', 2],
   ]
 
   return (

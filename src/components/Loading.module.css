@@ -1,0 +1,165 @@
+.note {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.spinner {
+  flex: none;
+  color: var(--progress);
+  animation: spin 0.8s linear infinite;
+}
+
+.block {
+  display: block;
+  flex: none;
+  max-width: 100%;
+  background: linear-gradient(90deg, var(--track) 30%, #f4f8f6 50%, var(--track) 70%) 0 0 / 300% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.page {
+  display: grid;
+  gap: 20px;
+}
+
+.stack {
+  display: grid;
+  flex: 1;
+  gap: 10px;
+  min-width: 0;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+  gap: 16px;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--card-line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.table {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--card-line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1.4fr) minmax(0, 1fr) 70px;
+  align-items: center;
+  gap: 16px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.card,
+.formCard,
+.listCard {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--card-line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.formCard {
+  max-width: 720px;
+  gap: 20px;
+}
+
+.listCard {
+  gap: 0;
+  padding: 8px 18px;
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--card-line);
+}
+
+.listRow:last-child {
+  border-bottom: 0;
+}
+
+.full {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 22px;
+  min-height: 100dvh;
+  padding: 24px;
+  background: var(--page);
+  --logo-size: 38px;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -150% 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .block,
+  .spinner {
+    animation-duration: 3s;
+  }
+}
+
+@media (max-width: 1100px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .row {
+    grid-template-columns: 36px minmax(0, 1fr) 60px;
+  }
+
+  .row > :nth-child(3) {
+    display: none;
+  }
+}

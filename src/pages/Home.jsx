@@ -223,7 +223,7 @@ export default function Home() {
               </h2>
               <p className={styles.body}>
                 CIRF removes the guesswork, the confusion, and the mistrust. It gives every community the right tools to
-                raise, manage and account for funds — fairly, transparently, and with confidence.
+                raise, manage and account for funds: fairly, transparently, and with confidence.
               </p>
               <Link to="/about" className={pub.textLink}>
                 Learn More <ArrowRight size={16} aria-hidden="true" />

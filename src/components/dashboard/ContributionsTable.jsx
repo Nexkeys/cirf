@@ -1,7 +1,7 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useState } from 'react'
 import { formatDate, formatNaira, initials } from '../../lib/format.js'
 import { methodLabel } from '../../lib/campaigns.js'
+import { usePaged } from '../../lib/usePaged.js'
+import { Pagination } from './Pagination.jsx'
 import styles from './ContributionsTable.module.css'
 
 const STATUS = {
@@ -12,12 +12,10 @@ const STATUS = {
 
 // Recent contributions, as in the campaign designs. `last` picks the final column:
 // "status" (Paid / Pending) or "method" (Bank Transfer, Cash...). With `pageSize`, rows
-// are paged with the numbered buttons from the design.
+// are paged with the shared Pagination.
 export function ContributionsTable({ contributions, last = 'status', pageSize, empty = 'No contributions yet.' }) {
-  const [page, setPage] = useState(1)
-  const pages = pageSize ? Math.max(Math.ceil(contributions.length / pageSize), 1) : 1
-  const current = Math.min(page, pages)
-  const rows = pageSize ? contributions.slice((current - 1) * pageSize, current * pageSize) : contributions
+  const paged = usePaged(contributions, pageSize ?? Math.max(contributions.length, 1))
+  const rows = paged.rows
 
   if (!contributions.length) return <p className={styles.empty}>{empty}</p>
 
@@ -62,41 +60,7 @@ export function ContributionsTable({ contributions, last = 'status', pageSize, e
         </table>
       </div>
 
-      {pages > 1 && (
-        <nav className={styles.pager} aria-label="Contribution pages">
-          <button type="button" onClick={() => setPage(current - 1)} disabled={current === 1} aria-label="Previous page">
-            <ChevronLeft size={16} />
-          </button>
-          {pageNumbers(current, pages).map((number, index) =>
-            number === '…' ? (
-              <span key={`gap-${index}`} className={styles.gap}>
-                …
-              </span>
-            ) : (
-              <button
-                key={number}
-                type="button"
-                onClick={() => setPage(number)}
-                className={number === current ? styles.currentPage : ''}
-                aria-current={number === current ? 'page' : undefined}
-              >
-                {number}
-              </button>
-            ),
-          )}
-          <button type="button" onClick={() => setPage(current + 1)} disabled={current === pages} aria-label="Next page">
-            <ChevronRight size={16} />
-          </button>
-        </nav>
-      )}
+      {pageSize && <Pagination paged={paged} noun="contributions" />}
     </div>
   )
-}
-
-// 1 2 3 4 5 … 12, keeping the current page in view.
-function pageNumbers(current, pages) {
-  if (pages <= 6) return Array.from({ length: pages }, (_, i) => i + 1)
-  const start = Math.max(1, Math.min(current - 2, pages - 4))
-  const shown = Array.from({ length: 5 }, (_, i) => start + i)
-  return shown.at(-1) < pages ? [...shown, '…', pages] : shown
 }
