@@ -38,6 +38,10 @@ export async function api(path, { method = 'GET', body, signedIn = true } = {}) 
 
   if (response.status === 204) return null
   const data = await response.json().catch(() => null)
+  if (!response.ok && !data && response.status >= 502) {
+    // No JSON at all: the API itself isn't running or a gateway couldn't reach it.
+    throw new ApiError(response.status, "CIRF's server isn't responding right now. Please try again in a moment.")
+  }
   if (!response.ok) {
     const error = data?.error ?? {}
     throw new ApiError(

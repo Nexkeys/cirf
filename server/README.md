@@ -61,7 +61,7 @@ The e2e test checks all of this. It includes an admin of a second estate being r
 api/index.js              Vercel entry point (the only deployed function)
 server/
   app.js                  Express app: JSON parsing, routers, error handling
-  dev.js                  Local server for `npm run dev:api`
+  dev.js                  Stand-alone local API for `npm run dev:api`
   routes/                 One file per resource, paths match the API spec
   middleware/             verifyFirebaseToken, requireRole, guards, errorHandler
   services/
@@ -84,20 +84,20 @@ firestore.rules           Deny-all rules
 
 ```bash
 npm install
-npm run dev:api     # API on http://localhost:3001/api (reads .env)
-npm run dev         # Vite on http://localhost:5173, proxies /api to the API
+npm run dev         # the site and the API together on http://localhost:5173 (reads .env)
 ```
 
-Local credentials come from `.env`. See `.env.example`. Locally, `FIREBASE_SERVICE_ACCOUNT_PATH` points at the downloaded service account JSON.
+`npm run dev` answers `/api` from the Express app inside Vite's dev server, so there's nothing else to start. Restart it after changing anything under `server/`. To work on the API with automatic restarts, run `npm run dev:api` (API on :3001) and start Vite with `API_PROXY_TARGET=http://localhost:3001` set, and Vite passes `/api` through to it.
+
+Local credentials come from `.env`. See `.env.example`. Locally, `FIREBASE_SERVICE_ACCOUNT_PATH` points at the downloaded service account JSON. `npm run dev` uses the real Firebase project, so accounts made there are real.
 
 ## Trying the app on the emulators
 
-To click through sign-up, estate joining and sign-in without creating practice accounts in the real Firebase project, run everything against the local emulators. Use three terminals:
+To click through sign-up, estate joining and sign-in without creating practice accounts in the real Firebase project, run everything against the local emulators. Use two terminals:
 
 ```bash
 npm run emulators           # Auth + Firestore emulators (needs Java)
-npm run dev:api:emulators   # API on :3001, using the emulators
-npm run dev:emulators       # Vite on :5173, signing in through the Auth emulator
+npm run dev:emulators       # site and API on :5173, both using the emulators
 ```
 
 The settings live in `.env.emulators`, which holds no secrets. Emulator data disappears when the emulators stop. Google sign-in and Cloudinary uploads only work against the real project.

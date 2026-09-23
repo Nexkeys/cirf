@@ -1,5 +1,27 @@
+import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv } from 'vite'
+
+// `npm run dev` serves the API as well: the Express app from server/app.js answers /api
+// inside Vite's dev server, so one command runs the whole site. Changes under server/
+// need a restart. To run the API on its own instead (`npm run dev:api`, which restarts
+// itself on changes), set API_PROXY_TARGET=http://localhost:3001 and /api is proxied there.
+function cirfApi(env) {
+  return {
+    name: 'cirf-api',
+    apply: 'serve',
+    async configureServer(server) {
+      if (env.API_PROXY_TARGET) return
+      // The API reads its settings (Firebase service account, Cloudinary) from process.env.
+      for (const [key, value] of Object.entries(env)) process.env[key] ??= value
+      // A variable path, so Vite loads the server as it is instead of bundling it into the config.
+      const appPath = pathToFileURL(resolve('server/app.js')).href
+      const { default: app } = await import(appPath)
+      server.middlewares.use((req, res, next) => (req.url.startsWith('/api/') ? app(req, res, next) : next()))
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -17,11 +39,8 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [react()],
+    plugins: [react(), cirfApi(env)],
     define: { __FIREBASE_CONFIG__: JSON.stringify(firebaseConfig) },
-    server: {
-      // Locally the API runs as its own process (npm run dev:api).
-      proxy: { '/api': env.API_PROXY_TARGET || 'http://localhost:3001' },
-    },
+    server: env.API_PROXY_TARGET ? { proxy: { '/api': env.API_PROXY_TARGET } } : {},
   }
 })

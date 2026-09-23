@@ -1,4 +1,4 @@
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth'
 import { LockKeyhole, Mail, MapPin, Phone, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
@@ -16,6 +16,24 @@ import { usePageTitle } from '../lib/usePageTitle.js'
 import { isEmail, isPhone, MIN_PASSWORD_LENGTH } from '../lib/validation.js'
 import shared from '../styles/auth.module.css'
 import styles from './CreateAccount.module.css'
+
+// Makes the Firebase login for a new account. If an earlier attempt already made it but
+// stopped before the profile was saved (the API was unreachable, say), the same email and
+// password sign back in to it and registering carries on. Returns true in that case.
+async function createLogin(email, password, name) {
+  try {
+    const { user } = await createUserWithEmailAndPassword(auth, email, password)
+    updateProfile(user, { displayName: name }).catch(() => {})
+    return false
+  } catch (error) {
+    if (error.code !== 'auth/email-already-in-use') throw error
+    // A wrong password means it really is someone else's account: report the original error.
+    await signInWithEmailAndPassword(auth, email, password).catch(() => {
+      throw error
+    })
+    return true
+  }
+}
 
 // Which API field each form field's errors come back under.
 const API_FIELDS = { name: 'name', phone: 'phone', estateId: 'estate', estateName: 'estate' }
@@ -75,8 +93,9 @@ export default function CreateAccount() {
     try {
       if (!completing) {
         await rememberSession(true)
-        const { user: created } = await createUserWithEmailAndPassword(auth, email.trim(), password)
-        updateProfile(created, { displayName: fullName.trim() }).catch(() => {})
+        const resumed = await createLogin(email.trim(), password, fullName.trim())
+        // Signed back in to an account that turns out to be fully set up: just go in.
+        if (resumed && (await api('/users/me').then(() => true, () => false))) return await refresh()
       }
 
       await api('/users/register', {
