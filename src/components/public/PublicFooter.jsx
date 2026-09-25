@@ -50,7 +50,7 @@ export function PublicFooter() {
 
         <div className={styles.note}>
           <Photo name="evening-street" sizes="120px" className={styles.notePhoto} />
-          <p>CIRF: built as a final year project prototype focused on transparent, community funded infrastructure repair.</p>
+          <p>    </p>
         </div>
 
         <p className={styles.copyright}>© {new Date().getFullYear()} CIRF. All rights reserved.</p>
