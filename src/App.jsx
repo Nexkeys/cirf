@@ -15,6 +15,7 @@ import CheckEmail from './pages/CheckEmail.jsx'
 import CreateAccount from './pages/CreateAccount.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
+import Guide from './pages/Guide.jsx'
 import Home from './pages/Home.jsx'
 import Notifications from './pages/Notifications.jsx'
 import Settings from './pages/settings/Settings.jsx'
@@ -35,6 +36,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
+      <Route path="/guide" element={<Guide />} />
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/signin" element={<GuestOnly><SignIn /></GuestOnly>} />
       <Route path="/signup" element={<GuestOnly><CreateAccount /></GuestOnly>} />

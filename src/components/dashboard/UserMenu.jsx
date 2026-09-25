@@ -1,4 +1,4 @@
-import { ChevronDown, LogOut, Settings } from 'lucide-react'
+import { BookOpen, ChevronDown, LogOut, Settings } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../../auth/AuthContext.js'
@@ -53,6 +53,10 @@ export function UserMenu() {
           <Link to="/settings" role="menuitem" className={styles.menuItem} onClick={() => setOpen(false)}>
             <Settings size={17} aria-hidden="true" />
             Settings
+          </Link>
+          <Link to="/guide" role="menuitem" className={styles.menuItem} onClick={() => setOpen(false)}>
+            <BookOpen size={17} aria-hidden="true" />
+            User Guide
           </Link>
           <button type="button" role="menuitem" className={styles.menuItem} onClick={signOut}>
             <LogOut size={17} aria-hidden="true" />

@@ -41,6 +41,9 @@ export function PublicFooter() {
               <li>
                 <Link to="/about">About</Link>
               </li>
+              <li>
+                <Link to="/guide">User Guide</Link>
+              </li>
             </ul>
           </div>
         </nav>

@@ -9,6 +9,7 @@ const LINKS = [
   { to: '/#how-it-works', label: 'How It Works' },
   { to: '/#features', label: 'Features' },
   { to: '/about', label: 'About' },
+  { to: '/guide', label: 'User Guide' },
 ]
 
 // The top of Home and About. `tone` is "dark" over a photo (white text) or "light" over
@@ -34,7 +35,7 @@ export function PublicHeader({ tone = 'dark' }) {
               to={link.to}
               end
               onClick={close}
-              className={({ isActive }) => `${styles.link} ${isActive && link.to === '/about' ? styles.current : ''}`}
+              className={({ isActive }) => `${styles.link} ${isActive && !link.to.includes('#') ? styles.current : ''}`}
             >
               {link.label}
             </NavLink>
