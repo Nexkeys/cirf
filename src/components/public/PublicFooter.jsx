@@ -50,7 +50,7 @@ export function PublicFooter() {
 
         <div className={styles.note}>
           <Photo name="evening-street" sizes="120px" className={styles.notePhoto} />
-          <p>    </p>
+          <p>CIRF: giving Nigerian communities a fair, transparent way to fund and track their own infrastructure repairs.</p>
         </div>
 
         <p className={styles.copyright}>© {new Date().getFullYear()} CIRF. All rights reserved.</p>
