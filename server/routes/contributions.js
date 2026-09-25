@@ -60,10 +60,17 @@ const createContributionSchema = z.object({
   userId: z.string().min(1).optional(),
 })
 
+const proofNeeded = () =>
+  badRequest('Upload a photo or screenshot of your payment so it can be checked', [
+    { field: 'proofUrl', message: 'Upload a clear photo or screenshot of the transfer receipt or bank alert' },
+  ])
+
 // POST /api/campaigns/:id/contributions
 // CIRF records payments, it doesn't process them. A resident's own record stays
 // "pending" until an admin checks it against the bank alert or receipt. An admin
 // recording cash they personally collected is vouching for it, so that starts verified.
+// Residents must attach proof for anything but cash: a transfer, POS or mobile money
+// payment always leaves a receipt, and it's what the admin checks against.
 router.post('/campaigns/:id/contributions', registered, async (req, res) => {
   const body = parse(createContributionSchema, req.body)
   const campaign = await loadCampaignFor(req.user, req.params.id)
@@ -71,6 +78,7 @@ router.post('/campaigns/:id/contributions', registered, async (req, res) => {
 
   let payer = req.user
   const onBehalf = Boolean(body.userId) && body.userId !== req.user.id
+  if (!onBehalf && body.method !== 'cash' && !body.proofUrl) throw proofNeeded()
   if (onBehalf) {
     if (!isAdmin(req.user)) throw forbidden('Only admins can record a contribution for someone else')
     const payerSnapshot = await collections.users.doc(body.userId).get()
@@ -248,6 +256,38 @@ router.put('/contributions/:id/verify', adminOnly, async (req, res) => {
     },
   ])
   if (targetJustReached) await announceTargetReached(contribution.campaignId, campaign.estateId, campaign.title)
+
+  res.json({ contribution: docToJson(await contributionRef.get()) })
+})
+
+const proofSchema = z.object({ proofUrl: cloudinaryUrl })
+
+// PUT /api/contributions/:id/proof   body: { proofUrl }
+// Adds or replaces the proof on a contribution that's still waiting to be checked: the
+// resident who recorded it can fix a blurry photo, or add one to an older record. Once
+// it's been verified or rejected the record is final.
+router.put('/contributions/:id/proof', registered, async (req, res) => {
+  const { proofUrl } = parse(proofSchema, req.body)
+  const contributionRef = collections.contributions.doc(req.params.id)
+
+  await db.runTransaction(async (tx) => {
+    const snapshot = await tx.get(contributionRef)
+    const contribution = snapshot.data()
+    // Someone else's record is reported as missing, like other people's notifications.
+    if (!snapshot.exists || contribution.estateId !== req.user.estateId) throw notFound('Contribution not found')
+    if (contribution.userId !== req.user.id && !isAdmin(req.user)) throw notFound('Contribution not found')
+    if (contribution.status !== 'pending') {
+      throw conflict(`This contribution has already been ${contribution.status}, so its proof can't change`)
+    }
+
+    tx.update(contributionRef, { proofUrl, updatedAt: FieldValue.serverTimestamp() })
+    recordEvent(tx, contribution.campaignId, {
+      type: 'contribution_proof_added',
+      actor: req.user,
+      message: `${req.user.name} ${contribution.proofUrl ? 'replaced' : 'added'} the proof of payment for ${formatNaira(contribution.amount)} from ${contribution.userName}`,
+      data: { contributionId: contributionRef.id },
+    })
+  })
 
   res.json({ contribution: docToJson(await contributionRef.get()) })
 })

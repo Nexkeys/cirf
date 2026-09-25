@@ -233,3 +233,8 @@
     width: 100%;
   }
 }
+
+/* Proof of Payment, under the payment details */
+.proof {
+  margin-top: 22px;
+}

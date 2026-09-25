@@ -25,6 +25,7 @@ import { FormField } from '../../components/dashboard/FormField.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
 import { PaymentDetailsForm } from '../../components/dashboard/PaymentDetailsForm.jsx'
 import { ProgressRing } from '../../components/dashboard/ProgressRing.jsx'
+import { ProofUpload } from '../../components/dashboard/ProofUpload.jsx'
 import { Pylons } from '../../components/dashboard/Pylons.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
 import { PageSkeleton } from '../../components/Loading.jsx'
@@ -164,6 +165,11 @@ function ContributionForm({ campaign, estate, profile, onRecorded }) {
   const [problem, setProblem] = useState('')
   const [busy, setBusy] = useState(false)
   const [recorded, setRecorded] = useState(null)
+  const [proofUrl, setProofUrl] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  // The API's rule: residents recording their own payment attach proof unless it was cash.
+  const onBehalfOf = isAdmin && payerId !== profile.id
+  const proofRequired = !onBehalfOf && method !== 'cash'
 
   // Leads can record money for anyone in the estate.
   useEffect(() => {
@@ -186,6 +192,7 @@ function ContributionForm({ campaign, estate, profile, onRecorded }) {
     const found = {}
     if (!value) found.amount = 'Enter the amount you paid'
     else if (value < MINIMUM) found.amount = `The minimum contribution is ${formatNaira(MINIMUM)}`
+    if (proofRequired && !proofUrl) found.proofUrl = 'Upload a clear photo or screenshot of your payment'
     setErrors(found)
     setProblem('')
     if (Object.keys(found).length) return
@@ -199,15 +206,20 @@ function ContributionForm({ campaign, estate, profile, onRecorded }) {
           method,
           reference: note.trim() || (method === 'bank_transfer' ? reference : undefined),
           ...(isAdmin && payerId !== profile.id && { userId: payerId }),
+          ...(proofUrl && { proofUrl }),
         },
       })
       setRecorded(contribution)
       toast.success(contribution.status === 'verified' ? `${formatNaira(contribution.amount)} recorded and verified` : `${formatNaira(contribution.amount)} recorded. Your community lead will verify it.`)
       onRecorded()
     } catch (error) {
-      const message = error.fieldMessage?.('amount')
-      if (message) setErrors({ amount: message })
-      else setProblem(error.message)
+      const found = {}
+      for (const field of ['amount', 'proofUrl']) {
+        const message = error.fieldMessage?.(field)
+        if (message) found[field] = message
+      }
+      setErrors(found)
+      if (!Object.keys(found).length) setProblem(error.message)
     } finally {
       setBusy(false)
     }
@@ -234,6 +246,7 @@ function ContributionForm({ campaign, estate, profile, onRecorded }) {
               setRecorded(null)
               setAmount('')
               setNote('')
+              setProofUrl(null)
             }}
           >
             Record Another
@@ -308,6 +321,26 @@ function ContributionForm({ campaign, estate, profile, onRecorded }) {
 
       {method === 'bank_transfer' && <PaymentDetails campaign={campaign} reference={reference} canEdit={isAdmin} onSaved={onRecorded} />}
 
+      <div className={styles.proof}>
+        <ProofUpload
+          value={proofUrl}
+          onChange={(url) => {
+            setProofUrl(url)
+            if (url) setErrors((current) => ({ ...current, proofUrl: undefined }))
+          }}
+          onBusy={setUploading}
+          required={proofRequired}
+          error={errors.proofUrl}
+          hint={
+            onBehalfOf
+              ? 'Optional for money you collected yourself. Add the receipt or a photo of the POS slip if there is one.'
+              : method === 'cash'
+                ? 'Optional for cash. Add a photo of any receipt your community lead gave you.'
+                : undefined
+          }
+        />
+      </div>
+
       {problem && (
         <div className={styles.problem}>
           <FormAlert>{problem}</FormAlert>
@@ -318,7 +351,7 @@ function ContributionForm({ campaign, estate, profile, onRecorded }) {
         <Link to={`/campaigns/${campaign.id}`} className={shared.secondary}>
           Cancel
         </Link>
-        <Button type="submit" busy={busy} className={styles.submit}>
+        <Button type="submit" busy={busy} disabled={uploading} className={styles.submit}>
           <Send size={17} aria-hidden="true" /> Submit Contribution
         </Button>
       </div>

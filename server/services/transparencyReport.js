@@ -116,8 +116,8 @@ export async function buildTransparencyReport(campaign, { anonymize }) {
     timeline: eventsSnapshot.docs
       .map(docToJson)
       .sort(oldestFirst('createdAt'))
-      // Unverified claims aren't part of the public record.
-      .filter((event) => !(anonymize && event.type === 'contribution_recorded'))
+      // Unverified claims (and proof added to them) aren't part of the public record.
+      .filter((event) => !(anonymize && ['contribution_recorded', 'contribution_proof_added'].includes(event.type)))
       .map((event) => ({
         type: event.type,
         at: event.createdAt,

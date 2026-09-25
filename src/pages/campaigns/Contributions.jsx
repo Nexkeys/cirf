@@ -31,6 +31,7 @@ import { Modal } from '../../components/dashboard/Modal.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
 import { Pagination } from '../../components/dashboard/Pagination.jsx'
 import { PaymentDonut } from '../../components/dashboard/PaymentDonut.jsx'
+import { ProofUpload } from '../../components/dashboard/ProofUpload.jsx'
 import { Pylons } from '../../components/dashboard/Pylons.jsx'
 import { StatRow, StatTile } from '../../components/dashboard/StatTile.jsx'
 import { StatusBadge } from '../../components/dashboard/StatusBadge.jsx'
@@ -42,7 +43,7 @@ import { api } from '../../lib/api.js'
 import { acceptsContributions, methodLabel } from '../../lib/campaigns.js'
 import { saveCsv } from '../../lib/csv.js'
 import { formatDate, formatNaira, initials } from '../../lib/format.js'
-import { sizedPhoto } from '../../lib/images.js'
+import { readablePhoto, sizedPhoto } from '../../lib/images.js'
 import { useCampaignData } from '../../lib/useCampaignData.js'
 import { usePaged } from '../../lib/usePaged.js'
 import { usePageTitle } from '../../lib/usePageTitle.js'
@@ -271,8 +272,14 @@ export default function Contributions({ view: startView = 'records' }) {
           contribution={reviewing}
           phone={phones.get(reviewing.userId)}
           canReview={canReview}
+          canAddProof={reviewing.status === 'pending' && (isAdmin || reviewing.userId === profile.id)}
           onClose={() => setReviewing(null)}
           onDone={reviewed}
+          onProofSaved={(contribution) => {
+            setReviewing(contribution)
+            toast.success(isAdmin && contribution.userId !== profile.id ? 'Proof of payment saved' : 'Proof of payment saved. Your community lead can now check it.')
+            data.reload()
+          }}
         />
       )}
     </AppShell>
@@ -403,6 +410,7 @@ function Records({ contributions, phones, isAdmin, canReview, filter, onFilter, 
                   <th scope="col">Unit</th>
                   <th scope="col">Amount</th>
                   <th scope="col">Reference</th>
+                  <th scope="col">Proof</th>
                   <th scope="col">Status</th>
                   <th scope="col">
                     <span className="visually-hidden">Actions</span>
@@ -434,6 +442,15 @@ function Records({ contributions, phones, isAdmin, canReview, filter, onFilter, 
                       <td>{c.unitNumber ?? 'Not set'}</td>
                       <td className={styles.amount}>{formatNaira(c.amount)}</td>
                       <td className={styles.reference}>{c.reference || methodLabel(c.method)}</td>
+                      <td>
+                        {c.proofUrl ? (
+                          <button type="button" className={styles.proofThumb} onClick={() => onOpen(c)} aria-label={`View ${c.userName}'s proof of payment`}>
+                            <img src={readablePhoto(c.proofUrl, 120)} alt="" loading="lazy" />
+                          </button>
+                        ) : (
+                          <span className={styles.noProofCell}>None</span>
+                        )}
+                      </td>
                       <td>
                         <span className={`${styles.pill} ${styles[status.className]}`}>{status.label}</span>
                       </td>
@@ -620,13 +637,31 @@ function Action({ icon: Icon, title, text, to, onClick }) {
 
 // One contribution in full. For a pending one an admin can verify it, or reject it with
 // a reason the resident will see.
-function ReviewDialog({ contribution: c, phone, canReview, onClose, onDone }) {
+function ReviewDialog({ contribution: c, phone, canReview, canAddProof, onClose, onDone, onProofSaved }) {
   const [rejecting, setRejecting] = useState(false)
   const [reason, setReason] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(null)
   const pendingReview = canReview && c.status === 'pending'
   const status = STATUS[c.status] ?? STATUS.pending
+  const [newProof, setNewProof] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const [editingProof, setEditingProof] = useState(false)
+
+  async function saveProof() {
+    setBusy('proof')
+    setError('')
+    try {
+      const { contribution } = await api(`/contributions/${c.id}/proof`, { method: 'PUT', body: { proofUrl: newProof } })
+      setEditingProof(false)
+      setNewProof(null)
+      onProofSaved(contribution)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(null)
+    }
+  }
 
   async function decide(outcome) {
     if (outcome === 'rejected' && reason.trim().length < 3) {
@@ -673,13 +708,47 @@ function ReviewDialog({ contribution: c, phone, canReview, onClose, onDone }) {
           {c.rejectionReason && <Fact label="Reason" value={c.rejectionReason} wide />}
         </dl>
 
-        {c.proofUrl ? (
-          <a href={c.proofUrl} target="_blank" rel="noreferrer" className={styles.proof}>
-            <img src={sizedPhoto(c.proofUrl, 700)} alt={`Proof of payment from ${c.userName}`} />
-            <span>Open full size</span>
-          </a>
+        {editingProof ? (
+          <div className={styles.proofEdit}>
+            <ProofUpload value={newProof} onChange={setNewProof} onBusy={setUploading} required />
+            <div className={styles.dialogActions}>
+              <button
+                type="button"
+                className={shared.secondary}
+                onClick={() => {
+                  setEditingProof(false)
+                  setNewProof(null)
+                }}
+                disabled={busy === 'proof'}
+              >
+                Cancel
+              </button>
+              <Button busy={busy === 'proof'} disabled={!newProof || uploading} onClick={saveProof}>
+                Save Proof
+              </Button>
+            </div>
+          </div>
+        ) : c.proofUrl ? (
+          <div className={styles.proofBox}>
+            <a href={c.proofUrl} target="_blank" rel="noreferrer" className={styles.proof}>
+              <img src={readablePhoto(c.proofUrl, 900)} alt={`Proof of payment from ${c.userName}`} />
+              <span>Open full size</span>
+            </a>
+            {canAddProof && (
+              <button type="button" className={styles.proofChange} onClick={() => setEditingProof(true)}>
+                Replace proof
+              </button>
+            )}
+          </div>
         ) : (
-          <p className={styles.noProof}>No proof of payment was attached.</p>
+          <div className={styles.noProof}>
+            <p>No proof of payment was attached.</p>
+            {canAddProof && (
+              <button type="button" className={styles.proofChange} onClick={() => setEditingProof(true)}>
+                Add proof of payment
+              </button>
+            )}
+          </div>
         )}
 
         {pendingReview && rejecting && (

@@ -180,7 +180,8 @@ Phone numbers are stored as `+234...` and must be unique, so any usual way of wr
 | Method | Path | Access | Purpose |
 | --- | --- | --- | --- |
 | GET | `/api/campaigns/:id/contributions` | Resident | Admins see all. Residents see verified ones plus their own. |
-| POST | `/api/campaigns/:id/contributions` | Resident | Body: `amount`, `method`, `reference?`, `note?`, `paidAt?`, `proofUrl?`. Admins may add `userId` to record cash for a resident (starts verified). |
+| POST | `/api/campaigns/:id/contributions` | Resident | Body: `amount`, `method`, `reference?`, `note?`, `paidAt?`, `proofUrl`. `proofUrl` (an image uploaded with purpose `contribution-proof`) is required when a resident records their own payment by any method but cash. Admins may add `userId` to record cash for a resident (starts verified, proof optional). |
+| PUT | `/api/contributions/:id/proof` | Resident | Body: `proofUrl`. Adds or replaces the proof on a pending contribution: its contributor or an admin. Others get 404; verified or rejected ones 409. |
 | PUT | `/api/contributions/:id/verify` | Admin | Body: `status?` (`verified`/`rejected`), `reason` (required to reject) |
 
 ### Vendor quotes

@@ -9,3 +9,9 @@ export function sizedPhoto(url, width) {
   if (!url) return FALLBACK_CAMPAIGN_PHOTO
   return url.replace('/image/upload/', `/image/upload/c_fill,w_${width},h_${width},g_auto,q_auto,f_auto/`)
 }
+
+// Receipts and payment proofs: scaled down to fit `width`, never cropped, so the amount
+// and reference at the edges stay readable.
+export function readablePhoto(url, width) {
+  return url.replace('/image/upload/', `/image/upload/c_limit,w_${width},q_auto,f_auto/`)
+}

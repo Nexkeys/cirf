@@ -475,7 +475,10 @@ function ProgressCard({ campaign, reconciliation, pending, ready }) {
 
 function Activity({ campaignId, timeline }) {
   // Newest first; individual contributions are summarised on the Contributions page.
-  const recent = [...timeline].reverse().filter((event) => event.type !== 'contribution_recorded').slice(0, 5)
+  const recent = [...timeline]
+    .reverse()
+    .filter((event) => !['contribution_recorded', 'contribution_proof_added'].includes(event.type))
+    .slice(0, 5)
   return (
     <section className={shared.card} aria-labelledby="activity-title">
       <div className={shared.cardHead}>

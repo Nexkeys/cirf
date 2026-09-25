@@ -1,0 +1,163 @@
+.field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.required {
+  color: var(--danger);
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.drop {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 24px 16px;
+  border: 1.5px dashed #b9cbc3;
+  border-radius: 12px;
+  background: #fff;
+  font: inherit;
+  text-align: center;
+  color: var(--text);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.drop:hover:not(:disabled),
+.dragging {
+  border-color: var(--paid);
+  background: #f2f8f5;
+}
+
+.drop:disabled {
+  cursor: default;
+}
+
+.drop svg {
+  width: 30px;
+  height: 30px;
+  color: var(--paid);
+}
+
+.drop strong {
+  font-size: 14.5px;
+  color: var(--ink);
+}
+
+.drop span {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.invalid {
+  border-color: var(--danger);
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+.preview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.thumb {
+  width: 84px;
+  height: 84px;
+  flex: none;
+  overflow: hidden;
+  border: 1px solid var(--card-line);
+  border-radius: 8px;
+  background: #f6f8f7;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+.previewText {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.previewText strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #13703f;
+}
+
+.previewActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.previewActions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border: 1px solid var(--card-line);
+  border-radius: 7px;
+  background: #fff;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.previewActions button:hover:not(:disabled) {
+  border-color: var(--paid);
+}
+
+.previewActions .remove {
+  color: var(--danger);
+}
+
+.previewActions .remove:hover:not(:disabled) {
+  border-color: var(--danger);
+}
+
+.hint,
+.error {
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.hint {
+  color: var(--muted);
+}
+
+.error {
+  color: var(--danger);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

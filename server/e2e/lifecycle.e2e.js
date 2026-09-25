@@ -19,6 +19,10 @@ if (!FIRESTORE_EMULATOR_HOST || !FIREBASE_AUTH_EMULATOR_HOST) {
   throw new Error('Run through `npm run test:e2e` so this uses the emulators, never the real project')
 }
 
+// Proof of payment must be an image uploaded through CIRF (a Cloudinary URL for this cloud).
+process.env.CLOUDINARY_CLOUD_NAME ||= 'cirf-e2e'
+const proof = (name) => `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/v1/cirf/proofs/${name}.jpg`
+
 const { default: app } = await import('../app.js')
 const { auth } = await import('../services/firebaseAdmin.js')
 
@@ -197,8 +201,16 @@ describe('campaign lifecycle', () => {
 
   it('records contributions as pending until an admin verifies them', async () => {
     const path = `/api/campaigns/${state.campaignId}/contributions`
-    const ada = await call(token.ada, 'POST', path, { amount: 25_000, method: 'bank_transfer', reference: 'TRF-001' })
-    const bola = await call(token.bola, 'POST', path, { amount: 25_000, method: 'bank_transfer' })
+    // A resident's own transfer needs proof of payment; cash doesn't.
+    const noProof = await call(token.ada, 'POST', path, { amount: 25_000, method: 'bank_transfer', reference: 'TRF-001' })
+    assert.equal(noProof.status, 400)
+    assert.equal(noProof.data.error.details[0].field, 'proofUrl')
+    const outsideLink = await call(token.ada, 'POST', path, { amount: 25_000, method: 'bank_transfer', proofUrl: 'https://example.com/fake.jpg' })
+    assert.equal(outsideLink.status, 400)
+
+    const ada = await call(token.ada, 'POST', path, { amount: 25_000, method: 'bank_transfer', reference: 'TRF-001', proofUrl: proof('ada') })
+    const bola = await call(token.bola, 'POST', path, { amount: 25_000, method: 'bank_transfer', proofUrl: proof('bola-blurry') })
+    assert.equal(ada.data.contribution.proofUrl, proof('ada'))
     assert.equal(ada.data.contribution.status, 'pending')
     state.adaContribution = ada.data.contribution.id
     state.bolaContribution = bola.data.contribution.id
@@ -222,6 +234,13 @@ describe('campaign lifecycle', () => {
     assert.equal(verified.data.contribution.status, 'verified')
     assert.equal((await call(token.lead, 'PUT', `/api/contributions/${state.adaContribution}/verify`)).status, 409)
 
+    // While it's pending, Bola can replace a blurry proof; nobody else in the estate can.
+    const replaced = await call(token.bola, 'PUT', `/api/contributions/${state.bolaContribution}/proof`, { proofUrl: proof('bola-clear') })
+    assert.equal(replaced.data.contribution.proofUrl, proof('bola-clear'))
+    assert.equal((await call(token.chidi, 'PUT', `/api/contributions/${state.bolaContribution}/proof`, { proofUrl: proof('x') })).status, 404)
+    // Once checked, the record is final.
+    assert.equal((await call(token.ada, 'PUT', `/api/contributions/${state.adaContribution}/proof`, { proofUrl: proof('late') })).status, 409)
+
     const noReason = await call(token.lead, 'PUT', `/api/contributions/${state.bolaContribution}/verify`, { status: 'rejected' })
     assert.equal(noReason.status, 400)
     const rejected = await call(token.lead, 'PUT', `/api/contributions/${state.bolaContribution}/verify`, {
@@ -232,8 +251,8 @@ describe('campaign lifecycle', () => {
 
     // Bola pays again and the lead pays their own share; that pushes the fund to target.
     const path = `/api/campaigns/${state.campaignId}/contributions`
-    const retry = await call(token.bola, 'POST', path, { amount: 25_000, method: 'pos' })
-    const own = await call(token.lead, 'POST', path, { amount: 20_000, method: 'bank_transfer' })
+    const retry = await call(token.bola, 'POST', path, { amount: 25_000, method: 'pos', proofUrl: proof('bola-pos') })
+    const own = await call(token.lead, 'POST', path, { amount: 20_000, method: 'bank_transfer', proofUrl: proof('lead') })
     await call(token.lead, 'PUT', `/api/contributions/${retry.data.contribution.id}/verify`)
     await call(token.lead, 'PUT', `/api/contributions/${own.data.contribution.id}/verify`)
 
