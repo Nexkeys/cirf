@@ -14,7 +14,7 @@
   border: 1px solid #cfe7d9;
   border-radius: 10px;
   background: #eef8f2;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 500;
   color: #13703f;
 }
@@ -49,11 +49,11 @@
 }
 
 .tabs button {
-  padding: 12px 16px;
+  padding: 14px 18px;
   border: 0;
   border-bottom: 2.5px solid transparent;
   background: none;
-  font-size: 14.5px;
+  font-size: 17px;
   font-weight: 500;
   color: var(--text);
   white-space: nowrap;
@@ -65,39 +65,17 @@
   color: var(--ink);
 }
 
-/* Main column, and the side column (right on wide screens, below on laptops). */
-.layout {
+/* Two cards side by side on the Estate tab */
+.pair {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
   align-items: start;
 }
 
-.main,
-.side {
-  display: grid;
-  gap: 22px;
-  min-width: 0;
-  align-items: start;
-}
-
-.side {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-@media (min-width: 1600px) {
-  .layout {
-    grid-template-columns: minmax(0, 1fr) 380px;
-  }
-
-  .side {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.anchor {
-  min-width: 0; /* lets the residents table scroll inside its card instead of widening the page */
-  scroll-margin-top: 20px;
+/* The My profile tab doesn't need the full width. */
+.narrow {
+  max-width: 560px;
 }
 
 /* Estate information */
@@ -120,7 +98,7 @@
   border: 0;
   border-radius: 7px;
   background: none;
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 600;
   color: var(--link-dark);
 }
@@ -143,13 +121,13 @@
 }
 
 .facts dt {
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--text);
 }
 
 .facts dd {
   margin: 6px 0 0;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
   color: var(--ink);
   overflow-wrap: anywhere;
@@ -171,7 +149,7 @@
   border-radius: 7px;
   background: #eaf4ef;
   font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
-  font-size: 15px;
+  font-size: 16px;
   letter-spacing: 0.12em;
   color: var(--link-dark);
 }
@@ -193,7 +171,7 @@
 
 .codeRow p {
   margin-top: 6px;
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--muted);
 }
 
@@ -224,55 +202,12 @@
   border: 0;
   border-radius: 8px;
   background: rgb(6 41 30 / 0.88);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   color: #fff;
 }
 
 /* Stat tiles */
-.tiles {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.tile {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 18px;
-  border: 1px solid var(--card-line);
-  border-radius: 14px;
-  background: var(--card);
-}
-
-.tileIcon {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  flex: none;
-  border-radius: 50%;
-  background: #eaf4ef;
-  color: var(--ink);
-}
-
-.tileIcon svg {
-  width: 24px;
-  height: 24px;
-}
-
-.tile > span:last-child {
-  display: grid;
-  font-size: 13.5px;
-  color: var(--text);
-}
-
-.tile strong {
-  font-size: 24px;
-  color: var(--ink);
-}
-
 /* Join requests */
 .requests {
   border-color: #f2dcae;
@@ -302,17 +237,17 @@
   display: grid;
   flex: 1;
   min-width: 180px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text);
 }
 
 .requestWho strong {
-  font-size: 14.5px;
+  font-size: 16px;
   color: var(--ink);
 }
 
 .requestWho small {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
 }
 
@@ -323,7 +258,7 @@
   border: 1px solid #dbe4e0;
   border-radius: 8px;
   background: #fff;
-  font-size: 13.5px;
+  font-size: 15px;
 }
 
 .requestActions {
@@ -377,7 +312,7 @@
   min-width: 0;
   border: 0;
   background: none;
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--ink);
   outline: none;
 }
@@ -393,7 +328,7 @@
   border: 1px solid #dbe4e0;
   border-radius: 9px;
   background: #fff;
-  font-size: 14px;
+  font-size: 15.5px;
 }
 
 .export {
@@ -415,13 +350,13 @@
   width: 100%;
   min-width: 720px;
   border-collapse: collapse;
-  font-size: 13.5px;
+  font-size: 15px;
 }
 
 .table th {
   padding: 12px 14px;
   background: #f1f6f4;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
   text-align: left;
   color: var(--ink);
@@ -446,7 +381,7 @@
 }
 
 .person small {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
 }
 
@@ -464,13 +399,13 @@
 .avatar {
   width: 32px;
   height: 32px;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .bigAvatar {
   width: 46px;
   height: 46px;
-  font-size: 14px;
+  font-size: 15.5px;
   background: var(--avatar);
 }
 
@@ -486,7 +421,7 @@
   display: inline-block;
   padding: 4px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -515,7 +450,7 @@
 
 .empty {
   padding: 24px;
-  font-size: 14px;
+  font-size: 15.5px;
   text-align: center;
   color: var(--muted);
 }
@@ -558,7 +493,7 @@
   border: 0;
   border-radius: 7px;
   background: none;
-  font-size: 13.5px;
+  font-size: 15px;
   text-align: left;
   color: var(--ink);
 }
@@ -576,7 +511,7 @@
 }
 
 .invites h3 {
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 600;
   color: var(--ink);
 }
@@ -597,7 +532,7 @@
   padding: 10px 14px;
   border: 1px dashed #c9d6d1;
   border-radius: 10px;
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--text);
 }
 
@@ -606,7 +541,7 @@
   border: 0;
   border-radius: 7px;
   background: none;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--danger);
 }
 
@@ -634,12 +569,12 @@
 .admins li > span:nth-child(2) {
   display: grid;
   flex: 1;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text);
 }
 
 .admins strong {
-  font-size: 15px;
+  font-size: 16px;
   color: var(--ink);
 }
 
@@ -647,7 +582,7 @@
   padding: 4px 12px;
   border-radius: 999px;
   background: #d6f1e3;
-  font-size: 12px;
+  font-size: 14px;
   font-style: normal;
   font-weight: 600;
   color: #13703f;
@@ -663,7 +598,7 @@
   border: 1px solid var(--card-line);
   border-radius: 10px;
   background: #fff;
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--ink);
 }
 
@@ -686,12 +621,12 @@
 .setting > span {
   display: grid;
   gap: 4px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text);
 }
 
 .setting strong {
-  font-size: 14.5px;
+  font-size: 16px;
   color: var(--ink);
 }
 
@@ -701,12 +636,12 @@
   border: 1px solid #dbe4e0;
   border-radius: 9px;
   background: #fff;
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--ink);
 }
 
 .setting small {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
 }
 
@@ -731,13 +666,13 @@
 }
 
 .danger strong {
-  font-size: 14.5px;
+  font-size: 16px;
   color: var(--danger);
 }
 
 .danger p {
   margin: 6px 0 14px;
-  font-size: 13.5px;
+  font-size: 15px;
   line-height: 1.5;
 }
 
@@ -749,7 +684,7 @@
   border: 1px solid var(--danger);
   border-radius: 8px;
   background: #fff;
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 600;
   color: var(--danger);
 }
@@ -761,7 +696,7 @@
 }
 
 .dialogText {
-  font-size: 14.5px;
+  font-size: 16px;
   line-height: 1.6;
   color: var(--text);
 }
@@ -825,7 +760,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--text);
 }
 
@@ -845,7 +780,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 15.5px;
   color: #13703f;
 }
 
@@ -854,12 +789,6 @@
 }
 
 /* ---------- Narrower screens ---------- */
-@media (max-width: 1280px) {
-  .side {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 1000px) {
   .info {
     grid-template-columns: minmax(0, 1fr);
@@ -869,8 +798,8 @@
     order: -1;
   }
 
-  .tiles {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .pair {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .residentLayout {
@@ -887,10 +816,9 @@
 
   .saveStatus {
     padding: 6px 12px;
-    font-size: 12.5px;
+    font-size: 14px;
   }
 
-  .side,
   .facts,
   .twoFields {
     grid-template-columns: minmax(0, 1fr);
@@ -921,12 +849,6 @@
   }
 }
 
-@media (max-width: 420px) {
-  .tiles {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
 /* My Profile card (leads) */
 .me {
   display: flex;
@@ -936,12 +858,12 @@
 
 .me span:last-child {
   display: grid;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text);
 }
 
 .me strong {
-  font-size: 15px;
+  font-size: 16px;
   color: var(--ink);
 }
 
@@ -952,7 +874,7 @@
   padding: 16px 0 0;
   border-top: 1px solid var(--card-line);
   list-style: none;
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--text);
 }
 

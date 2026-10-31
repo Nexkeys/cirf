@@ -75,7 +75,7 @@
   border: 1.5px solid var(--dash-page);
   border-radius: 99px;
   background: var(--overdue);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1;
   color: #fff;
@@ -109,7 +109,7 @@
   border-radius: 50%;
   background: var(--avatar);
   color: #fff;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -120,13 +120,13 @@
 }
 
 .name {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--ink);
 }
 
 .role {
-  font-size: 13px;
+  font-size: 15px;
   color: var(--muted);
 }
 
@@ -153,13 +153,13 @@
   padding: 10px 10px 12px;
   margin-bottom: 4px;
   border-bottom: 1px solid var(--line-soft);
-  font-size: 13px;
+  font-size: 15px;
   color: var(--muted);
   overflow-wrap: anywhere;
 }
 
 .menuHeader strong {
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--ink);
 }
 
@@ -172,7 +172,7 @@
   border: 0;
   border-radius: 8px;
   background: none;
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--ink);
   text-decoration: none;
 }
@@ -227,7 +227,7 @@
   .avatar {
     width: 40px;
     height: 40px;
-    font-size: 14px;
+    font-size: 15.5px;
   }
 
   .content {

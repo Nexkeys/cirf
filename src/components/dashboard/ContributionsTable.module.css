@@ -6,13 +6,13 @@
   width: 100%;
   min-width: 400px;
   border-collapse: collapse;
-  font-size: 13.5px;
+  font-size: 16px;
 }
 
 .table th {
   padding: 10px 12px;
   background: #f1f6f4;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 500;
   text-align: left;
   color: var(--text);
@@ -27,7 +27,7 @@
 }
 
 .table td {
-  padding: 11px 12px;
+  padding: 14px 12px;
   border-bottom: 1px solid #edf2f0;
   color: var(--ink);
   white-space: nowrap;
@@ -46,12 +46,12 @@
 .avatar {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   flex: none;
   border-radius: 50%;
   background: #1e3a5f;
-  font-size: 10.5px;
+  font-size: 12.5px;
   font-weight: 700;
   color: #fff;
 }
@@ -80,7 +80,7 @@
   display: inline-block;
   padding: 4px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -106,7 +106,19 @@
 
 .empty {
   padding: 24px 0;
-  font-size: 14px;
+  font-size: 15.5px;
   text-align: center;
   color: var(--muted);
+}
+
+/* Phones: drop the date so name, amount and status fit without scrolling sideways. */
+@media (max-width: 560px) {
+  .table {
+    min-width: 0;
+  }
+
+  .table th:nth-child(3),
+  .table td:nth-child(3) {
+    display: none;
+  }
 }

@@ -1,4 +1,5 @@
 import { Cable, Droplets, UtilityPole, Wrench, Zap } from 'lucide-react'
+import { daysUntil, formatDate } from './format.js'
 
 // What a campaign can be for, as the Supported Categories list describes them. The keys
 // match CAMPAIGN_CATEGORIES in server/services/campaigns.js.
@@ -55,3 +56,16 @@ export const groupDigits = (value) => (value == null || value === '' ? '' : new 
 const FEATURE_ORDER = ['fundraising', 'repairing', 'completed', 'reconciled', 'draft']
 export const pickFeatured = (campaigns) =>
   FEATURE_ORDER.map((status) => campaigns.find((campaign) => campaign.status === status)).find(Boolean)
+
+// The deadline in plain words: "12 days left", "Due today", "3 days late", or the day the
+// repair was finished.
+export function timeLeft(campaign, now = new Date()) {
+  if (campaign.completedAt) return `Repair finished ${formatDate(campaign.completedAt)}`
+  const days = daysUntil(campaign.deadline, now)
+  if (days === null) return 'No deadline'
+  if (days === 0) return 'Due today'
+  if (days < 0) return `${plural(-days, 'day')} past the deadline`
+  return `${plural(days, 'day')} left`
+}
+
+export const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`

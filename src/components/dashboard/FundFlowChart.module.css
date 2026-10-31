@@ -16,7 +16,7 @@
   margin: 0 0 12px;
   padding: 0;
   list-style: none;
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--text);
 }
 
@@ -38,7 +38,7 @@
 }
 
 .axis {
-  font-size: 12px;
+  font-size: 14px;
   fill: var(--text);
 }
 

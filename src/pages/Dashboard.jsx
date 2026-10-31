@@ -1,11 +1,10 @@
-import { ArrowRight, Banknote, FileText, HandCoins, Plus, Users } from 'lucide-react'
+import { ArrowRight, Banknote, HandCoins, Plus, Users } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/AuthContext.js'
 import { AppShell } from '../components/dashboard/AppShell.jsx'
 import { CampaignHero } from '../components/dashboard/CampaignHero.jsx'
-import { ContributionChart } from '../components/dashboard/ContributionChart.jsx'
-import { PaymentDonut } from '../components/dashboard/PaymentDonut.jsx'
+import { NextStep } from '../components/dashboard/NextStep.jsx'
 import { FormAlert } from '../components/FormAlert.jsx'
 import { LoadingNote } from '../components/Loading.jsx'
 import { api } from '../lib/api.js'
@@ -28,11 +27,15 @@ async function loadOverview() {
   return { status: 'ready', campaign, overview }
 }
 
+// Home: the featured campaign, what to do next, and three numbers in plain words.
+// It loads once, then keeps itself up to date with the cheap /progress check below.
+// This page is effectively the main landing screen after login and shows the estate's current fund status.
 export default function Dashboard() {
-  usePageTitle('Overview')
+  usePageTitle('Home')
   const { profile, estate } = useAuth()
   const [state, setState] = useState({ status: 'loading' })
   const [reloads, setReloads] = useState(0)
+  // Bumping this number re-runs the load effect below.
   const reload = () => setReloads((count) => count + 1)
   const lastChange = useRef(null)
 
@@ -54,6 +57,7 @@ export default function Dashboard() {
   }, [reloads])
 
   // Reload everything only when the campaign has actually changed since the last load.
+  // This avoids unnecessary refreshes while still keeping the overview data fresh.
   const campaignId = state.campaign?.id
   useVisibleInterval(
     async () => {
@@ -64,6 +68,9 @@ export default function Dashboard() {
     Boolean(campaignId),
   )
 
+  // This JSX block builds the custom header shown at the top of the dashboard.
+  // It personalizes the page for the current user by saying good morning/afternoon/evening
+  // and then using only the first name from their profile.
   const heading = (
     <>
       <h1 className={styles.greeting}>
@@ -72,10 +79,13 @@ export default function Dashboard() {
           {firstName(profile.name)} <span aria-hidden="true">👋</span>
         </span>
       </h1>
-      <p className={styles.subtitle}>Here&apos;s what&apos;s happening with your community&apos;s repair fund.</p>
+      <p className={styles.subtitle}>Here&apos;s how your community&apos;s repair fund is doing.</p>
     </>
   )
 
+  // This return block decides what the dashboard screen should show at any moment.
+  // `AppShell` creates the overall dashboard layout, and the inner content changes based on the
+  // current data state: loading, error, no campaign, or ready with campaign data.
   return (
     <AppShell heading={heading}>
       {state.status === 'loading' && <Skeleton />}
@@ -88,12 +98,15 @@ export default function Dashboard() {
         </div>
       )}
       {state.status === 'empty' && <NoCampaigns isAdmin={profile.role === 'admin'} />}
-      {state.status === 'ready' && <Overview campaign={state.campaign} overview={state.overview} estate={estate} />}
+      {state.status === 'ready' && (
+        <Overview campaign={state.campaign} overview={state.overview} estate={estate} isAdmin={profile.role === 'admin'} />
+      )}
     </AppShell>
   )
 }
 
-function Overview({ campaign, overview, estate }) {
+// Home once there's a campaign to show.
+function Overview({ campaign, overview, estate, isAdmin }) {
   const { contributors, estimate } = overview
   const paidPercent = contributors.total ? Math.round((contributors.paid / contributors.total) * 100) : 0
 
@@ -101,62 +114,39 @@ function Overview({ campaign, overview, estate }) {
     <div className={styles.layout}>
       <CampaignHero campaign={campaign} estate={estate} />
 
+      <NextStep campaign={campaign} isAdmin={isAdmin} />
+
       <div className={styles.stats}>
         <StatCard
           icon={Users}
-          label="Total Contributors"
+          label="Households that have paid"
           value={
             <>
-              {contributors.paid} <span className={styles.of}>/ {contributors.total}</span>
+              {contributors.paid} <span className={styles.of}>of {contributors.total}</span>
             </>
           }
-          note={`${paidPercent}% have paid`}
         >
           <div className={styles.miniBar} aria-hidden="true">
             <span style={{ width: `${paidPercent}%` }} />
           </div>
+          <Link to={`/campaigns/${campaign.id}/contributors`} className={styles.more}>
+            See who has paid <ArrowRight size={16} aria-hidden="true" />
+          </Link>
         </StatCard>
         <StatCard
           icon={HandCoins}
-          label="Total Contributions"
-          value={formatNaira(campaign.totalCollected)}
-          note={overview.collectedThisWeek ? `+ ${formatNaira(overview.collectedThisWeek)} this week` : 'Nothing new this week'}
-          quiet={!overview.collectedThisWeek}
+          label="Money in this week"
+          value={formatNaira(overview.collectedThisWeek)}
+          note={overview.collectedThisWeek ? 'Checked and added to the fund' : 'No new payments this week'}
         />
-        <StatCard
-          icon={FileText}
-          label="Vendor Quotes"
-          value={overview.quotes.count}
-          note={quoteNote(overview.quotes)}
-          quiet={!overview.quotes.selected}
-        />
-        <RefundCard estimate={estimate} />
-      </div>
-
-      <div className={styles.charts}>
-        <section className={styles.card} aria-labelledby="progress-title">
-          <h2 id="progress-title" className={styles.cardTitle}>
-            Contribution Progress
-          </h2>
-          <ContributionChart timeline={overview.timeline} target={campaign.targetAmount} />
-        </section>
-        <section className={styles.card} aria-labelledby="status-title">
-          <h2 id="status-title" className={styles.cardTitle}>
-            Payment Status
-          </h2>
-          <div className={styles.donutBox}>
-            <PaymentDonut counts={contributors} />
-          </div>
-          <Link to={`/campaigns/${campaign.id}/contributors`} className={styles.more}>
-            View all contributors <ArrowRight size={16} aria-hidden="true" />
-          </Link>
-        </section>
+        <LeftOverCard estimate={estimate} />
       </div>
     </div>
   )
 }
 
-function StatCard({ icon: Icon, label, value, note, quiet = false, danger = false, children }) {
+// One of the three cards under the campaign.
+function StatCard({ icon: Icon, label, value, note, danger = false, children }) {
   return (
     <section className={styles.stat}>
       <span className={styles.statIcon} aria-hidden="true">
@@ -164,35 +154,32 @@ function StatCard({ icon: Icon, label, value, note, quiet = false, danger = fals
       </span>
       <h2 className={styles.statLabel}>{label}</h2>
       <p className={styles.statValue}>{value}</p>
-      <p className={`${styles.statNote} ${quiet ? styles.quiet : ''} ${danger ? styles.danger : ''}`}>{note}</p>
+      {note && <p className={`${styles.statNote} ${danger ? styles.danger : ''}`}>{note}</p>}
       {children}
     </section>
   )
 }
 
-// Collected minus the repair cost: a refund when positive, a shortfall when negative.
-function RefundCard({ estimate }) {
+// Collected minus the repair cost: money left over when positive, money still needed
+// when negative.
+function LeftOverCard({ estimate }) {
   if (!estimate) {
-    return <StatCard icon={Banknote} label="Estimated Refund" value="₦0" note="(once a quote is selected)" quiet />
+    return <StatCard icon={Banknote} label="Money left after the repair" value="Not known yet" note="We’ll know once a vendor is chosen" />
   }
-  const shortfall = estimate.difference < 0
-  const prefix = estimate.basis === 'actual' ? '' : 'Estimated '
+  const short = estimate.difference < 0
+  const actual = estimate.basis === 'actual'
   return (
     <StatCard
       icon={Banknote}
-      label={`${prefix}${shortfall ? 'Shortfall' : 'Refund'}`}
+      label={short ? 'Money still needed' : 'Money left after the repair'}
       value={formatNaira(Math.abs(estimate.difference))}
-      note={estimate.basis === 'actual' ? '(actual repair cost)' : '(after repair)'}
-      danger={shortfall}
+      note={actual ? 'Using what the repair really cost' : 'Using the chosen vendor’s price'}
+      danger={short}
     />
   )
 }
 
-function quoteNote({ count, selected }) {
-  if (selected) return '1 selected'
-  return count ? 'None selected yet' : 'No quotes yet'
-}
-
+// Shown until the estate has a published campaign (leads also get a Create button).
 function NoCampaigns({ isAdmin }) {
   return (
     <section className={styles.empty}>
@@ -214,19 +201,16 @@ function NoCampaigns({ isAdmin }) {
   )
 }
 
+// Grey placeholders shaped like the Overview while it loads.
 function Skeleton() {
   return (
     <div className={styles.layout} aria-busy="true">
       <LoadingNote>Please wait, loading your dashboard…</LoadingNote>
       <div className={`${styles.shimmer} ${styles.heroSkeleton}`} />
       <div className={styles.stats}>
-        {[1, 2, 3, 4].map((key) => (
+        {[1, 2, 3].map((key) => (
           <div key={key} className={`${styles.shimmer} ${styles.statSkeleton}`} />
         ))}
-      </div>
-      <div className={styles.charts}>
-        <div className={`${styles.shimmer} ${styles.chartSkeleton}`} />
-        <div className={`${styles.shimmer} ${styles.chartSkeleton}`} />
       </div>
     </div>
   )

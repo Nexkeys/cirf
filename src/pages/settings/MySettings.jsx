@@ -13,7 +13,7 @@ export default function MySettings() {
   const { estate, signOut } = useAuth()
 
   return (
-    <AppShell heading={<PageHeading back={{ to: '/dashboard', label: 'Back to Dashboard' }} title="Settings" subtitle="Your profile and your estate." />}>
+    <AppShell heading={<PageHeading back={{ to: '/dashboard', label: 'Back to Home' }} title="Settings" subtitle="Your profile and your estate." />}>
       <div className={styles.residentLayout}>
         <section className={shared.card} aria-labelledby="profile-title">
           <h2 id="profile-title" className={`${shared.cardTitle} ${styles.sideTitle}`}>

@@ -5,7 +5,6 @@ import {
   Check,
   ChevronDown,
   CircleCheck,
-  CirclePlus,
   ClipboardCheck,
   Coins,
   FileText,
@@ -23,7 +22,6 @@ import {
   Scale,
   Settings,
   ShieldCheck,
-  Store,
   UserPlus,
 } from 'lucide-react'
 import { Link } from 'react-router'
@@ -85,14 +83,11 @@ const LAYOUT_TIPS = [
 ]
 
 const MENU = [
-  [House, 'Overview', 'Your home screen: the current campaign, how much has been raised, how many households have paid, and a chart of progress.'],
-  [BadgeCheck, 'Campaigns', 'Every repair campaign in your estate. Tap one for its full details. Leads also see drafts that aren’t published yet.'],
-  [CirclePlus, 'Create Campaign', 'Leads only. A three-step form: describe the repair, set the target and levy, then add where to pay and publish.'],
-  [Coins, 'Contributions', 'Every payment: who paid, how much, when, the proof of payment, and whether it’s Paid, Pending or Rejected. Leads also get a Households tab.'],
-  [Store, 'Vendors & Quotes', 'Quotes from repair companies side by side, and which one was chosen and why.'],
-  [Scale, 'Reconciliation', 'After the repair: what was collected, what was spent, and each person’s refund or balance.'],
-  [FileText, 'Transparency Report', 'The whole campaign in one place: charts, transactions, receipts and documents. Download it as a PDF or share the public link.'],
-  [Settings, 'Settings', 'Residents: your profile. Leads: estate details, join code, residents, join requests, access settings and My Profile.'],
+  [House, 'Home', 'Your home screen: the current campaign, how much has been raised, and what you need to do next, such as paying your levy.'],
+  [BadgeCheck, 'Campaigns', 'Every repair campaign in your estate. Tap one for its full details. Leads start a new one here with Create Campaign, and also see drafts.'],
+  [Coins, 'Contributions', 'Every payment: who paid, how much, when, the proof of payment, and whether it’s Paid or waiting to be checked. Leads also get a Households tab.'],
+  [FileText, 'Report', 'The whole campaign in one place: money in and out, every payment, receipts and documents. Download it as a PDF or share the public link.'],
+  [Settings, 'Settings', 'Residents: your profile. Leads: three tabs for the estate, its residents (and join requests), and your own profile.'],
   [LogOut, 'Log Out', 'Signs you out.'],
 ]
 
@@ -100,7 +95,7 @@ const RESIDENT_TASKS = [
   {
     title: 'Pay your levy',
     steps: [
-      <>Tap the campaign’s name on <b>Overview</b> (or find it under <b>Campaigns</b>), then tap <b>Make a Contribution</b> under Quick Actions.</>,
+      <>On <b>Home</b>, tap <b>Pay my levy</b>. The same button is on the campaign’s page too.</>,
       <>Check the <b>Payment Details</b> box for the bank, account name and number, and copy the <b>reference</b> it gives you.</>,
       <>Pay from your banking app as usual, using that reference.</>,
       <>Back in CIRF, enter the <b>amount</b> and choose the <b>payment method</b>.</>,
@@ -112,7 +107,7 @@ const RESIDENT_TASKS = [
   {
     title: 'Fix a blurry or missing proof',
     steps: [
-      <>Go to <b>Contributions</b> and tap the view button on your payment.</>,
+      <>Go to <b>Contributions</b> and tap <b>View</b> on your payment.</>,
       <>Tap <b>Replace proof</b> (or <b>Add proof of payment</b>), choose the clearer image and tap <b>Save Proof</b>.</>,
     ],
     note: 'You can only do this while the payment is still Pending.',
@@ -121,8 +116,8 @@ const RESIDENT_TASKS = [
     title: 'See where the money went',
     steps: [
       <><b>Contributions</b> shows every verified payment.</>,
-      <><b>Vendors &amp; Quotes</b> shows which company did the repair and what they charged.</>,
-      <><b>Transparency Report</b> puts it all together, receipts included. Tap <b>Download Full Report</b> for a PDF.</>,
+      <>The campaign’s <b>Vendor Quotes</b> tab shows which company did the repair and what they charged.</>,
+      <><b>Report</b> puts it all together, receipts included. Tap <b>Download the report</b> for a PDF.</>,
     ],
   },
 ]
@@ -131,7 +126,7 @@ const LEAD_TASKS = [
   {
     title: 'Start a campaign',
     steps: [
-      <>Tap <b>Create Campaign</b> in the menu.</>,
+      <>Open <b>Campaigns</b> and tap <b>Create Campaign</b>.</>,
       <><b>Step 1:</b> give it a title, pick the category, describe the problem and add a photo.</>,
       <><b>Step 2:</b> enter the target and choose <b>Flat Split</b> (every household pays the same) or <b>By Unit Count</b> (4 flats pay 4 times as much).</>,
       <><b>Step 3:</b> add the bank account residents pay into, check everything and tap <b>Publish Campaign</b>. Or <b>Save as Draft</b> to finish later.</>,
@@ -140,16 +135,16 @@ const LEAD_TASKS = [
   {
     title: 'Verify or reject contributions',
     steps: [
-      <>Open <b>Contributions</b>. A yellow banner says how many payments are waiting. Tap <b>Review now</b>.</>,
-      <>Tap <b>Review</b> on a payment and compare the <b>proof of payment</b> with your bank alert.</>,
+      <>Open <b>Contributions</b>. A yellow banner says how many payments are waiting. Tap <b>Check now</b>.</>,
+      <>Tap <b>Check</b> on a payment and compare the <b>proof of payment</b> with your bank alert.</>,
       <>Tap <b>Verify Contribution</b> if it’s right, or <b>Reject</b> and say why. The resident sees your reason.</>,
     ],
-    note: 'Collected cash in person? Use Add Contribution, pick the resident and choose Cash. It counts straight away.',
+    note: 'Collected cash in person? Tap Record a payment, pick the resident and choose Cash. It counts straight away.',
   },
   {
     title: 'Add quotes and choose a vendor',
     steps: [
-      <>Open <b>Vendors &amp; Quotes</b> and tap <b>Add Vendor Quote</b>. Enter the company, amount, timeline and warranty.</>,
+      <>Open the campaign’s <b>Vendor Quotes</b> tab and tap <b>Add a quote</b>. Enter the company, amount, timeline and warranty.</>,
       <>Add at least two quotes so residents can compare.</>,
       <>Tap <b>⋮</b> on the quote you want, then <b>Select this vendor</b>. If it isn’t the cheapest, give your reason.</>,
     ],
@@ -157,10 +152,10 @@ const LEAD_TASKS = [
   {
     title: 'Finish the repair and reconcile',
     steps: [
-      <>Open <b>Reconciliation</b> and tap <b>Mark as Complete</b>.</>,
+      <>On <b>Home</b>, tap <b>Mark repair complete</b> (or open the campaign’s <b>Reconciliation</b> tab and tap <b>Mark as Complete</b>).</>,
       <>Enter what was <b>actually paid</b>, break it down if you like, and upload the receipt.</>,
       <>Tap <b>Run Reconciliation</b>. CIRF works out every refund or balance, and the report is ready.</>,
-      <>On <b>Transparency Report</b>, tap <b>Share Report</b> to send the public link. It hides residents’ names.</>,
+      <>On <b>Report</b>, tap <b>Share the public link</b>. The public report hides residents’ names.</>,
     ],
   },
   {

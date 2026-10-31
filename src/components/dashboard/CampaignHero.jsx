@@ -1,46 +1,36 @@
-import { CalendarDays, Clock, MapPin } from 'lucide-react'
+import { ArrowRight, MapPin } from 'lucide-react'
 import { Link } from 'react-router'
-import { daysUntil, formatDate, formatNaira } from '../../lib/format.js'
+import { timeLeft } from '../../lib/campaigns.js'
+import { formatNaira } from '../../lib/format.js'
 import { sizedPhoto } from '../../lib/images.js'
 import { StatusBadge } from './StatusBadge.jsx'
 import styles from './CampaignHero.module.css'
 
-// The featured campaign at the top of the Overview: photo, what it's for, how far the
-// fund has got, and the deadline.
+// The featured campaign at the top of Home: the photo, what it's for, and one big line
+// of how much has been raised, with how long is left.
 export function CampaignHero({ campaign, estate }) {
   const percent = Math.round(campaign.percentFunded)
   const place = [estate?.name, estate?.address].filter(Boolean).join(', ')
 
   return (
     <section className={styles.hero} aria-labelledby="featured-campaign">
-      <div className={styles.photo}>
-        <img src={sizedPhoto(campaign.imageUrl, 600)} alt="" />
-        <StatusBadge status={campaign.status} className={styles.badge} />
-      </div>
+      <img className={styles.photo} src={sizedPhoto(campaign.imageUrl, 600)} alt="" />
 
       <div className={styles.body}>
+        <StatusBadge status={campaign.status} />
         <h2 id="featured-campaign" className={styles.title}>
-          <Link to={`/campaigns/${campaign.id}`}>{campaign.title}</Link>
+          {campaign.title}
         </h2>
         {place && (
           <p className={styles.place}>
-            <MapPin size={17} aria-hidden="true" />
+            <MapPin size={18} aria-hidden="true" />
             {place}
           </p>
         )}
-        <p className={styles.description}>{campaign.description}</p>
 
-        <div className={styles.figures}>
-          <p className={styles.figure}>
-            <strong>{formatNaira(campaign.totalCollected)}</strong>
-            <span>Collected</span>
-          </p>
-          <p className={`${styles.figure} ${styles.target}`}>
-            <strong>{formatNaira(campaign.targetAmount)}</strong>
-            <span>Target Amount</span>
-          </p>
-          <strong className={styles.percent}>{percent}%</strong>
-        </div>
+        <p className={styles.raised}>
+          <strong>{formatNaira(campaign.totalCollected)}</strong> raised of {formatNaira(campaign.targetAmount)}
+        </p>
         <div
           className={styles.bar}
           role="progressbar"
@@ -51,59 +41,15 @@ export function CampaignHero({ campaign, estate }) {
         >
           <span style={{ width: `${Math.min(percent, 100)}%` }} />
         </div>
-      </div>
+        <p className={styles.when}>
+          <span>{percent}% of the target</span>
+          <span>{timeLeft(campaign)}</span>
+        </p>
 
-      <dl className={styles.dates}>
-        <div className={styles.date}>
-          <CalendarDays aria-hidden="true" />
-          <div>
-            <dt>Target Date</dt>
-            <dd>{campaign.deadline ? formatDate(campaign.deadline) : 'Not set'}</dd>
-          </div>
-        </div>
-        <div className={styles.date}>
-          <Clock aria-hidden="true" />
-          <div>
-            <TimeLeft campaign={campaign} />
-          </div>
-        </div>
-      </dl>
+        <Link to={`/campaigns/${campaign.id}`} className={styles.open}>
+          Open this campaign <ArrowRight size={18} aria-hidden="true" />
+        </Link>
+      </div>
     </section>
   )
 }
-
-function TimeLeft({ campaign }) {
-  if (campaign.completedAt) {
-    return (
-      <>
-        <dt>Repair Completed</dt>
-        <dd>{formatDate(campaign.completedAt)}</dd>
-      </>
-    )
-  }
-  const days = daysUntil(campaign.deadline)
-  if (days === null) {
-    return (
-      <>
-        <dt>Days Remaining</dt>
-        <dd>No deadline</dd>
-      </>
-    )
-  }
-  if (days < 0) {
-    return (
-      <>
-        <dt>Deadline Passed</dt>
-        <dd>{plural(-days, 'day')} ago</dd>
-      </>
-    )
-  }
-  return (
-    <>
-      <dt>Days Remaining</dt>
-      <dd>{days === 0 ? 'Due today' : plural(days, 'day')}</dd>
-    </>
-  )
-}
-
-const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`

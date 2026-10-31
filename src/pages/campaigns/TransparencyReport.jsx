@@ -1,30 +1,13 @@
-import {
-  ArrowRight,
-  CircleCheck,
-  CircleDollarSign,
-  Clock,
-  Download,
-  FileSpreadsheet,
-  FileText,
-  Hourglass,
-  PieChart,
-  Receipt,
-  Search,
-  Share2,
-  ShieldCheck,
-  TrendingUp,
-  Users,
-  Wallet,
-  Wrench,
-} from 'lucide-react'
+import { ArrowRight, CircleCheck, Clock, Download, FileSpreadsheet, FileText, PieChart, Receipt, Search, Share2, TrendingUp, Users, Wallet, Wrench } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { useAuth } from '../../auth/AuthContext.js'
 import { AppShell } from '../../components/dashboard/AppShell.jsx'
+import { CampaignHeader } from '../../components/dashboard/CampaignHeader.jsx'
 import { CampaignTabs } from '../../components/dashboard/CampaignTabs.jsx'
 import { FundFlowChart } from '../../components/dashboard/FundFlowChart.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
 import { Pagination } from '../../components/dashboard/Pagination.jsx'
-import { Pylons } from '../../components/dashboard/Pylons.jsx'
 import { SpendingDonut } from '../../components/dashboard/SpendingDonut.jsx'
 import { StatRow, StatTile } from '../../components/dashboard/StatTile.jsx'
 import { PageSkeleton } from '../../components/Loading.jsx'
@@ -41,9 +24,11 @@ import styles from './TransparencyReport.module.css'
 const PAGE_SIZE = 8
 const TYPES = { contribution: 'Contribution', payment: 'Payment', refund: 'Refund', balance: 'Balance Due' }
 
-// Transparency Report, from Transparency-Report.png.
+// Transparency Report: where every naira came from and went, with the downloads and the
+// public link at the top.
 export default function TransparencyReport() {
   const { id } = useParams()
+  const { estate } = useAuth()
   const [state, setState] = useState({ status: 'loading' })
   const [tab, setTab] = useState('transactions')
   const [problem, setProblem] = useState('')
@@ -105,130 +90,86 @@ export default function TransparencyReport() {
   return (
     <AppShell heading={heading}>
       <div className={styles.page}>
-        <header className={styles.intro}>
-          <h1 className={styles.title}>Transparency Report</h1>
-          <p className={styles.subtitle}>
-            Track fund usage, view all transactions and ensure complete accountability for <strong>{campaign.title}</strong>.
-          </p>
-        </header>
+        <CampaignHeader campaign={campaign} estate={estate} />
         <CampaignTabs campaignId={id} />
 
+        <div className={shared.toolbar}>
+          <button type="button" className={shared.primary} onClick={downloadPdf}>
+            <Download size={20} aria-hidden="true" /> Download the report
+          </button>
+          <button type="button" className={shared.secondary} onClick={downloadCsv}>
+            <FileSpreadsheet size={18} aria-hidden="true" /> Download as a spreadsheet
+          </button>
+          <button type="button" className={shared.secondary} onClick={share}>
+            <Share2 size={18} aria-hidden="true" /> Share the public link
+          </button>
+        </div>
+        {(problem || shareNote) && <div className={styles.feedback}>{problem ? <FormAlert>{problem}</FormAlert> : <p role="status">{shareNote}</p>}</div>}
+
         <StatRow>
-          <StatTile icon={CircleDollarSign} label="Total Funds Collected" value={formatNaira(campaign.totalCollected)} note={`${Math.round(campaign.percentFunded)}% of the ${formatNaira(campaign.targetAmount)} target`} />
           <StatTile
             icon={Wallet}
-            label="Total Paid to Vendors"
+            label="Paid to the vendor"
             value={formatNaira(paid)}
-            note={campaign.actualCost != null ? `To ${campaign.selectedVendorName}` : campaign.selectedVendorName ? 'Paid when the repair is complete' : 'No vendor selected yet'}
+            note={campaign.actualCost != null ? `To ${campaign.selectedVendorName}` : campaign.selectedVendorName ? 'Paid when the repair is done' : 'No vendor chosen yet'}
           />
           <StatTile
             icon={FileText}
-            label={balance < 0 ? 'Shortfall' : 'Balance Remaining'}
+            label={balance < 0 ? 'Money still needed' : 'Money left'}
             value={formatNaira(Math.abs(balance))}
             note={
               report.reconciliation
-                ? { refund: 'Refunded to contributors', balance_owed: 'Owed by contributors', settled: 'Fully settled' }[report.reconciliation.outcome]
+                ? { refund: 'Given back to households', balance_owed: 'Owed by households', settled: 'Fully settled' }[report.reconciliation.outcome]
                 : campaign.actualCost != null
-                  ? 'Waiting for reconciliation'
-                  : 'Held until the repair is paid'
+                  ? 'Waiting for the accounts to be closed'
+                  : 'Kept safe until the repair is paid'
             }
             warn={balance < 0}
           />
-          <StatTile
-            icon={Users}
-            label="Total Contributors"
-            value={`${overview.contributors.paid} / ${overview.contributors.total}`}
-            note={`${overview.contributors.total ? Math.round((overview.contributors.paid / overview.contributors.total) * 100) : 0}% participation`}
-          />
+          <StatTile icon={Users} label="Households that have paid" value={`${overview.contributors.paid} of ${overview.contributors.total}`} />
         </StatRow>
 
-        <div className={styles.charts}>
+        <div className={`${styles.charts} ${campaign.actualCost != null ? styles.twoCharts : ''}`}>
           <section className={shared.card} aria-labelledby="flow-title">
             <h2 id="flow-title" className={`${shared.cardTitle} ${styles.cardTitle}`}>
-              <TrendingUp aria-hidden="true" /> Fund Flow Overview
+              <TrendingUp aria-hidden="true" /> Money in and out over time
             </h2>
             <FundFlowChart {...fundFlow(campaign, overview)} />
           </section>
 
-          <section className={shared.card} aria-labelledby="spending-title">
-            <h2 id="spending-title" className={`${shared.cardTitle} ${styles.cardTitle}`}>
-              <PieChart aria-hidden="true" /> Spending Breakdown
-            </h2>
-            {campaign.actualCost != null ? (
+          {campaign.actualCost != null && (
+            <section className={shared.card} aria-labelledby="spending-title">
+              <h2 id="spending-title" className={`${shared.cardTitle} ${styles.cardTitle}`}>
+                <PieChart aria-hidden="true" /> What the money was spent on
+              </h2>
               <SpendingDonut
                 items={campaign.costItems?.length ? campaign.costItems : [{ label: `Repair by ${campaign.selectedVendorName}`, amount: campaign.actualCost }]}
                 total={campaign.actualCost}
               />
-            ) : (
-              <p className={styles.empty}>
-                <Hourglass aria-hidden="true" />
-                Shown once the repair is complete and the vendor has been paid.
-              </p>
-            )}
-          </section>
-
-          <Accountability campaign={campaign} report={report} />
-        </div>
-
-        <div className={styles.bottom}>
-          <section className={`${shared.card} ${styles.records}`} aria-label="Records">
-            <div className={styles.recordTabs} role="tablist">
-              {[
-                ['transactions', Clock, 'Transactions'],
-                ['vendors', Wrench, 'Vendor Payments'],
-                ['receipts', Receipt, 'Receipts'],
-                ['documents', FileText, 'Supporting Documents'],
-              ].map(([key, Icon, label]) => (
-                <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? styles.activeRecordTab : ''} onClick={() => setTab(key)}>
-                  <Icon aria-hidden="true" /> {label}
-                </button>
-              ))}
-            </div>
-            {tab === 'transactions' && <Transactions rows={transactions} />}
-            {tab === 'vendors' && <VendorPayments campaign={campaign} quotes={report.quotes} />}
-            {tab === 'receipts' && <Receipts campaign={campaign} report={report} />}
-            {tab === 'documents' && <Documents report={report} publicLink={publicLink} onPdf={downloadPdf} />}
-          </section>
-
-          <aside className={styles.side}>
-            <section className={shared.card} aria-labelledby="actions-title">
-              <h2 id="actions-title" className={`${shared.cardTitle} ${styles.cardTitle}`}>
-                Quick Report Actions
-              </h2>
-              <div className={styles.actions}>
-                <Action icon={Download} title="Download Full Report" text="Get a complete PDF report" onClick={downloadPdf} />
-                <Action icon={FileSpreadsheet} title="Download Transaction History" text="Export all transactions (CSV)" onClick={downloadCsv} />
-                <Action icon={Wrench} title="View Vendor Payment Summary" text="Detailed vendor breakdown" onClick={() => setTab('vendors')} />
-                <Action icon={Share2} title="Share Report" text="Send the public, anonymized report" onClick={share} />
-              </div>
-              {(problem || shareNote) && <div className={styles.feedback}>{problem ? <FormAlert>{problem}</FormAlert> : <p role="status">{shareNote}</p>}</div>}
             </section>
-            <div className={shared.promise}>
-              <strong>
-                <ShieldCheck size={26} aria-hidden="true" /> Open Data. Stronger Trust.
-              </strong>
-              <p>Transparency builds confidence, and confidence builds better communities.</p>
-              <Pylons className={shared.pylons} />
-            </div>
-          </aside>
+          )}
         </div>
+
+        <section className={`${shared.card} ${styles.records}`} aria-label="Records">
+          <div className={styles.recordTabs} role="tablist">
+            {[
+              ['transactions', Clock, 'Every payment'],
+              ['vendors', Wrench, 'Vendor'],
+              ['receipts', Receipt, 'Receipts'],
+              ['documents', FileText, 'Documents'],
+            ].map(([key, Icon, label]) => (
+              <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? styles.activeRecordTab : ''} onClick={() => setTab(key)}>
+                <Icon aria-hidden="true" /> {label}
+              </button>
+            ))}
+          </div>
+          {tab === 'transactions' && <Transactions rows={transactions} />}
+          {tab === 'vendors' && <VendorPayments campaign={campaign} quotes={report.quotes} />}
+          {tab === 'receipts' && <Receipts campaign={campaign} report={report} />}
+          {tab === 'documents' && <Documents report={report} publicLink={publicLink} onPdf={downloadPdf} />}
+        </section>
       </div>
     </AppShell>
-  )
-}
-
-function Action({ icon: Icon, title, text, onClick }) {
-  return (
-    <button type="button" className={styles.action} onClick={onClick}>
-      <span className={styles.actionIcon} aria-hidden="true">
-        <Icon />
-      </span>
-      <span>
-        <strong>{title}</strong>
-        {text}
-      </span>
-      <ArrowRight aria-hidden="true" className={styles.actionArrow} />
-    </button>
   )
 }
 
@@ -246,38 +187,6 @@ function fundFlow(campaign, overview) {
       { label: 'Balance', color: '#9fb4ad', values: collected.map((total, i) => Math.max(total - paid[i], 0)) },
     ],
   }
-}
-
-function Accountability({ campaign, report }) {
-  const checks = [
-    [campaign.actualCost != null, 'Verified vendor payments'],
-    [Boolean(campaign.receiptUrl), 'Documented receipts'],
-    [report.contributions.length > 0, 'Real-time fund usage'],
-    [Boolean(campaign.publicToken), 'Community access to reports'],
-  ]
-  return (
-    <section className={styles.accountability} aria-labelledby="accountability-title">
-      <h2 id="accountability-title">
-        <ShieldCheck aria-hidden="true" /> Accountability Matters
-      </h2>
-      <p>Every contribution, every payment and every update is tracked and visible to the community.</p>
-      <ul>
-        {checks.map(([done, label]) => (
-          <li key={label} className={done ? styles.done : ''}>
-            {done ? <CircleCheck aria-hidden="true" /> : <Clock aria-hidden="true" />}
-            {label}
-            {!done && <span className="visually-hidden"> (not yet)</span>}
-          </li>
-        ))}
-      </ul>
-      <p className={styles.motto}>
-        Transparent today
-        <br />
-        Stronger tomorrow
-      </p>
-      <Pylons className={styles.accountabilityArt} />
-    </section>
-  )
 }
 
 // Every movement of money on the campaign, newest first.
@@ -323,6 +232,7 @@ function buildTransactions(campaign, report) {
   return rows.sort((a, b) => String(b.at ?? '').localeCompare(String(a.at ?? '')))
 }
 
+// The Transactions tab: search and type filter over the rows from buildTransactions, paged.
 function Transactions({ rows }) {
   const [query, setQuery] = useState('')
   const [type, setType] = useState('all')
@@ -337,7 +247,7 @@ function Transactions({ rows }) {
     <div>
       <div className={styles.recordHead}>
         <div>
-          <h3>Recent Transactions</h3>
+          <h3>Money in and out</h3>
           <p>All contributions and payments related to this campaign.</p>
         </div>
         <div className={styles.filters}>
@@ -417,6 +327,7 @@ function Transactions({ rows }) {
   )
 }
 
+// The Vendor Payments tab: every quote, which one was chosen, why, and what was paid.
 function VendorPayments({ campaign, quotes }) {
   return (
     <div>
@@ -462,6 +373,7 @@ function VendorPayments({ campaign, quotes }) {
   )
 }
 
+// The Receipts tab: the vendor's receipt plus every proof of payment residents attached.
 function Receipts({ campaign, report }) {
   const proofs = report.contributions.filter((c) => c.proofUrl)
   const paged = usePaged(proofs, PAGE_SIZE)
@@ -504,6 +416,7 @@ function Receipts({ campaign, report }) {
   )
 }
 
+// The Supporting Documents tab: the PDF, the public link and the quote documents.
 function Documents({ report, publicLink, onPdf }) {
   const attached = report.quotes.filter((quote) => quote.attachmentUrl)
   return (

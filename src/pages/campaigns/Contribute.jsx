@@ -1,5 +1,4 @@
 import {
-  CalendarDays,
   Check,
   CircleCheck,
   CircleDollarSign,
@@ -8,11 +7,8 @@ import {
   HandCoins,
   Info,
   Landmark,
-  Lightbulb,
   Send,
-  Target,
   UserRound,
-  Users,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
@@ -20,19 +16,16 @@ import { useAuth } from '../../auth/AuthContext.js'
 import { Button } from '../../components/Button.jsx'
 import { AppShell } from '../../components/dashboard/AppShell.jsx'
 import { CampaignHeader } from '../../components/dashboard/CampaignHeader.jsx'
-import { ContributionsTable } from '../../components/dashboard/ContributionsTable.jsx'
 import { FormField } from '../../components/dashboard/FormField.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
 import { PaymentDetailsForm } from '../../components/dashboard/PaymentDetailsForm.jsx'
-import { ProgressRing } from '../../components/dashboard/ProgressRing.jsx'
 import { ProofUpload } from '../../components/dashboard/ProofUpload.jsx'
-import { Pylons } from '../../components/dashboard/Pylons.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
 import { PageSkeleton } from '../../components/Loading.jsx'
 import { useToast } from '../../components/ToastContext.js'
 import { api } from '../../lib/api.js'
 import { PAYMENT_METHODS, acceptsContributions, groupDigits, methodLabel, parseNaira, transferReference } from '../../lib/campaigns.js'
-import { formatDate, formatNaira } from '../../lib/format.js'
+import { formatNaira } from '../../lib/format.js'
 import { useCampaignData } from '../../lib/useCampaignData.js'
 import { usePageTitle } from '../../lib/usePageTitle.js'
 import shared from './campaigns.module.css'
@@ -43,6 +36,8 @@ const MINIMUM = 1_000
 // Make a Contribution, from transformer-repair-campaign-screen.png. Residents record a
 // payment they've made (it waits for the lead to verify it); the lead can record money
 // for any resident, which counts as verified straight away.
+// This page lets residents submit a payment to a live campaign and attach proof where needed.
+// It handles validation, upload, and the success state after the contribution is recorded.
 export default function Contribute() {
   const { id } = useParams()
   const { profile, estate } = useAuth()
@@ -59,12 +54,12 @@ export default function Contribute() {
     )
   }
 
-  const { campaign, overview, contributions } = data
+  const { campaign } = data
 
   return (
     <AppShell heading={heading}>
       <div className={styles.page}>
-        <CampaignHeader campaign={campaign} estate={estate} photo="left" headingLevel={2} />
+        <CampaignHeader campaign={campaign} estate={estate} headingLevel={2} />
 
         <div className={styles.layout}>
           <section className={shared.card} aria-labelledby="contribute-title">
@@ -93,65 +88,14 @@ export default function Contribute() {
             )}
           </section>
 
-          <aside className={styles.side}>
-            <section className={shared.card} aria-labelledby="progress-title">
-              <h2 id="progress-title" className={`${shared.cardTitle} ${styles.sideTitle}`}>
-                Campaign Progress
-              </h2>
-              <ProgressRing collected={campaign.totalCollected} target={campaign.targetAmount} />
-              <div className={`${shared.tiles} ${styles.tiles}`}>
-                <div className={shared.tile}>
-                  <Users aria-hidden="true" />
-                  <span>
-                    Contributors
-                    <strong>
-                      {overview.contributors.paid} / {overview.contributors.total}
-                    </strong>
-                  </span>
-                </div>
-                <div className={shared.tile}>
-                  <Target aria-hidden="true" />
-                  <span>
-                    Target Amount
-                    <strong>{formatNaira(campaign.targetAmount)}</strong>
-                  </span>
-                </div>
-                <div className={shared.tile}>
-                  <CalendarDays aria-hidden="true" />
-                  <span>
-                    Deadline
-                    <strong>{campaign.deadline ? formatDate(campaign.deadline) : 'Not set'}</strong>
-                  </span>
-                </div>
-              </div>
-            </section>
-
-            <section className={shared.card} aria-labelledby="recent-title">
-              <div className={shared.cardHead}>
-                <h2 id="recent-title" className={shared.cardTitle}>
-                  Recent Contributions
-                </h2>
-                <Link to={`/campaigns/${id}/contributions`} className={shared.viewAll}>
-                  View All
-                </Link>
-              </div>
-              <ContributionsTable contributions={contributions.slice(0, 5)} last="method" />
-            </section>
-
-            <div className={shared.encourage}>
-              <strong>
-                <Lightbulb size={24} aria-hidden="true" /> Together we can make a difference
-              </strong>
-              <p>Your contribution, no matter the size, brings us closer to a safer and more reliable power supply for our community.</p>
-              <Pylons className={shared.pylons} />
-            </div>
-          </aside>
         </div>
       </div>
     </AppShell>
   )
 }
 
+// The form itself. Leads get a payer picker to record money they collected for a
+// resident; residents always record their own.
 function ContributionForm({ campaign, estate, profile, onRecorded }) {
   const toast = useToast()
   const isAdmin = profile.role === 'admin'
@@ -359,6 +303,8 @@ function ContributionForm({ campaign, estate, profile, onRecorded }) {
   )
 }
 
+// Where to pay: the estate's bank details and a reference to put on the transfer.
+// Leads can edit the details here too.
 function PaymentDetails({ campaign, reference, canEdit, onSaved }) {
   const details = campaign.paymentDetails
   const [editing, setEditing] = useState(false)

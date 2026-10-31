@@ -5,7 +5,7 @@
 }
 
 .label {
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 600;
   color: var(--ink);
 }
@@ -51,12 +51,12 @@
 }
 
 .drop strong {
-  font-size: 14.5px;
+  font-size: 16px;
   color: var(--ink);
 }
 
 .drop span {
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--muted);
 }
 
@@ -99,7 +99,7 @@
   display: grid;
   gap: 4px;
   min-width: 0;
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--muted);
 }
 
@@ -107,7 +107,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 15.5px;
   color: #13703f;
 }
 
@@ -125,7 +125,7 @@
   border: 1px solid var(--card-line);
   border-radius: 7px;
   background: #fff;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--ink);
 }
@@ -144,7 +144,7 @@
 
 .hint,
 .error {
-  font-size: 12.5px;
+  font-size: 14px;
   line-height: 1.5;
 }
 

@@ -13,7 +13,6 @@ import {
   Receipt,
   Scale,
   Target,
-  Trophy,
   Wrench,
 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
@@ -56,7 +55,8 @@ const EVENTS = {
   campaign_reconciled: ['Fund Reconciled', Scale],
 }
 
-// Mark Complete + Reconciliation, from Reconciliation-Screen.png.
+// Mark Complete + Reconciliation: the next step at the top, then where the money went,
+// the documents, and (once reconciled) what each household gets back or still owes.
 export default function Reconciliation() {
   const { id } = useParams()
   const { profile, estate } = useAuth()
@@ -90,57 +90,39 @@ export default function Reconciliation() {
   const { campaign, report } = state
   const reconciliation = report.reconciliation
   const pending = campaign.pendingCount ?? 0
+  // Reconciliation can run once the repair is complete and no payments are left unchecked.
   const ready = campaign.status === 'completed' && pending === 0
 
   return (
     <AppShell heading={heading}>
       <div className={styles.page}>
-        <header className={styles.intro}>
-          <span className={styles.introIcon} aria-hidden="true">
-            <CircleCheck />
-          </span>
-          <div>
-            <h1 className={styles.title}>Mark Complete + Reconciliation</h1>
-            <p className={styles.subtitle}>Confirm project completion, verify expenses and finalize the financial reconciliation for this campaign.</p>
-          </div>
-        </header>
+        <CampaignHeader campaign={campaign} estate={estate} />
+        <CampaignTabs campaignId={id} />
 
-        <div className={styles.layout}>
-          <div className={styles.main}>
-            <section className={shared.card}>
-              <CampaignHeader campaign={campaign} estate={estate} photo="left" headingLevel={2} />
-            </section>
-            <CampaignTabs campaignId={id} />
+        <ActionBar campaign={campaign} isAdmin={isAdmin} pending={pending} ready={ready} onAction={setDialog} />
 
-            <section className={shared.card} aria-labelledby="details-title">
-              <div className={shared.cardHead}>
-                <div>
-                  <h2 id="details-title" className={shared.cardTitle}>
-                    Reconciliation Details
-                  </h2>
-                  <p className={shared.cardText}>Verify all amounts, confirm payments and mark the campaign as complete.</p>
-                </div>
-                <StageBadge campaign={campaign} ready={ready} />
-              </div>
-
-              <div className={styles.columns}>
-                <FinancialSummary campaign={campaign} reconciliation={reconciliation} />
-                <VendorBreakdown campaign={campaign} quotes={report.quotes} />
-              </div>
-
-              <Documents campaign={campaign} quotes={report.quotes} />
-
-              <ActionBar campaign={campaign} isAdmin={isAdmin} pending={pending} ready={ready} onAction={setDialog} />
-            </section>
-
-            {reconciliation && <Adjustments reconciliation={reconciliation} myName={profile.name} />}
+        <section className={shared.card} aria-labelledby="details-title">
+          <div className={shared.cardHead}>
+            <div>
+              <h2 id="details-title" className={shared.cardTitle}>
+                Where the money went
+              </h2>
+              <p className={shared.cardText}>What came in, what the repair cost, and what is left.</p>
+            </div>
+            <StageBadge campaign={campaign} ready={ready} />
           </div>
 
-          <aside className={styles.side}>
-            <ProgressCard campaign={campaign} reconciliation={reconciliation} pending={pending} ready={ready} />
-            <Activity campaignId={id} timeline={report.timeline} />
-          </aside>
-        </div>
+          <div className={styles.columns}>
+            <FinancialSummary campaign={campaign} reconciliation={reconciliation} />
+            <VendorBreakdown campaign={campaign} quotes={report.quotes} />
+          </div>
+
+          <Documents campaign={campaign} quotes={report.quotes} />
+        </section>
+
+        {reconciliation && <Adjustments reconciliation={reconciliation} myName={profile.name} />}
+
+        <Activity campaignId={id} timeline={report.timeline} />
       </div>
 
       {dialog === 'complete' && (
@@ -169,6 +151,7 @@ export default function Reconciliation() {
   )
 }
 
+// The pill at the top saying where the campaign is on its way to reconciliation.
 function StageBadge({ campaign, ready }) {
   const [label, tone] =
     campaign.status === 'reconciled'
@@ -188,6 +171,8 @@ function StageBadge({ campaign, ready }) {
   )
 }
 
+// Collected vs. spent. Before reconciling, the difference is an estimate against the
+// chosen quote; afterwards it's the stored result.
 function FinancialSummary({ campaign, reconciliation }) {
   const cost = campaign.actualCost ?? campaign.selectedQuoteAmount
   const difference = reconciliation ? reconciliation.variance : cost != null ? campaign.totalCollected - cost : null
@@ -226,6 +211,7 @@ function FinancialSummary({ campaign, reconciliation }) {
   )
 }
 
+// Every quote side by side, with the chosen one and what was actually paid.
 function VendorBreakdown({ campaign, quotes }) {
   const paid = campaign.actualCost ?? 0
   return (
@@ -277,6 +263,7 @@ function VendorBreakdown({ campaign, quotes }) {
   )
 }
 
+// Links to the chosen quote, the vendor's receipt and the downloadable PDF report.
 function Documents({ campaign, quotes }) {
   const [problem, setProblem] = useState('')
   const selected = quotes.find((quote) => quote.selected)
@@ -311,6 +298,7 @@ function Documents({ campaign, quotes }) {
   )
 }
 
+// One document tile: a link when the file exists, a greyed-out note when it doesn't.
 function Doc({ icon: Icon, title, href, missing }) {
   const content = (
     <>
@@ -332,6 +320,8 @@ function Doc({ icon: Icon, title, href, missing }) {
   )
 }
 
+// The next step for this campaign, depending on its status. Leads get the button to take
+// it (mark complete or reconcile); residents just see what's happening.
 function ActionBar({ campaign, isAdmin, pending, ready, onAction }) {
   let text
   let action = null
@@ -389,90 +379,7 @@ function ActionBar({ campaign, isAdmin, pending, ready, onAction }) {
   )
 }
 
-function ProgressCard({ campaign, reconciliation, pending, ready }) {
-  const percent = campaign.targetAmount ? Math.min(Math.round((campaign.totalCollected / campaign.targetAmount) * 100), 100) : 0
-  const circumference = 2 * Math.PI * 62
-  const checks = [
-    {
-      done: campaign.totalCollected >= campaign.targetAmount,
-      title: 'Contributions Completed',
-      detail: `${formatNaira(campaign.totalCollected)} / ${formatNaira(campaign.targetAmount)}`,
-    },
-    {
-      done: campaign.actualCost != null,
-      title: 'Vendor Payment Completed',
-      detail:
-        campaign.actualCost != null
-          ? `${formatNaira(campaign.actualCost)} / ${formatNaira(campaign.selectedQuoteAmount)} quoted`
-          : campaign.selectedVendorName
-            ? `${campaign.selectedVendorName} is working on it`
-            : 'No vendor selected yet',
-    },
-    {
-      done: ready || Boolean(reconciliation),
-      title: reconciliation ? 'Reconciled' : 'Reconciliation Ready',
-      detail: reconciliation ? `On ${formatDate(reconciliation.generatedAt)}` : pending ? `${pending} contribution(s) awaiting verification` : 'All records verified',
-    },
-  ]
-
-  return (
-    <section className={shared.card} aria-labelledby="progress-title">
-      <h2 id="progress-title" className={`${shared.cardTitle} ${styles.sideTitle}`}>
-        Campaign Progress
-      </h2>
-      <div className={styles.progress}>
-        <svg viewBox="0 0 160 160" className={styles.ring} role="img" aria-label={`${percent}% collected`}>
-          <circle cx="80" cy="80" r="62" className={styles.track} />
-          <circle
-            cx="80"
-            cy="80"
-            r="62"
-            className={styles.fill}
-            strokeDasharray={`${(percent / 100) * circumference} ${circumference}`}
-            transform="rotate(-90 80 80)"
-          />
-          <text x="80" y="74" textAnchor="middle" className={styles.ringPercent}>
-            {percent}%
-          </text>
-          <text x="80" y="96" textAnchor="middle" className={styles.ringAmount}>
-            {formatNaira(campaign.totalCollected)}
-          </text>
-          <text x="80" y="113" textAnchor="middle" className={styles.ringCaption}>
-            collected
-          </text>
-        </svg>
-        <ul className={styles.checks}>
-          {checks.map((check) => (
-            <li key={check.title} className={check.done ? styles.checkDone : ''}>
-              {check.done ? <CircleCheck aria-hidden="true" /> : <Clock aria-hidden="true" />}
-              <span>
-                <strong>{check.title}</strong>
-                {check.detail}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className={`${styles.closeCard} ${ready || reconciliation ? '' : styles.closeWaiting}`}>
-        <span className={styles.trophy} aria-hidden="true">
-          {ready || reconciliation ? <Trophy /> : <Hourglass />}
-        </span>
-        <div>
-          <strong>{reconciliation ? 'Campaign Closed' : ready ? 'Campaign Ready to Close' : 'Not Ready to Close Yet'}</strong>
-          <p>
-            {reconciliation
-              ? 'The fund has been reconciled and every contributor has been told their result.'
-              : ready
-                ? 'Everything looks good! This campaign can now be reconciled.'
-                : 'Finish the repair and verify every contribution, then the fund can be reconciled.'}
-          </p>
-        </div>
-      </div>
-    </section>
-  )
-}
-
+// The last five things that happened, from the campaign's audit trail.
 function Activity({ campaignId, timeline }) {
   // Newest first; individual contributions are summarised on the Contributions page.
   const recent = [...timeline]
@@ -692,6 +599,7 @@ function CompleteDialog({ campaign, onClose, onDone }) {
   )
 }
 
+// Confirms before reconciling, since it can only be done once and the numbers become final.
 function ReconcileDialog({ campaign, onClose, onDone }) {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)

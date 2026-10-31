@@ -27,6 +27,8 @@ const FILTERS = [
 ]
 
 // Every campaign in the estate. Residents never see drafts (the API leaves them out).
+// This page is the main list of repair campaigns for the estate. It lets users filter by status,
+// see fundraising progress, and navigate into the details of each campaign.
 export default function CampaignsList() {
   usePageTitle('Campaigns')
   const { profile } = useAuth()
@@ -49,20 +51,18 @@ export default function CampaignsList() {
   const campaigns = state.campaigns?.filter((campaign) => !statuses || statuses.includes(campaign.status)) ?? []
   const paged = usePaged(campaigns, PAGE_SIZE, filter)
 
-  const heading = (
-    <div className={styles.heading}>
-      <PageHeading title="Campaigns" subtitle="Every repair your estate is raising money for." />
-      {isAdmin && (
-        <Link to="/campaigns/new" className={styles.create}>
-          <Plus size={18} aria-hidden="true" /> Create Campaign
-        </Link>
-      )}
-    </div>
-  )
+  const heading = <PageHeading title="Campaigns" subtitle="Every repair your estate is raising money for." />
 
   return (
     <AppShell heading={heading}>
       <div className={styles.page}>
+        {isAdmin && (
+          <div className={shared.toolbar}>
+            <Link to="/campaigns/new" className={shared.primary}>
+              <Plus size={20} aria-hidden="true" /> Create Campaign
+            </Link>
+          </div>
+        )}
         <div className={styles.filters} role="tablist" aria-label="Filter campaigns">
           {filters.map((option) => (
             <button
@@ -113,6 +113,7 @@ export default function CampaignsList() {
   )
 }
 
+// One campaign in the grid. Residents also see whether they've paid their levy.
 function CampaignCard({ campaign, isAdmin }) {
   const percent = Math.round(campaign.percentFunded)
   const mine = campaign.myPayment

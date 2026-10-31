@@ -20,13 +20,13 @@
 }
 
 .total {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   fill: var(--ink);
 }
 
 .caption {
-  font-size: 11.5px;
+  font-size: 13.5px;
   fill: var(--text);
 }
 
@@ -56,18 +56,18 @@
 .label {
   display: grid;
   flex: 1;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--ink);
 }
 
 .label strong {
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--text);
 }
 
 .share {
-  font-size: 13px;
+  font-size: 15px;
   color: var(--ink);
 }
 

@@ -1,20 +1,4 @@
-import {
-  CalendarDays,
-  CircleCheck,
-  ClipboardCheck,
-  Eye,
-  HandCoins,
-  Info,
-  MapPin,
-  Pencil,
-  ShieldCheck,
-  Tag,
-  Target,
-  Type,
-  UserPlus,
-  Users,
-  Wrench,
-} from 'lucide-react'
+import { Info, Pencil, Phone, Wrench } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useAuth } from '../../auth/AuthContext.js'
@@ -22,32 +6,26 @@ import { Button } from '../../components/Button.jsx'
 import { AppShell } from '../../components/dashboard/AppShell.jsx'
 import { CampaignHeader } from '../../components/dashboard/CampaignHeader.jsx'
 import { CampaignTabs } from '../../components/dashboard/CampaignTabs.jsx'
-import { ContributionChart } from '../../components/dashboard/ContributionChart.jsx'
 import { ContributionsTable } from '../../components/dashboard/ContributionsTable.jsx'
+import { NextStep } from '../../components/dashboard/NextStep.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
-import { ProgressRing } from '../../components/dashboard/ProgressRing.jsx'
-import { Pylons } from '../../components/dashboard/Pylons.jsx'
-import { StatusBadge } from '../../components/dashboard/StatusBadge.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
 import { PageSkeleton } from '../../components/Loading.jsx'
 import { useToast } from '../../components/ToastContext.js'
 import { api } from '../../lib/api.js'
-import { acceptsContributions, categoryLabel } from '../../lib/campaigns.js'
+import { categoryLabel } from '../../lib/campaigns.js'
 import { formatDate, formatNaira } from '../../lib/format.js'
 import { useCampaignData } from '../../lib/useCampaignData.js'
 import { usePageTitle } from '../../lib/usePageTitle.js'
 import shared from './campaigns.module.css'
 import styles from './CampaignDetails.module.css'
 
-const PHOTO_CAPTIONS = {
-  draft: 'Draft Campaign',
-  fundraising: 'Raising Funds',
-  repairing: 'Campaign in Progress',
-  completed: 'Repair Completed',
-  reconciled: 'Fully Reconciled',
-}
+// How many of the newest payments the page shows. The Contributions tab has the rest.
+const LATEST = 5
 
-// Campaign Details, from Transfer-Repair-Campaign-Screen.png.
+// Campaign Details: one campaign at a glance. The header carries the money figures, so
+// the page below only answers three questions: what happens next, what is this repair,
+// and who has paid lately.
 export default function CampaignDetails() {
   const { id } = useParams()
   const { profile, estate } = useAuth()
@@ -66,248 +44,117 @@ export default function CampaignDetails() {
 
   const { campaign, overview, contributions, quotes } = data
   const isAdmin = profile.role === 'admin'
+  const pending = contributions.filter((contribution) => contribution.status === 'pending').length
+  const { paid, total } = overview.contributors
 
   return (
     <AppShell heading={heading}>
       <div className={styles.page}>
         {campaign.status === 'draft' && <DraftBanner campaign={campaign} onPublished={data.reload} />}
 
-        <CampaignHeader campaign={campaign} estate={estate} photo="right" photoCaption={PHOTO_CAPTIONS[campaign.status]} />
+        <CampaignHeader campaign={campaign} estate={estate} />
 
         <CampaignTabs campaignId={id} />
 
-        <div className={styles.layout}>
-          <div className={styles.main}>
-            <section className={shared.card} aria-labelledby="progress-title">
-              <h2 id="progress-title" className={`${shared.cardTitle} ${styles.cardTitle}`}>
-                Campaign Progress
-              </h2>
-              <ProgressRing collected={campaign.totalCollected} target={campaign.targetAmount} />
-              <div className={styles.miniStats}>
-                <MiniStat icon={Users} label="Contributors" value={`${overview.contributors.paid} / ${overview.contributors.total}`} />
-                <MiniStat icon={Target} label="Target Amount" value={formatNaira(campaign.targetAmount)} />
-                <MiniStat icon={CalendarDays} label="Deadline" value={campaign.deadline ? formatDate(campaign.deadline) : 'Not set'} />
-              </div>
-            </section>
+        {campaign.status !== 'draft' && <NextStep campaign={campaign} isAdmin={isAdmin} pending={isAdmin ? pending : 0} />}
 
-            <section className={shared.card} aria-labelledby="trend-title">
-              <h2 id="trend-title" className={`${shared.cardTitle} ${styles.cardTitle}`}>
-                Contribution Trend
-              </h2>
-              <ContributionChart timeline={overview.timeline} target={campaign.targetAmount} />
-            </section>
-
-            <CampaignFacts campaign={campaign} estate={estate} overview={overview} />
-
-            <section className={shared.card} aria-labelledby="recent-title">
-              <div className={shared.cardHead}>
-                <h2 id="recent-title" className={shared.cardTitle}>
-                  Recent Contributions
-                </h2>
-                <Link to={`/campaigns/${id}/contributions`} className={shared.viewAll}>
-                  View All
-                </Link>
-              </div>
-              <p className={styles.paidBox}>
-                <Users aria-hidden="true" />
-                <span>
-                  <strong>
-                    {overview.contributors.paid} / {overview.contributors.total}
-                  </strong>
-                  Contributors have paid
-                </span>
-              </p>
-              <ContributionsTable contributions={contributions} pageSize={8} />
-            </section>
-          </div>
-
-          <aside className={styles.side}>
-            <QuotesCard campaignId={id} quotes={quotes} selectedId={campaign.selectedQuoteId} />
-
-            <section className={shared.card} aria-labelledby="actions-title">
-              <h2 id="actions-title" className={`${shared.cardTitle} ${styles.cardTitle}`}>
-                Quick Actions
-              </h2>
-              <div className={styles.quick}>
-                {acceptsContributions(campaign) && (
-                  <Link to={`/campaigns/${id}/contribute`}>
-                    <UserPlus aria-hidden="true" />
-                    {isAdmin ? 'Add Contribution' : 'Make a Contribution'}
-                  </Link>
-                )}
-                {isAdmin && campaign.status !== 'reconciled' && campaign.status !== 'completed' && (
-                  <Link to={`/campaigns/${id}/quotes`}>
-                    <ClipboardCheck aria-hidden="true" />
-                    Add Vendor Quote
-                  </Link>
-                )}
-                {isAdmin && campaign.status === 'repairing' && (
-                  <Link to={`/campaigns/${id}/reconciliation`}>
-                    <CircleCheck aria-hidden="true" />
-                    Mark Complete
-                  </Link>
-                )}
-              </div>
-              <Link to={`/campaigns/${id}/report`} className={styles.reportLink}>
-                <Eye size={17} aria-hidden="true" /> View Transparency Report
-              </Link>
-            </section>
-
-            <div className={shared.encourage}>
-              <strong>
-                <ShieldCheck size={24} aria-hidden="true" /> Transparency builds trust.
-              </strong>
-              <p>Every contribution, quote and update is tracked and visible to all members of your community.</p>
-              <Pylons className={shared.pylons} />
-            </div>
-          </aside>
+        <div className={styles.columns}>
+          <AboutRepair campaign={campaign} />
+          <VendorCard campaign={campaign} quotes={quotes} />
         </div>
+
+        <section className={shared.card} aria-labelledby="recent-title">
+          <div className={shared.cardHead}>
+            <div>
+              <h2 id="recent-title" className={shared.cardTitle}>
+                Latest payments
+              </h2>
+              <p className={shared.cardText}>
+                {paid} of {total} households have paid in full.
+              </p>
+            </div>
+            <Link to={`/campaigns/${id}/contributions`} className={shared.secondary}>
+              See all payments
+            </Link>
+          </div>
+          <ContributionsTable contributions={contributions.slice(0, LATEST)} />
+        </section>
       </div>
     </AppShell>
   )
 }
 
-function MiniStat({ icon: Icon, label, value }) {
-  return (
-    <div className={styles.miniStat}>
-      <span className={styles.miniIcon} aria-hidden="true">
-        <Icon />
-      </span>
-      <span>
-        {label}
-        <strong>{value}</strong>
-      </span>
-    </div>
-  )
-}
-
-function CampaignFacts({ campaign, estate, overview }) {
+// What the repair is, what each household pays, and by when.
+function AboutRepair({ campaign }) {
   const levy =
     campaign.levyMethod === 'per_unit'
-      ? `By Unit Count · ${formatNaira(campaign.levyPerUnit)} per unit`
-      : `Flat Split · ${formatNaira(campaign.levyPerHousehold)}`
+      ? `${formatNaira(campaign.levyPerUnit)} for each unit`
+      : `${formatNaira(campaign.levyPerHousehold)} per household`
   const facts = [
-    [Type, 'Title', campaign.title],
-    [Tag, 'Category', categoryLabel(campaign.category)],
-    [MapPin, 'Estate / Community', [estate?.name, estate?.address].filter(Boolean).join(', ')],
-    [Target, 'Target Amount', formatNaira(campaign.targetAmount)],
-    [HandCoins, 'Per-Household Levy', levy],
-    [CalendarDays, 'Deadline', campaign.deadline ? formatDate(campaign.deadline) : 'Not set'],
+    ['What it’s for', categoryLabel(campaign.category)],
+    ['Each household pays', levy],
+    ['Deadline', campaign.deadline ? formatDate(campaign.deadline) : 'Not set'],
   ]
 
   return (
-    <section className={shared.card} aria-labelledby="facts-title">
-      <div className={shared.cardHead}>
-        <h2 id="facts-title" className={shared.cardTitle}>
-          Campaign Details
-        </h2>
-        <StatusBadge status={campaign.status} />
-      </div>
-      <div className={styles.facts}>
-        <dl className={styles.factList}>
-          {facts.map(([Icon, label, value]) => (
-            <div key={label}>
-              <span className={styles.factIcon} aria-hidden="true">
-                <Icon />
-              </span>
-              <dt>{label}</dt>
-              <dd>{value}</dd>
-            </div>
-          ))}
-        </dl>
-        <div className={styles.factSide}>
-          <h3>Description</h3>
-          <p>{campaign.description}</p>
-          <h3>Progress Notes</h3>
-          <p className={styles.progressNote}>
-            <CircleCheck size={18} aria-hidden="true" />
-            {progressNote(campaign, overview)}
-          </p>
-          <Link to={`/campaigns/${campaign.id}/report`} className={styles.fullDetails}>
-            View Full Details <span aria-hidden="true">→</span>
-          </Link>
-        </div>
-      </div>
+    <section className={shared.card} aria-labelledby="about-title">
+      <h2 id="about-title" className={shared.cardTitle}>
+        About this repair
+      </h2>
+      {campaign.description && <p className={styles.description}>{campaign.description}</p>}
+      <dl className={styles.facts}>
+        {facts.map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
     </section>
   )
 }
 
-// A one-line status report for the campaign, from what it's doing now.
-function progressNote(campaign, overview) {
-  const { paid, total } = overview.contributors
-  switch (campaign.status) {
-    case 'draft':
-      return 'Draft: residents can’t see this campaign until it’s published.'
-    case 'fundraising':
-      return campaign.targetReachedAt
-        ? `Target reached on ${formatDate(campaign.targetReachedAt)}. Next, choose a vendor.`
-        : `Collecting contributions: ${paid} of ${total} households have paid in full.`
-    case 'repairing':
-      return `${campaign.selectedVendorName} was selected at ${formatNaira(campaign.selectedQuoteAmount)}. The repair is in progress.`
-    case 'completed':
-      return `Repair completed on ${formatDate(campaign.completedAt)}. The fund is being reconciled.`
-    case 'reconciled':
-      return `Reconciled on ${formatDate(campaign.reconciledAt)}. Every refund and balance has been worked out.`
-    default:
-      return ''
-  }
-}
-
-function QuotesCard({ campaignId, quotes, selectedId }) {
-  const [open, setOpen] = useState(null)
-  const shown = [...quotes].sort((a, b) => (b.id === selectedId) - (a.id === selectedId)).slice(0, 3)
+// The chosen vendor, or how many quotes are in while none is chosen.
+function VendorCard({ campaign, quotes }) {
+  const chosen = quotes.find((quote) => quote.id === campaign.selectedQuoteId)
+  const count = `${quotes.length} ${quotes.length === 1 ? 'quote' : 'quotes'} received`
 
   return (
-    <section className={shared.card} aria-labelledby="quotes-title">
-      <div className={shared.cardHead}>
-        <h2 id="quotes-title" className={shared.cardTitle}>
-          <ClipboardCheck aria-hidden="true" /> Vendor Quotes
-        </h2>
-        <Link to={`/campaigns/${campaignId}/quotes`} className={shared.viewAll}>
-          View All
+    <section className={shared.card} aria-labelledby="vendor-title">
+      <h2 id="vendor-title" className={shared.cardTitle}>
+        {chosen ? 'Chosen vendor' : 'Vendor'}
+      </h2>
+      {chosen ? (
+        <div className={styles.vendor}>
+          <span className={styles.vendorIcon} aria-hidden="true">
+            <Wrench />
+          </span>
+          <div>
+            <p className={styles.vendorName}>{chosen.vendorName}</p>
+            <p className={styles.vendorAmount}>{formatNaira(chosen.quotedAmount)}</p>
+            {chosen.deliveryDays && <p className={styles.vendorMeta}>Says the work takes {chosen.deliveryDays} days</p>}
+            {chosen.vendorPhone && (
+              <p className={styles.vendorMeta}>
+                <Phone size={16} aria-hidden="true" /> {chosen.vendorPhone}
+              </p>
+            )}
+          </div>
+        </div>
+      ) : (
+        <p className={styles.noVendor}>No vendor has been chosen yet.</p>
+      )}
+      <p className={styles.quoteCount}>
+        {count}.{' '}
+        <Link to={`/campaigns/${campaign.id}/quotes`} className={shared.viewAll}>
+          {quotes.length ? 'Compare quotes' : 'Go to quotes'}
         </Link>
-      </div>
-      {shown.length === 0 && <p className={styles.noQuotes}>No vendor quotes yet.</p>}
-      <ul className={styles.quotes}>
-        {shown.map((quote) => (
-          <li key={quote.id} className={styles.quote}>
-            <span className={styles.quoteIcon} aria-hidden="true">
-              <Wrench />
-            </span>
-            <div className={styles.quoteBody}>
-              <p className={styles.vendor}>{quote.vendorName}</p>
-              <p className={styles.quoteAmount}>{formatNaira(quote.quotedAmount)}</p>
-              {quote.deliveryDays && (
-                <p className={styles.delivery}>
-                  Delivery Time <strong>{quote.deliveryDays} days</strong>
-                </p>
-              )}
-              {open === quote.id && (
-                <div className={styles.quoteMore}>
-                  {quote.warrantyMonths != null && <p>Warranty: {quote.warrantyMonths} months</p>}
-                  {quote.vendorPhone && <p>Phone: {quote.vendorPhone}</p>}
-                  <p>{quote.notes || 'No notes added.'}</p>
-                </div>
-              )}
-            </div>
-            <div className={styles.quoteSide}>
-              {quote.id === selectedId && <span className={styles.selected}>Selected</span>}
-              <button
-                type="button"
-                className={styles.quoteToggle}
-                aria-expanded={open === quote.id}
-                onClick={() => setOpen(open === quote.id ? null : quote.id)}
-              >
-                {open === quote.id ? 'Hide Details' : 'View Details'}
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      </p>
     </section>
   )
 }
 
+// Shown on a draft to admins: publishing makes it visible to residents and opens
+// contributions.
 function DraftBanner({ campaign, onPublished }) {
   const toast = useToast()
   const [busy, setBusy] = useState(false)

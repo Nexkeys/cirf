@@ -49,14 +49,14 @@
   border: 1px solid var(--card-line);
   border-radius: 50%;
   background: #f1f5f3;
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 600;
   color: var(--ink);
 }
 
 .label {
   overflow: hidden;
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--text);
   text-overflow: ellipsis;
   white-space: nowrap;

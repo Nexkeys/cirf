@@ -3,149 +3,20 @@
   gap: 22px;
 }
 
-.intro {
-  display: grid;
-  gap: 6px;
-}
-
-.title {
-  font-size: clamp(26px, 2.6vw, 38px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-}
-
-.subtitle {
-  max-width: 620px;
-  font-size: 15.5px;
-  line-height: 1.55;
-  color: var(--text);
-}
-
-.subtitle strong {
-  color: var(--ink);
-}
-
 /* Charts row */
 .charts {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 0.8fr);
   gap: 20px;
   align-items: stretch;
 }
 
+/* Once there is spending to show, the breakdown sits beside the chart. */
+.twoCharts {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
 .cardTitle {
   margin-bottom: 14px;
-}
-
-.empty {
-  display: grid;
-  justify-items: center;
-  gap: 10px;
-  padding: 40px 12px;
-  font-size: 14px;
-  text-align: center;
-  color: var(--muted);
-}
-
-.empty svg {
-  width: 28px;
-  height: 28px;
-}
-
-.accountability {
-  position: relative;
-  overflow: hidden;
-  padding: 24px;
-  border: 1px solid #cfe7d9;
-  border-radius: 14px;
-  background: linear-gradient(180deg, #eef8f2, #dcefe4);
-}
-
-.accountability h2 {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--link-dark);
-}
-
-.accountability h2 svg {
-  width: 30px;
-  height: 30px;
-}
-
-.accountability > p {
-  margin-top: 10px;
-  font-size: 13.5px;
-  line-height: 1.55;
-  color: var(--text);
-}
-
-.accountability ul {
-  display: grid;
-  gap: 12px;
-  margin: 16px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.accountability li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13.5px;
-  color: var(--muted);
-}
-
-.accountability li svg {
-  width: 19px;
-  height: 19px;
-  flex: none;
-}
-
-.accountability .done {
-  color: var(--ink);
-}
-
-.accountability .done svg {
-  color: var(--paid);
-}
-
-.accountability .motto {
-  position: relative;
-  z-index: 1;
-  margin-top: 40px;
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.35;
-  color: var(--link-dark);
-}
-
-.accountabilityArt {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  width: 170px;
-  height: 120px;
-  fill: none;
-  stroke: var(--paid);
-  stroke-width: 1.2;
-  opacity: 0.3;
-}
-
-/* Records and actions */
-.bottom {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 20px;
-  align-items: start;
-}
-
-.side {
-  display: grid;
-  gap: 20px;
 }
 
 .records {
@@ -170,7 +41,7 @@
   border: 0;
   border-bottom: 2.5px solid transparent;
   background: none;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--text);
   white-space: nowrap;
@@ -204,7 +75,7 @@
 
 .recordHead p {
   margin-top: 4px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text);
 }
 
@@ -232,7 +103,7 @@
   min-width: 0;
   border: 0;
   background: none;
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--ink);
   outline: none;
 }
@@ -243,7 +114,7 @@
   border: 1px solid #dbe4e0;
   border-radius: 9px;
   background: #fff;
-  font-size: 13.5px;
+  font-size: 15px;
 }
 
 .linkButton {
@@ -253,7 +124,7 @@
   padding: 8px 14px;
   border: 1px solid #c9d6d1;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--link-dark);
   text-decoration: none;
@@ -271,13 +142,13 @@
   width: 100%;
   min-width: 680px;
   border-collapse: collapse;
-  font-size: 13.5px;
+  font-size: 15px;
 }
 
 .table th {
   padding: 12px 10px;
   background: #f1f6f4;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
   text-align: left;
   color: var(--ink);
@@ -294,7 +165,7 @@
 
 .table td small {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
 }
 
@@ -313,7 +184,7 @@
   gap: 6px;
   padding: 4px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -347,7 +218,7 @@
   padding: 4px 10px;
   border-radius: 999px;
   background: #def3e6;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   color: #13703f;
 }
@@ -376,7 +247,7 @@
 
 .none {
   padding: 24px;
-  font-size: 14px;
+  font-size: 15.5px;
   text-align: center;
   color: var(--muted);
 }
@@ -410,12 +281,12 @@
   display: grid;
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text);
 }
 
 .docs strong {
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--ink);
 }
 
@@ -425,109 +296,25 @@
   border: 1px solid #c9d6d1;
   border-radius: 8px;
   background: #fff;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--link-dark);
   text-decoration: none;
 }
 
-.actions {
-  display: grid;
-  gap: 4px;
-}
-
-.action {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 12px 8px;
-  border: 0;
-  border-bottom: 1px solid var(--card-line);
-  background: none;
-  font: inherit;
-  text-align: left;
-  color: inherit;
-}
-
-.action:last-child {
-  border-bottom: 0;
-}
-
-.action:hover {
-  background: #f5faf7;
-}
-
-.action > span:nth-child(2) {
-  display: grid;
-  flex: 1;
-  font-size: 12.5px;
-  color: var(--muted);
-}
-
-.action strong {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.actionIcon {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  flex: none;
-  border-radius: 10px;
-  background: #eaf4ef;
-  color: var(--paid);
-}
-
-.actionIcon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.actionArrow {
-  width: 18px;
-  height: 18px;
-  flex: none;
-  color: var(--muted);
-}
-
-.feedback {
-  margin-top: 12px;
-}
-
 .feedback p {
-  font-size: 13px;
+  font-size: 16px;
   color: #13703f;
 }
 
 /* ---------- Narrower screens ---------- */
-@media (max-width: 1400px) {
-  .charts {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .charts > :first-child {
-    grid-column: 1 / -1;
-  }
-
-  .bottom {
+@media (max-width: 1100px) {
+  .twoCharts {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .side {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
   }
 }
 
 @media (max-width: 760px) {
-  .charts,
-  .side {
-    grid-template-columns: minmax(0, 1fr);
-  }
 
   .search {
     flex: 1 1 100%;

@@ -1,6 +1,5 @@
 import {
   ArrowRight,
-  BarChart3,
   CalendarDays,
   CircleCheck,
   CircleDollarSign,
@@ -13,7 +12,6 @@ import {
   Phone,
   Plus,
   ShieldCheck,
-  Target,
   Timer,
   UserRound,
   Wrench,
@@ -23,18 +21,17 @@ import { Link, useParams } from 'react-router'
 import { useAuth } from '../../auth/AuthContext.js'
 import { Button } from '../../components/Button.jsx'
 import { AppShell } from '../../components/dashboard/AppShell.jsx'
+import { CampaignHeader } from '../../components/dashboard/CampaignHeader.jsx'
 import { CampaignTabs } from '../../components/dashboard/CampaignTabs.jsx'
 import { FormField } from '../../components/dashboard/FormField.jsx'
 import { Modal } from '../../components/dashboard/Modal.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
 import { Pagination } from '../../components/dashboard/Pagination.jsx'
-import { QuoteComparison } from '../../components/dashboard/QuoteComparison.jsx'
-import { StatusBadge } from '../../components/dashboard/StatusBadge.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
 import { PageSkeleton } from '../../components/Loading.jsx'
 import { useToast } from '../../components/ToastContext.js'
 import { api, uploadImage } from '../../lib/api.js'
-import { categoryLabel, groupDigits, parseNaira } from '../../lib/campaigns.js'
+import { groupDigits, parseNaira } from '../../lib/campaigns.js'
 import { formatDate, formatNaira, initials } from '../../lib/format.js'
 import { usePaged } from '../../lib/usePaged.js'
 import { usePageTitle } from '../../lib/usePageTitle.js'
@@ -47,7 +44,8 @@ const CAN_ADD = ['draft', 'fundraising', 'repairing']
 const QUOTES_PER_PAGE = 6
 const CAN_SELECT = ['fundraising', 'repairing']
 
-// Vendor Quotes, from Vendor-Quotes.png.
+// Vendor Quotes: every quote in one list, the one picked (or clicked) in full below it,
+// and what happens next.
 export default function VendorQuotes() {
   const { id } = useParams()
   const { profile, estate } = useAuth()
@@ -85,115 +83,86 @@ export default function VendorQuotes() {
 
   const { campaign, quotes, summary } = state
   const selectedId = campaign.selectedQuoteId
+  // The quote shown in the details panel: the one clicked, else the chosen one, else the first.
   const focused = quotes.find((quote) => quote.id === focusId) ?? quotes.find((quote) => quote.id === selectedId) ?? quotes[0]
   const canSelect = isAdmin && CAN_SELECT.includes(campaign.status)
 
   return (
     <AppShell heading={heading}>
       <div className={styles.page}>
-        <header className={styles.intro}>
-          <StatusBadge status={campaign.status} />
-          <h1 className={styles.title}>Vendor Quotes</h1>
-          <p className={styles.subtitle}>Compare quotes from vendors, review details, and select the best option for your repair project.</p>
-        </header>
+        <CampaignHeader campaign={campaign} estate={estate} />
+        <CampaignTabs campaignId={id} />
 
-        <dl className={styles.strip}>
-          <Fact icon={MapPin} label="Location" value={[estate?.name, estate?.address].filter(Boolean).join(', ')} />
-          <Fact icon={Wrench} label="Campaign Type" value={`${categoryLabel(campaign.category)} Repair`} />
-          <Fact icon={Target} label="Target Amount" value={formatNaira(campaign.targetAmount)} />
-          <Fact icon={CalendarDays} label="Deadline" value={campaign.deadline ? formatDate(campaign.deadline) : 'Not set'} />
-        </dl>
-
-        <div className={styles.layout}>
-          <div className={styles.main}>
-            <section className={`${shared.card} ${styles.listCard}`} aria-labelledby="quotes-title" ref={listRef}>
-              <CampaignTabs campaignId={id} />
-              <div className={styles.listHead}>
-                <span className={styles.listIcon} aria-hidden="true">
-                  <FileText />
-                </span>
-                <div>
-                  <h2 id="quotes-title" className={shared.cardTitle}>
-                    Vendor Quotes ({quotes.length})
-                  </h2>
-                  <p className={shared.cardText}>
-                    {summary.lowest != null
-                      ? `Lowest ${formatNaira(summary.lowest)} · Highest ${formatNaira(summary.highest)} · Average ${formatNaira(summary.average)}`
-                      : 'No quotes yet. Collect at least two so the community can compare.'}
-                  </p>
-                </div>
-                {isAdmin && CAN_ADD.includes(campaign.status) && (
-                  <button type="button" className={`${shared.secondary} ${styles.add}`} onClick={() => setAdding(true)}>
-                    <Plus size={17} aria-hidden="true" /> Add Vendor Quote
-                  </button>
-                )}
-              </div>
-
-              {quotes.length > 0 && (
-                <div className={styles.table}>
-                  <div className={styles.headRow} aria-hidden="true">
-                    <span>#</span>
-                    <span>Vendor</span>
-                    <span>Service Details</span>
-                    <span>Amount (₦)</span>
-                    <span>Timeline</span>
-                    <span>Status</span>
-                    <span>Actions</span>
-                  </div>
-                  <ol className={styles.rows}>
-                    {paged.rows.map((quote, index) => (
-                      <QuoteRow
-                        key={quote.id}
-                        quote={quote}
-                        number={paged.from + index}
-                        selectedId={selectedId}
-                        lowest={summary.lowest}
-                        focused={focused?.id === quote.id}
-                        canSelect={canSelect}
-                        onView={() => {
-                          setFocusId(quote.id)
-                          // When the details sit below the list (laptops, phones), bring them into view.
-                          const box = detailsRef.current?.getBoundingClientRect()
-                          if (box && box.top > window.innerHeight) detailsRef.current.scrollIntoView({ behavior: 'smooth' })
-                        }}
-                        onSelect={() => setSelecting(quote)}
-                      />
-                    ))}
-                  </ol>
-                  <Pagination paged={paged} noun="quotes" />
-                </div>
-              )}
-            </section>
-
-            <NextSteps campaign={campaign} isAdmin={isAdmin} />
+        <section className={shared.card} aria-labelledby="quotes-title" ref={listRef}>
+          <div className={styles.listHead}>
+            <span className={styles.listIcon} aria-hidden="true">
+              <FileText />
+            </span>
+            <div>
+              <h2 id="quotes-title" className={shared.cardTitle}>
+                Quotes from vendors ({quotes.length})
+              </h2>
+              <p className={shared.cardText}>
+                {summary.lowest != null
+                  ? `Cheapest ${formatNaira(summary.lowest)}, dearest ${formatNaira(summary.highest)}.`
+                  : 'No quotes yet. Collect at least two so the community can compare.'}
+              </p>
+            </div>
+            {isAdmin && CAN_ADD.includes(campaign.status) && (
+              <button type="button" className={`${shared.secondary} ${styles.add}`} onClick={() => setAdding(true)}>
+                <Plus size={18} aria-hidden="true" /> Add a quote
+              </button>
+            )}
           </div>
 
-          <aside className={styles.side}>
-            <section className={shared.card} aria-labelledby="comparison-title">
-              <div className={styles.sideHead}>
-                <BarChart3 aria-hidden="true" />
-                <div>
-                  <h2 id="comparison-title" className={shared.cardTitle}>
-                    Quote Comparison
-                  </h2>
-                  <p className={shared.cardText}>Quick overview of all vendors</p>
-                </div>
+          {quotes.length > 0 && (
+            <div className={styles.table}>
+              <div className={styles.headRow} aria-hidden="true">
+                <span>#</span>
+                <span>Vendor</span>
+                <span>What they will do</span>
+                <span>Price</span>
+                <span>How long</span>
+                <span>Status</span>
+                <span>Actions</span>
               </div>
-              <QuoteComparison quotes={quotes} selectedId={selectedId} />
-            </section>
+              <ol className={styles.rows}>
+                {paged.rows.map((quote, index) => (
+                  <QuoteRow
+                    key={quote.id}
+                    quote={quote}
+                    number={paged.from + index}
+                    selectedId={selectedId}
+                    lowest={summary.lowest}
+                    focused={focused?.id === quote.id}
+                    canSelect={canSelect}
+                    onView={() => {
+                      setFocusId(quote.id)
+                      // The details sit below the list, so bring them into view.
+                      const box = detailsRef.current?.getBoundingClientRect()
+                      if (box && box.top > window.innerHeight * 0.6) detailsRef.current.scrollIntoView({ behavior: 'smooth' })
+                    }}
+                    onSelect={() => setSelecting(quote)}
+                  />
+                ))}
+              </ol>
+              <Pagination paged={paged} noun="quotes" />
+            </div>
+          )}
+        </section>
 
-            {focused && (
-              <VendorDetails
-                ref={detailsRef}
-                quote={focused}
-                selected={focused.id === selectedId}
-                canSelect={canSelect}
-                onSelect={() => setSelecting(focused)}
-                onViewAll={() => listRef.current?.scrollIntoView({ behavior: 'smooth' })}
-              />
-            )}
-          </aside>
-        </div>
+        <NextSteps campaign={campaign} isAdmin={isAdmin} />
+
+        {focused && (
+          <VendorDetails
+            ref={detailsRef}
+            quote={focused}
+            selected={focused.id === selectedId}
+            canSelect={canSelect}
+            onSelect={() => setSelecting(focused)}
+            onViewAll={() => listRef.current?.scrollIntoView({ behavior: 'smooth' })}
+          />
+        )}
       </div>
 
       {adding && (
@@ -226,18 +195,6 @@ export default function VendorQuotes() {
   )
 }
 
-function Fact({ icon: Icon, label, value }) {
-  return (
-    <div className={styles.fact}>
-      <Icon aria-hidden="true" />
-      <span>
-        <dd>{value}</dd>
-        <dt>{label}</dt>
-      </span>
-    </div>
-  )
-}
-
 // Where a quote stands. Before a choice, the cheapest is marked "Lowest".
 function quoteStatus(quote, selectedId, lowest) {
   if (quote.id === selectedId) return { label: 'Selected', className: 'selected' }
@@ -246,6 +203,8 @@ function quoteStatus(quote, selectedId, lowest) {
   return { label: 'Under Review', className: 'review' }
 }
 
+// One quote in the list: vendor, what's included, amount, timeline, status, and a menu to
+// select it or open its attached document.
 function QuoteRow({ quote, number, selectedId, lowest, focused, canSelect, onView, onSelect }) {
   const [menu, setMenu] = useState(false)
   const status = quoteStatus(quote, selectedId, lowest)
@@ -330,6 +289,8 @@ function QuoteRow({ quote, number, selectedId, lowest, focused, canSelect, onVie
   )
 }
 
+// The side panel with everything about one quote. `ref` lets the page scroll to it on
+// phones, where it sits below the list.
 function VendorDetails({ ref, quote, selected, canSelect, onSelect, onViewAll }) {
   const contact = [
     [UserRound, 'Contact Person', quote.contactPerson],
@@ -407,6 +368,7 @@ function VendorDetails({ ref, quote, selected, canSelect, onSelect, onViewAll })
   )
 }
 
+// What happens next, depending on where the campaign is.
 function NextSteps({ campaign, isAdmin }) {
   const steps = {
     draft: ['Publish the campaign first', 'Vendors can be compared now, but one can only be selected once the campaign is published.'],
@@ -461,6 +423,8 @@ const EMPTY_QUOTE = {
   notes: '',
 }
 
+// The Add Vendor Quote dialog. The quote document (a photo) is uploaded first, then sent
+// along with the form.
 function AddQuote({ campaignId, onClose, onAdded }) {
   const [form, setForm] = useState(EMPTY_QUOTE)
   const [attachmentUrl, setAttachmentUrl] = useState(null)
@@ -584,6 +548,8 @@ function AddQuote({ campaignId, onClose, onAdded }) {
   )
 }
 
+// Confirms the choice of vendor. Picking anything but the cheapest quote needs a reason,
+// which every resident can see (the API enforces this too).
 function SelectVendor({ quote, lowest, current, onClose, onSelected }) {
   const cheapest = quote.quotedAmount <= lowest
   const [reason, setReason] = useState('')

@@ -111,7 +111,7 @@
 }
 
 .uploadLabel {
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 600;
   color: var(--ink);
 }
@@ -132,7 +132,7 @@
   background: #fbfdfc;
   text-align: left;
   color: var(--ink);
-  font-size: 14px;
+  font-size: 15.5px;
 }
 
 .dropzone:hover:not(:disabled) {
@@ -145,7 +145,7 @@
 }
 
 .dropzone small {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
 }
 
@@ -170,7 +170,7 @@
 
 .uploadError,
 .fieldError {
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--danger);
 }
 
@@ -182,7 +182,7 @@
   padding: 4px 10px;
   border-radius: 999px;
   background: #e1f3e8;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   color: #13703f;
 }
@@ -218,7 +218,7 @@
   padding: 5px 10px;
   border-radius: 7px;
   background: #b8efc9;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
   color: #0b5a34;
 }
@@ -236,7 +236,7 @@
   align-items: center;
   gap: 8px;
   margin-top: 8px;
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--text);
 }
 
@@ -244,7 +244,7 @@
   display: -webkit-box;
   margin-top: 12px;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 15.5px;
   line-height: 1.6;
   color: var(--text);
   -webkit-box-orient: vertical;
@@ -271,7 +271,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
+  font-size: 13.5px;
   color: var(--text);
 }
 
@@ -285,7 +285,7 @@
 .previewFacts dd {
   margin: 6px 0 0;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--ink);
   text-overflow: ellipsis;
@@ -299,7 +299,7 @@
 .previewProgress > p {
   display: flex;
   justify-content: space-between;
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 500;
   color: var(--ink);
 }
@@ -333,7 +333,7 @@
 .previewProgress dd {
   margin: 0;
   overflow: hidden;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--ink);
   text-overflow: ellipsis;
@@ -341,7 +341,7 @@
 }
 
 .previewProgress dt {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text);
 }
 
@@ -397,12 +397,12 @@
   display: grid;
   flex: 1;
   gap: 2px;
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--text);
 }
 
 .categoryText strong {
-  font-size: 14.5px;
+  font-size: 16px;
   color: var(--ink);
 }
 
@@ -433,7 +433,7 @@
   float: left;
   width: 100%;
   margin-bottom: 14px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--ink);
 }
@@ -446,7 +446,7 @@
   border: 1.5px solid var(--card-line);
   border-radius: 12px;
   background: #fff;
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--text);
   cursor: pointer;
 }
@@ -516,7 +516,7 @@
 
 .breakdown > p {
   margin-top: 4px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text);
 }
 
@@ -545,12 +545,12 @@
   display: grid;
   flex: 1;
   min-width: 0;
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--text);
 }
 
 .breakdown li strong {
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--ink);
 }
 
@@ -573,13 +573,13 @@
 .breakdownValue {
   display: grid;
   justify-items: end;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text);
   text-align: right;
 }
 
 .breakdown .breakdownValue strong {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 /* Summary card (steps 2 and 3) */
@@ -619,7 +619,7 @@
   align-items: center;
   gap: 6px;
   margin-top: 8px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text);
 }
 
@@ -627,7 +627,7 @@
   display: -webkit-box;
   margin-top: 8px;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.55;
   color: var(--text);
   -webkit-box-orient: vertical;
@@ -645,14 +645,14 @@
 }
 
 .summaryFacts dt {
-  font-size: 11.5px;
+  font-size: 13.5px;
   color: var(--text);
 }
 
 .summaryFacts dd {
   margin: 4px 0 0;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--ink);
   text-overflow: ellipsis;
@@ -689,7 +689,7 @@
 
 .summaryBoxes span {
   display: grid;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text);
 }
 
@@ -703,7 +703,7 @@
 }
 
 .visibility h3 {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--ink);
 }
@@ -713,7 +713,7 @@
   align-items: center;
   gap: 10px;
   margin-top: 10px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text);
 }
 
@@ -739,13 +739,13 @@
 }
 
 .review dt {
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text);
 }
 
 .review dd {
   margin: 0;
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 600;
   color: var(--ink);
   overflow-wrap: anywhere;
@@ -756,7 +756,7 @@
   border: 0;
   border-radius: 6px;
   background: none;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--link);
 }
@@ -780,7 +780,7 @@
 
 .paymentSection > p {
   margin: 4px 0 16px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text);
 }
 

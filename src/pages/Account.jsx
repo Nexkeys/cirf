@@ -16,6 +16,7 @@ import s from '../styles/status.module.css'
 // Where signed-in people land when they can't use the dashboards yet: waiting for
 // approval, no estate yet, suspended, or the API unreachable. Members of an estate are
 // sent on to the Overview.
+// This is the onboarding/account-status page that decides whether the user is ready for the dashboard.
 export default function Account() {
   usePageTitle('My Account')
   const { status, user, profile, estate, joinRequest, error, refresh, signOut } = useAuth()
@@ -182,6 +183,7 @@ export default function Account() {
   )
 }
 
+// The icon, title and text every account state shares.
 function Status({ icon, title, text, children }) {
   return (
     <>

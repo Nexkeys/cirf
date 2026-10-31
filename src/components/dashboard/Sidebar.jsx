@@ -1,23 +1,20 @@
-import { BadgeCheck, CirclePlus, Coins, FileText, House, LogOut, Scale, Settings, Store, X } from 'lucide-react'
+import { BadgeCheck, Coins, FileText, House, LogOut, Settings, X } from 'lucide-react'
 import { Link, useLocation } from 'react-router'
 import { useAuth } from '../../auth/AuthContext.js'
-import sidebarPhoto from '../../assets/images/poles-street-800.webp'
 import { Logo } from '../Logo.jsx'
 import styles from './Sidebar.module.css'
 
+// Kept short on purpose: four places to go. Vendor Quotes and Reconciliation are tabs
+// inside each campaign, and Create Campaign is a button on the Campaigns screen.
 const MAIN_LINKS = [
-  { to: '/dashboard', label: 'Overview', icon: House },
+  { to: '/dashboard', label: 'Home', icon: House },
   { to: '/campaigns', label: 'Campaigns', icon: BadgeCheck },
-  { to: '/campaigns/new', label: 'Create Campaign', icon: CirclePlus, adminOnly: true },
   { to: '/contributions', label: 'Contributions', icon: Coins },
-  { to: '/vendors', label: 'Vendors & Quotes', icon: Store },
-  { to: '/reconciliation', label: 'Reconciliation', icon: Scale },
-  { to: '/reports', label: 'Transparency Report', icon: FileText },
+  { to: '/reports', label: 'Report', icon: FileText },
 ]
 
 export function Sidebar({ open, onClose }) {
-  const { signOut, profile } = useAuth()
-  const links = MAIN_LINKS.filter((link) => !link.adminOnly || profile?.role === 'admin')
+  const { signOut } = useAuth()
 
   return (
     <>
@@ -32,7 +29,7 @@ export function Sidebar({ open, onClose }) {
 
         <nav className={styles.nav}>
           <ul className={styles.list}>
-            {links.map((link) => (
+            {MAIN_LINKS.map((link) => (
               <li key={link.to}>
                 <Item {...link} onClick={onClose} />
               </li>
@@ -51,26 +48,21 @@ export function Sidebar({ open, onClose }) {
           </ul>
         </nav>
 
-        <div className={styles.promo}>
-          <img src={sidebarPhoto} alt="" className={styles.promoPhoto} />
-          <p className={styles.promoTitle}>Building Stronger Communities Together</p>
-          <p className={styles.promoText}>Fair levies. Transparent process. Lasting infrastructure.</p>
-        </div>
       </aside>
     </>
   )
 }
 
 // Sidebar links that open one section of a campaign (see CampaignSection).
-const SECTION_OF = { '/contributions': 'contributions', '/vendors': 'quotes', '/reconciliation': 'reconciliation', '/reports': 'report' }
+const SECTION_OF = { '/contributions': 'contributions', '/reports': 'report' }
 
 // Whether a sidebar link is the current page. A campaign's sections light up their own
-// link (Vendors & Quotes on /campaigns/:id/quotes); its other pages light up Campaigns.
+// link (Report on /campaigns/:id/report); its other pages light up Campaigns.
 function isCurrent(to, pathname) {
   const section = pathname.match(/^\/campaigns\/[^/]+\/([^/]+)/)?.[1]
   if (SECTION_OF[to]) return pathname.startsWith(to) || section === SECTION_OF[to]
   if (to === '/campaigns') {
-    return pathname.startsWith('/campaigns') && pathname !== '/campaigns/new' && !Object.values(SECTION_OF).includes(section)
+    return pathname.startsWith('/campaigns') && !Object.values(SECTION_OF).includes(section)
   }
   return pathname === to || pathname.startsWith(`${to}/`)
 }

@@ -35,7 +35,7 @@
 
 .amount {
   margin-bottom: 6px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--ink);
   white-space: nowrap;
@@ -52,14 +52,14 @@
   margin-top: 10px;
   max-width: 100%;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--ink);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .status {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text);
 }
 
@@ -78,7 +78,7 @@
 
 .empty {
   padding: 24px 0;
-  font-size: 14px;
+  font-size: 15.5px;
   text-align: center;
   color: var(--muted);
 }

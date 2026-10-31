@@ -9,6 +9,8 @@ import styles from './Button.module.css'
 //   bright   vivid green on the Home photo
 // Pass `to` for a link that looks like a button, `arrow` for the trailing arrow, and
 // `busy` while a request is running.
+// This shared component keeps the UI consistent across the app while still supporting
+// both navigation buttons and form action buttons.
 export function Button({ variant = 'primary', arrow = false, busy = false, to, className = '', children, ...props }) {
   const classes = `${styles.button} ${styles[variant]} ${className}`
   const content = (

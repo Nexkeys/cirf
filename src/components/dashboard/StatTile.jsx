@@ -17,8 +17,8 @@ export function StatTile({ icon: Icon, label, value, note, warn = false }) {
   )
 }
 
-// Four across when there's room, two in a narrower column, one on phones. Sized by the
-// width of the column it sits in, not the window, so it works beside a side panel too.
+// As many across as fit (at least 220px each), one on phones. Sized by the width of the
+// column it sits in, not the window, so it works beside a side panel too.
 export function StatRow({ children }) {
   return (
     <div className={styles.box}>

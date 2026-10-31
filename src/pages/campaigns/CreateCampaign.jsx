@@ -10,7 +10,6 @@ import {
   Info,
   Lightbulb,
   MapPin,
-  ShieldCheck,
   Tag,
   Target,
   Timer,
@@ -26,7 +25,6 @@ import { AppShell } from '../../components/dashboard/AppShell.jsx'
 import { FormField } from '../../components/dashboard/FormField.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
 import { PaymentDetailsForm } from '../../components/dashboard/PaymentDetailsForm.jsx'
-import { Pylons } from '../../components/dashboard/Pylons.jsx'
 import { StatusBadge } from '../../components/dashboard/StatusBadge.jsx'
 import { Stepper } from '../../components/dashboard/Stepper.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
@@ -63,6 +61,8 @@ const FIELD_STEP = {
 
 // Create Campaign, from REPAIR-CAMPAIGN-SCREEN.png (step 1) and
 // Levy & Target-Screen-Design.png (step 2). Also edits a draft at /campaigns/:id/edit.
+// This is the multi-step campaign creation page. It collects the campaign details, validates the levy,
+// and either saves a draft or publishes the campaign so residents can see and contribute to it.
 export default function CreateCampaign() {
   const { id: draftId } = useParams()
   const { profile, estate, refresh } = useAuth()
@@ -223,9 +223,9 @@ export default function CreateCampaign() {
 
   const heading =
     step === 2 ? (
-      <PageHeading back={{ to: '/dashboard', label: 'Back to Dashboard' }} title="Levy & Target" subtitle="Set the contribution details for your community." />
+      <PageHeading back={{ to: '/dashboard', label: 'Back to Home' }} title="Levy & Target" subtitle="Set the contribution details for your community." />
     ) : step === 3 ? (
-      <PageHeading back={{ to: '/dashboard', label: 'Back to Dashboard' }} title="Review & Publish" subtitle="Check everything, add where residents pay, then publish." />
+      <PageHeading back={{ to: '/dashboard', label: 'Back to Home' }} title="Review & Publish" subtitle="Check everything, add where residents pay, then publish." />
     ) : (
       <PageHeading
         eyebrow={draftId ? 'Edit Campaign' : 'Create Campaign'}
@@ -426,43 +426,6 @@ function StepBasics({ form, estate, errors, update, onNext, count }) {
             'Add a good image to help people understand the project.',
           ]}
         />
-        <section className={shared.card} aria-labelledby="categories-title">
-          <h2 id="categories-title" className={`${shared.cardTitle} ${styles.asideTitle}`}>
-            <Tag aria-hidden="true" /> Supported Categories
-          </h2>
-          <div className={styles.categories} role="radiogroup" aria-labelledby="categories-title">
-            {CATEGORIES.map((option) => {
-              const Icon = option.icon
-              const checked = form.category === option.value
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  role="radio"
-                  aria-checked={checked}
-                  className={`${styles.categoryOption} ${checked ? styles.categoryChecked : ''}`}
-                  onClick={() => update({ category: option.value })}
-                >
-                  <span className={styles.categoryIcon} aria-hidden="true">
-                    <Icon />
-                  </span>
-                  <span className={styles.categoryText}>
-                    <strong>{option.label}</strong>
-                    {option.detail}
-                  </span>
-                  <span className={styles.radio} aria-hidden="true" />
-                </button>
-              )
-            })}
-          </div>
-        </section>
-        <div className={shared.encourage}>
-          <strong>
-            <ShieldCheck size={24} aria-hidden="true" /> Transparent. Fair. Community Driven.
-          </strong>
-          <p>Together, we can build stronger and more reliable communities.</p>
-          <Pylons className={shared.pylons} />
-        </div>
       </div>
     </div>
   )
@@ -702,13 +665,6 @@ function StepLevy({ form, estate, errors, update, count, onBack, onNext }) {
             'You can change these details in the draft stage.',
           ]}
         />
-        <div className={shared.promise}>
-          <strong>
-            <ShieldCheck size={26} aria-hidden="true" /> Transparent. Accountable. Together.
-          </strong>
-          <p>Every contribution is tracked, verified and reconciled for your community.</p>
-          <Pylons className={shared.pylons} />
-        </div>
       </div>
     </div>
   )
@@ -778,6 +734,7 @@ function SummaryCard({ form, estate, count, target }) {
   )
 }
 
+// The dismissible Quick Tips card beside each step.
 function TipsCard({ tips }) {
   const [hidden, setHidden] = useState(false)
   if (hidden) return null
@@ -862,13 +819,6 @@ function StepReview({ form, estate, errors, update, count, busy, onBack, onEdit,
 
       <div className={styles.aside}>
         <SummaryCard form={form} estate={estate} count={count} target={target} />
-        <div className={shared.promise}>
-          <strong>
-            <ShieldCheck size={26} aria-hidden="true" /> Transparent. Accountable. Together.
-          </strong>
-          <p>Publishing tells every resident about the campaign and opens it for contributions.</p>
-          <Pylons className={shared.pylons} />
-        </div>
       </div>
     </div>
   )

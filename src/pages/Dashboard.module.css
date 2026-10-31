@@ -23,12 +23,11 @@
 
 .stats {
   display: grid;
-  grid-template-columns: 1.2fr 1.15fr 1fr 1fr;
-  gap: 26px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
 }
 
 .stat,
-.card,
 .empty {
   border: 1px solid var(--card-line);
   border-radius: 14px;
@@ -37,7 +36,8 @@
 
 .stat {
   min-width: 0;
-  padding: 20px 22px 16px;
+  padding: 22px 24px;
+  background: #fff;
 }
 
 .statIcon {
@@ -58,7 +58,7 @@
 
 .statLabel {
   margin-top: 16px;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 500;
   color: var(--text);
 }
@@ -79,14 +79,9 @@
 }
 
 .statNote {
-  margin-top: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--link);
-}
-
-.quiet {
-  color: var(--muted);
+  margin-top: 10px;
+  font-size: 16px;
+  color: var(--text);
 }
 
 .danger {
@@ -94,7 +89,7 @@
 }
 
 .miniBar {
-  height: 5px;
+  height: 10px;
   margin-top: 12px;
   overflow: hidden;
   border-radius: 999px;
@@ -108,44 +103,12 @@
   background: linear-gradient(90deg, #0b3928 80%, #3fbf7f);
 }
 
-.charts {
-  display: grid;
-  grid-template-columns: minmax(0, 1.24fr) minmax(0, 1fr);
-  gap: 26px;
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  padding: 24px 28px 16px;
-}
-
-.cardTitle {
-  margin-bottom: 8px;
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.donutBox {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  padding: 10px 6px 0 6px;
-}
-
-.donutBox > * {
-  flex: 1;
-}
-
 .more {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  align-self: flex-start;
-  margin-top: 24px;
-  font-size: 14px;
+  margin-top: 16px;
+  font-size: 16px;
   font-weight: 500;
   color: var(--link);
   text-underline-offset: 3px;
@@ -182,9 +145,9 @@
 
 .emptyText {
   max-width: 560px;
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.6;
-  color: var(--muted);
+  color: var(--text);
 }
 
 .emptyAction {
@@ -214,38 +177,30 @@
   height: 216px;
 }
 
-.chartSkeleton {
-  height: 340px;
-}
-
 @keyframes shimmer {
   to {
     background-position: -150% 0;
   }
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1100px) {
   .stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .charts {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @media (max-width: 900px) {
   .greeting {
-    font-size: 20px;
+    font-size: 22px;
   }
 
   .subtitle {
-    display: none;
+    margin-top: 4px;
+    font-size: 16px;
   }
 
   .layout,
-  .stats,
-  .charts {
+  .stats {
     gap: 16px;
   }
 
@@ -260,22 +215,19 @@
 
   .statLabel {
     margin-top: 14px;
-    font-size: 14px;
+    font-size: 15.5px;
   }
 
   .statValue {
     margin-top: 8px;
-    font-size: 21px;
+    font-size: 24px;
   }
 
   .statNote {
     margin-top: 8px;
-    font-size: 13px;
+    font-size: 15px;
   }
 
-  .card {
-    padding: 20px 16px;
-  }
 
   .empty {
     padding: 24px;

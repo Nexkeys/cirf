@@ -49,6 +49,7 @@ const API_FIELDS = { name: 'name', phone: 'phone', estateId: 'estate', estateNam
 //   2. CIRF profile (POST /api/users/register): name, phone, role and estate
 // Someone already signed in with Firebase but without a profile (first Google sign-in, or
 // step 2 failed last time) sees the same form without the email and password fields.
+// This page is the registration flow for new residents and community leads.
 export default function CreateAccount() {
   usePageTitle('Create Account')
   const { status, user, error: accountError, refresh, signOut, notice, expectRole } = useAuth()
@@ -98,6 +99,9 @@ export default function CreateAccount() {
     return found
   }
 
+  // This is the main submit handler for the registration form.
+  // It validates the form first, then creates the Firebase account if needed,
+  // then sends the user profile to the backend for CIRF registration.
   async function handleSubmit(event) {
     event.preventDefault()
     const found = validate()
@@ -107,6 +111,8 @@ export default function CreateAccount() {
 
     setBusy(true)
     try {
+      // For a brand-new account, create the Firebase login and remember the session.
+      // If the account already exists, the code signs back in and continues the profile setup.
       if (!completing) {
         await rememberSession(true)
         // An existing account signed back in below must match the tab, like on Sign In.
@@ -117,6 +123,8 @@ export default function CreateAccount() {
         if (resumed && (await api('/users/me').then(() => true, () => false))) return
       }
 
+      // After the Firebase side is handled, save the profile data to the CIRF database.
+      // Residents either use a join code or pick an estate from the list; admins create a new estate name.
       await api('/users/register', {
         method: 'POST',
         body: {
@@ -131,6 +139,8 @@ export default function CreateAccount() {
       // Loading the new profile makes GuestOnly move on to the account screen.
       await refresh()
     } catch (error) {
+      // API responses sometimes return field-specific validation errors, so we map them back
+      // into the right form fields instead of showing one generic error.
       const fieldErrors = {}
       for (const [apiField, formField] of Object.entries(API_FIELDS)) {
         const message = error.fieldMessage?.(apiField)
@@ -148,6 +158,9 @@ export default function CreateAccount() {
     }
   }
 
+  // This JSX block renders the full registration page.
+  // It shows the role selector, the personal details fields, and a different estate flow
+  // depending on whether the user is joining as a resident or as a community lead.
   return (
     <AuthLayout>
       <h1 className={shared.title}>Create Your Account</h1>
@@ -158,8 +171,10 @@ export default function CreateAccount() {
       </p>
 
       <form className={`${shared.form} ${styles.form}`} onSubmit={handleSubmit} noValidate>
+        {/* RoleTabs chooses the type of account: resident or community lead. */}
         <RoleTabs value={role} onChange={setRole} disabled={working} />
 
+        {/* Full name is always required, so it is the first field on the registration form. */}
         <TextField
           className={styles.firstField}
           label="Full Name"
@@ -170,6 +185,8 @@ export default function CreateAccount() {
           onChange={(event) => setName(event.target.value)}
           error={errors.name}
         />
+
+        {/* Email is required unless the user is resuming a Firebase sign-in without a profile. */}
         <TextField
           className={styles.field}
           label="Email Address"
@@ -182,6 +199,8 @@ export default function CreateAccount() {
           readOnly={completing}
           error={errors.email}
         />
+
+        {/* Phone number is collected for identity and for backend validation. */}
         <TextField
           className={styles.field}
           label="Phone Number"
@@ -194,6 +213,8 @@ export default function CreateAccount() {
           error={errors.phone}
         />
 
+        {/* This block changes depending on the selected role. Residents can use a join code or choose an estate,
+            while admins create the estate name directly. */}
         <div className={styles.field}>
           {role === 'resident' && useCode && (
             <TextField
@@ -244,6 +265,8 @@ export default function CreateAccount() {
           )}
         </div>
 
+        {/* Password is only shown for a brand-new account setup; if the user is continuing a partial profile,
+            Firebase already has the login and they do not need to re-enter the password. */}
         {!completing && (
           <TextField
             className={styles.field}
@@ -258,17 +281,20 @@ export default function CreateAccount() {
           />
         )}
 
+        {/* If validation failed or the backend rejected the submission, show the relevant alert. */}
         {shownError && (
           <div className={styles.alert}>
             <FormAlert>{shownError}</FormAlert>
           </div>
         )}
 
+        {/* Final action button submits the entire registration flow. */}
         <Button type="submit" arrow busy={working} className={styles.submit}>
           Create Account
         </Button>
       </form>
 
+      {/* The footer changes depending on whether the user is finishing a partial account setup or creating from scratch. */}
       {completing ? (
         <p className={`${shared.footer} ${styles.footer}`}>
           Signed in as {user?.email}.

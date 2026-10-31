@@ -4,7 +4,10 @@ import { api } from '../lib/api.js'
 import { auth } from '../lib/firebase.js'
 import { AuthContext } from './AuthContext.js'
 
-// Keeps track of the signed-in person for the whole app. `status` is one of:
+// This provider is the single source of truth for the app's auth state.
+// Every page reads from it instead of storing user state separately, which keeps
+// the login flow consistent across the whole frontend.
+// `status` is one of:
 //   loading       Firebase is still restoring the session
 //   signedOut     nobody is signed in
 //   needsProfile  signed in with Firebase but Create Account isn't finished (e.g. first Google sign-in)

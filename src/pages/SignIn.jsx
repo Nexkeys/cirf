@@ -27,6 +27,7 @@ const WRONG_TAB = {
 // here: an account of the other kind is signed straight back out (see AuthProvider),
 // since leads and residents see different dashboards. The tab is kept in ?role= so a
 // first-time Google user arrives on Create Account with the same tab picked.
+// This page handles both email/password login and Google sign-in in one place.
 export default function SignIn() {
   usePageTitle('Sign In')
   const { status, error: accountError, notice, expectRole } = useAuth()
@@ -50,6 +51,9 @@ export default function SignIn() {
 
   const setRole = (next) => setParams(next === 'admin' ? { role: 'admin' } : {}, { replace: true })
 
+  // This runs when the user submits the email/phone + password form.
+  // It validates input first, then either signs in with Firebase directly or uses
+  // the backend phone-sign-in endpoint for non-email logins.
   async function handleSubmit(event) {
     event.preventDefault()
     const value = identifier.trim()
@@ -84,6 +88,8 @@ export default function SignIn() {
     }
   }
 
+  // Google sign-in is kept separate because it follows the Firebase popup flow,
+  // while the password route may need a custom backend token for phone-based accounts.
   async function handleGoogle() {
     setFormError('')
     setBusy('google')

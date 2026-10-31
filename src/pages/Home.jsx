@@ -19,6 +19,8 @@ import { useScrollToHash } from '../lib/useScrollToHash.js'
 import pub from '../styles/public.module.css'
 import styles from './Home.module.css'
 
+// These arrays define the landing page story.
+// Each step explains one key part of the community repair fund lifecycle in a simple order.
 const STEPS = [
   {
     title: 'Create a campaign',
@@ -85,7 +87,9 @@ const FEATURES = [
   },
 ]
 
-// The public landing page, from HOME-PAGE-DESIGN.png.
+// The public landing page is the first impression of the product.
+// It introduces the problem, explains the process, and gives users a clear path
+// to either start a campaign or sign in to their account.
 export default function Home() {
   usePageTitle(null)
   useScrollReveal()

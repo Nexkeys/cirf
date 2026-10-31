@@ -2,7 +2,6 @@ import {
   Bell,
   BellRing,
   Check,
-  ChevronRight,
   CircleX,
   ClipboardCheck,
   FileText,
@@ -17,12 +16,11 @@ import {
   Wrench,
 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext.js'
 import { AppShell } from '../components/dashboard/AppShell.jsx'
 import { PageHeading } from '../components/dashboard/PageHeading.jsx'
 import { Pagination } from '../components/dashboard/Pagination.jsx'
-import { Pylons } from '../components/dashboard/Pylons.jsx'
 import { Switch } from '../components/dashboard/Switch.jsx'
 import { FormAlert } from '../components/FormAlert.jsx'
 import { PageSkeleton } from '../components/Loading.jsx'
@@ -75,9 +73,10 @@ const TYPES = {
 
 // Notifications, from Notification-Screen.png: the list grouped by day, filters, "Mark
 // all as read", and the switches for which kinds of update to get.
+// This page keeps the user informed about community updates without forcing them to check the dashboard constantly.
 export default function Notifications() {
   usePageTitle('Notifications')
-  const { profile, estate, refresh } = useAuth()
+  const { profile, refresh } = useAuth()
   const toast = useToast()
   const navigate = useNavigate()
   const [state, setState] = useState({ status: 'loading' })
@@ -134,7 +133,7 @@ export default function Notifications() {
     if (target && !target.includes('/null')) navigate(target)
   }
 
-  const heading = <PageHeading back={{ to: '/dashboard', label: 'Back to Dashboard' }} />
+  const heading = <PageHeading back={{ to: '/dashboard', label: 'Back to Home' }} />
 
   if (state.status !== 'ready') {
     return (
@@ -199,40 +198,6 @@ export default function Notifications() {
 
           <aside className={styles.side}>
             <Preferences initial={profile.notificationPrefs} onSaved={refresh} />
-            <div className={styles.trust}>
-              <ShieldCheck aria-hidden="true" />
-              <div>
-                <strong>Staying informed builds trust</strong>
-                <p>Get the right updates at the right time, and stay connected to your community&apos;s progress.</p>
-              </div>
-            </div>
-            <Link to="/settings" className={styles.community}>
-              <Users aria-hidden="true" />
-              <span>
-                Your community
-                <strong>{estate.name}</strong>
-              </span>
-              <ChevronRight aria-hidden="true" />
-            </Link>
-            <div className={styles.caughtUp}>
-              <Pylons className={styles.caughtArt} />
-              {state.unreadCount === 0 ? (
-                <>
-                  <span className={styles.tick} aria-hidden="true">
-                    <Check size={16} />
-                  </span>
-                  <strong>You&apos;re all caught up.</strong>
-                  <p>No new notifications at the moment.</p>
-                </>
-              ) : (
-                <>
-                  <strong>
-                    {state.unreadCount} unread {state.unreadCount === 1 ? 'notification' : 'notifications'}
-                  </strong>
-                  <p>Open one to see more, or mark them all as read.</p>
-                </>
-              )}
-            </div>
           </aside>
         </div>
       </div>
@@ -240,6 +205,7 @@ export default function Notifications() {
   )
 }
 
+// One notification. Clicking it marks it read and opens the screen it's about.
 function Item({ notification: n, onOpen, onRead }) {
   const Icon = TYPES[n.type]?.icon ?? Info
   return (

@@ -22,7 +22,10 @@ import Settings from './pages/settings/Settings.jsx'
 import SignIn from './pages/SignIn.jsx'
 import Welcome from './pages/Welcome.jsx'
 
-// Sidebar links that open one section of the featured campaign (see CampaignSection).
+// This is the main route map for the app.
+// It decides which page appears for each URL and also gates access based on login status.
+// For example, guest users can see the landing, sign-in, and account pages,
+// while protected dashboard and campaign routes only open for signed-in members.
 const SECTIONS = [
   ['/contributions', 'contributions', 'Contributions'],
   ['/vendors', 'quotes', 'Vendors & Quotes'],

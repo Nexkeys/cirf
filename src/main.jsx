@@ -1,3 +1,5 @@
+// App startup: this is the entry point for the entire React frontend.
+// It wires up routing, authentication state, and toast notifications before the app renders.
 import '@fontsource-variable/caveat/wght.css'
 import '@fontsource-variable/inter/opsz.css'
 import '@fontsource-variable/source-serif-4/opsz-italic.css'

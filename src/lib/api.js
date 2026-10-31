@@ -1,5 +1,8 @@
 import { auth } from './firebase.js'
 
+// This helper centralizes all frontend-to-backend calls.
+// It adds Firebase auth tokens automatically and converts API errors into a consistent format
+// for forms and UI alerts across the app.
 // On Vercel the app and the API share one domain, so this is normally empty.
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 

@@ -7,6 +7,8 @@ const SHOW_MS = 4000
 
 // Short messages that confirm something worked ("Contribution verified"), stacked in a
 // corner and gone after a few seconds. Screens call useToast() from ToastContext.js.
+// This is a small global UI layer that gives feedback after actions like save, delete,
+// or error messages without blocking the rest of the app.
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([])
   const nextId = useRef(1)

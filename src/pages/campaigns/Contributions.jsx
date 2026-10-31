@@ -1,49 +1,26 @@
-import {
-  ArrowRight,
-  BadgeCheck,
-  Building2,
-  CircleCheck,
-  CircleDollarSign,
-  Clock,
-  Download,
-  Eye,
-  FileSpreadsheet,
-  HandCoins,
-  Hourglass,
-  ListChecks,
-  PieChart,
-  Search,
-  ShieldCheck,
-  TrendingUp,
-  UserPlus,
-  Users,
-  X,
-} from 'lucide-react'
+import { ArrowRight, BadgeCheck, Building2, CircleCheck, Clock, Download, Eye, HandCoins, Hourglass, Search, TrendingUp, Users, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useAuth } from '../../auth/AuthContext.js'
 import { Button } from '../../components/Button.jsx'
 import { AppShell } from '../../components/dashboard/AppShell.jsx'
+import { CampaignHeader } from '../../components/dashboard/CampaignHeader.jsx'
 import { CampaignTabs } from '../../components/dashboard/CampaignTabs.jsx'
 import { FormField } from '../../components/dashboard/FormField.jsx'
 import { FundFlowChart } from '../../components/dashboard/FundFlowChart.jsx'
 import { Modal } from '../../components/dashboard/Modal.jsx'
 import { PageHeading } from '../../components/dashboard/PageHeading.jsx'
 import { Pagination } from '../../components/dashboard/Pagination.jsx'
-import { PaymentDonut } from '../../components/dashboard/PaymentDonut.jsx'
 import { ProofUpload } from '../../components/dashboard/ProofUpload.jsx'
-import { Pylons } from '../../components/dashboard/Pylons.jsx'
 import { StatRow, StatTile } from '../../components/dashboard/StatTile.jsx'
-import { StatusBadge } from '../../components/dashboard/StatusBadge.jsx'
 import { FormAlert } from '../../components/FormAlert.jsx'
 import { PageSkeleton, TableRows } from '../../components/Loading.jsx'
-import { Photo } from '../../components/Photo.jsx'
 import { useToast } from '../../components/ToastContext.js'
 import { api } from '../../lib/api.js'
 import { acceptsContributions, methodLabel } from '../../lib/campaigns.js'
 import { saveCsv } from '../../lib/csv.js'
 import { formatDate, formatNaira, initials } from '../../lib/format.js'
-import { readablePhoto, sizedPhoto } from '../../lib/images.js'
+import { readablePhoto } from '../../lib/images.js'
 import { useCampaignData } from '../../lib/useCampaignData.js'
 import { usePaged } from '../../lib/usePaged.js'
 import { usePageTitle } from '../../lib/usePageTitle.js'
@@ -69,10 +46,12 @@ const HOUSEHOLD_STATUS = {
 // Admins can review contributions until the campaign is reconciled (the API's rule too).
 const REVIEWABLE = ['fundraising', 'repairing', 'completed']
 
-// Contributions, from Contributon-Screen.png. Everyone sees the totals, the trend and
-// the contributions they're allowed to see (all of them for admins; verified ones plus
+// Contributions. Everyone sees how many households have paid, the trend and the
+// payments they're allowed to see (all of them for admins; verified ones plus
 // their own for residents). Admins also verify or reject pending records here, and see
 // each household's levy (the "Households" view, also opened by /contributors).
+// This page is the contribution management center: it shows totals, handles verification, and
+// gives admins the full record of who has paid and who still owes.
 export default function Contributions({ view: startView = 'records' }) {
   const { id } = useParams()
   const { profile, estate } = useAuth()
@@ -86,7 +65,7 @@ export default function Contributions({ view: startView = 'records' }) {
   const records = useRef(null)
   usePageTitle('Contributions')
 
-  const heading = <PageHeading back={{ to: '/dashboard', label: 'Back to Dashboard' }} />
+  const heading = <PageHeading back={{ to: '/dashboard', label: 'Back to Home' }} />
 
   if (data.status !== 'ready') {
     return (
@@ -99,9 +78,9 @@ export default function Contributions({ view: startView = 'records' }) {
   const { campaign, overview, contributions } = data
   const verified = contributions.filter((c) => c.status === 'verified')
   const pending = contributions.filter((c) => c.status === 'pending')
-  const average = verified.length ? Math.round(verified.reduce((sum, c) => sum + c.amount, 0) / verified.length) : 0
   const { paid, total } = overview.contributors
   const canReview = isAdmin && REVIEWABLE.includes(campaign.status)
+  // Contributions don't store phone numbers, so admins get them from the residents list.
   const phones = new Map((people.residents ?? []).map((person) => [person.id, person.phone]))
 
   const showRecords = (status) => {
@@ -129,6 +108,7 @@ export default function Contributions({ view: startView = 'records' }) {
     toast.success('Contributions downloaded as a CSV file')
   }
 
+  // After a verify or reject: close the dialog, confirm it, and reload the figures.
   function reviewed(contribution, outcome) {
     setReviewing(null)
     toast.success(
@@ -143,14 +123,7 @@ export default function Contributions({ view: startView = 'records' }) {
   return (
     <AppShell heading={heading}>
       <div className={styles.page}>
-        <header className={styles.intro}>
-          <h1 className={styles.title}>Contributions</h1>
-          <p className={styles.subtitle}>
-            {isAdmin
-              ? 'Track and manage all contributions from your community members. See who has paid, who is pending, and the total amount collected.'
-              : 'Every verified contribution to this campaign, plus your own records and where they stand.'}
-          </p>
-        </header>
+        <CampaignHeader campaign={campaign} estate={estate} />
         <CampaignTabs campaignId={id} />
 
         {canReview && pending.length > 0 && (
@@ -158,113 +131,68 @@ export default function Contributions({ view: startView = 'records' }) {
             <Hourglass aria-hidden="true" />
             <p>
               <strong>
-                {pending.length} {pending.length === 1 ? 'contribution is' : 'contributions are'} waiting for you to verify.
+                {pending.length} {pending.length === 1 ? 'payment is' : 'payments are'} waiting for you to check.
               </strong>{' '}
               Check each one against the bank alert or receipt before it counts toward the fund.
             </p>
             <button type="button" className={styles.alertButton} onClick={() => showRecords('pending')}>
-              Review now <ArrowRight size={16} aria-hidden="true" />
+              Check now <ArrowRight size={16} aria-hidden="true" />
             </button>
           </div>
         )}
 
-        <div className={styles.layout}>
-          <div className={styles.main}>
-            <StatRow>
-              <StatTile
-                icon={CircleDollarSign}
-                label="Total Contributions"
-                value={formatNaira(campaign.totalCollected)}
-                note={`${Math.round(campaign.percentFunded)}% of the ${formatNaira(campaign.targetAmount)} target`}
-              />
-              <StatTile icon={Users} label="Total Contributors" value={`${paid} / ${total}`} note={`${total ? Math.round((paid / total) * 100) : 0}% have paid in full`} />
-              <StatTile
-                icon={BadgeCheck}
-                label="Average Contribution"
-                value={formatNaira(average)}
-                note={verified.length ? `Across ${verified.length} verified ${verified.length === 1 ? 'payment' : 'payments'}` : 'No verified payments yet'}
-              />
-              <StatTile
-                icon={Clock}
-                label="Pending Contributions"
-                value={campaign.pendingCount}
-                note={campaign.pendingCount ? `${formatNaira(campaign.pendingAmount)} waiting to be checked` : 'Nothing waiting'}
-                warn={campaign.pendingCount > 0}
-              />
-            </StatRow>
-
-            <div className={styles.charts}>
-              <TrendCard campaign={campaign} timeline={overview.timeline} />
-              <section className={shared.card} aria-labelledby="status-title">
-                <h2 id="status-title" className={`${shared.cardTitle} ${styles.cardTitle}`}>
-                  <PieChart aria-hidden="true" /> Contribution Status
-                </h2>
-                <PaymentDonut counts={overview.contributors} center={{ value: formatNaira(campaign.totalCollected), label: 'Total Collected' }} />
-                <p className={styles.chartNote}>Households by levy paid. Overdue means still owing after the deadline.</p>
-              </section>
-            </div>
-
-            <section ref={records} className={`${shared.card} ${styles.records}`} aria-label="Contribution records">
-              {isAdmin && (
-                <div className={styles.viewTabs} role="tablist">
-                  <button type="button" role="tab" aria-selected={view === 'records'} className={view === 'records' ? styles.activeView : ''} onClick={() => setView('records')}>
-                    <HandCoins aria-hidden="true" /> Contributions
-                  </button>
-                  <button type="button" role="tab" aria-selected={view === 'households'} className={view === 'households' ? styles.activeView : ''} onClick={() => setView('households')}>
-                    <Building2 aria-hidden="true" /> Households
-                  </button>
-                </div>
-              )}
-              {view === 'records' ? (
-                <Records
-                  contributions={contributions}
-                  phones={phones}
-                  isAdmin={isAdmin}
-                  canReview={canReview}
-                  filter={filter}
-                  onFilter={setFilter}
-                  onOpen={setReviewing}
-                  onExport={exportCsv}
-                  canContribute={acceptsContributions(campaign)}
-                  campaignId={id}
-                />
-              ) : (
-                <Households people={people} />
-              )}
-            </section>
-          </div>
-
-          <aside className={styles.side}>
-            <CampaignCard campaign={campaign} estate={estate} />
-            <section className={shared.card} aria-labelledby="quick-title">
-              <h2 id="quick-title" className={`${shared.cardTitle} ${styles.cardTitle}`}>
-                Quick Actions
-              </h2>
-              <div className={styles.actions}>
-                {acceptsContributions(campaign) && (
-                  <Action
-                    icon={UserPlus}
-                    title={isAdmin ? 'Add Contribution' : 'Make a Contribution'}
-                    text={isAdmin ? 'Record money you collected' : 'Pay toward this repair'}
-                    to={`/campaigns/${id}/contribute`}
-                  />
-                )}
-                {canReview && pending.length > 0 && (
-                  <Action icon={ListChecks} title={`Review Pending (${pending.length})`} text="Verify or reject each one" onClick={() => showRecords('pending')} />
-                )}
-                <Action icon={Eye} title="View Contribution List" text="See all contributions and status" onClick={() => showRecords('all')} />
-                <Action icon={FileSpreadsheet} title="Export Report" text="Download contribution records (CSV)" onClick={exportCsv} />
-              </div>
-            </section>
-            <div className={shared.encourage}>
-              <strong>
-                <ShieldCheck size={24} aria-hidden="true" /> Transparent. Accountable. Together.
-              </strong>
-              <p>Every contribution is tracked, verified and reconciled for your community.</p>
-              <Pylons className={shared.pylons} />
-            </div>
-          </aside>
+        <div className={shared.toolbar}>
+          {acceptsContributions(campaign) && (isAdmin || campaign.myPayment?.balance !== 0) && (
+            <Link to={`/campaigns/${id}/contribute`} className={shared.primary}>
+              {isAdmin ? 'Record a payment' : 'Pay my levy'} <ArrowRight size={20} aria-hidden="true" />
+            </Link>
+          )}
+          <button type="button" className={shared.secondary} onClick={exportCsv}>
+            <Download size={18} aria-hidden="true" /> Download the list
+          </button>
         </div>
+
+        <StatRow>
+          <StatTile icon={Users} label="Households paid in full" value={`${paid} of ${total}`} />
+          <StatTile icon={BadgeCheck} label="Payments checked" value={verified.length} />
+          <StatTile
+            icon={Clock}
+            label="Waiting to be checked"
+            value={campaign.pendingCount}
+            note={campaign.pendingCount ? `${formatNaira(campaign.pendingAmount)} in total` : undefined}
+            warn={campaign.pendingCount > 0}
+          />
+        </StatRow>
+
+        <section ref={records} className={`${shared.card} ${styles.records}`} aria-label="Contribution records">
+          {isAdmin && (
+            <div className={styles.viewTabs} role="tablist">
+              <button type="button" role="tab" aria-selected={view === 'records'} className={view === 'records' ? styles.activeView : ''} onClick={() => setView('records')}>
+                <HandCoins aria-hidden="true" /> Payments
+              </button>
+              <button type="button" role="tab" aria-selected={view === 'households'} className={view === 'households' ? styles.activeView : ''} onClick={() => setView('households')}>
+                <Building2 aria-hidden="true" /> Households
+              </button>
+            </div>
+          )}
+          {view === 'records' ? (
+            <Records
+              contributions={contributions}
+              phones={phones}
+              isAdmin={isAdmin}
+              canReview={canReview}
+              filter={filter}
+              onFilter={setFilter}
+              onOpen={setReviewing}
+              canContribute={acceptsContributions(campaign)}
+              campaignId={id}
+            />
+          ) : (
+            <Households people={people} />
+          )}
+        </section>
+
+        <TrendCard campaign={campaign} timeline={overview.timeline} />
       </div>
 
       {reviewing && (
@@ -324,7 +252,7 @@ function TrendCard({ campaign, timeline }) {
     <section className={shared.card} aria-labelledby="trend-title">
       <div className={styles.trendHead}>
         <h2 id="trend-title" className={`${shared.cardTitle} ${styles.cardTitle}`}>
-          <TrendingUp aria-hidden="true" /> Contribution Trends
+          <TrendingUp aria-hidden="true" /> Money collected over time
         </h2>
         <select value={range} onChange={(event) => setRange(event.target.value)} aria-label="Time range" className={styles.range}>
           {RANGES.map(([value, label]) => (
@@ -349,7 +277,9 @@ function TrendCard({ campaign, timeline }) {
   )
 }
 
-function Records({ contributions, phones, isAdmin, canReview, filter, onFilter, onOpen, onExport, canContribute, campaignId }) {
+// The Contributions tab: search (name, unit, reference, phone, amount), a status filter,
+// and the table. Admins get Review on pending rows; everyone else gets a view button.
+function Records({ contributions, phones, isAdmin, canReview, filter, onFilter, onOpen, canContribute, campaignId }) {
   const [query, setQuery] = useState('')
   const text = query.trim().toLowerCase()
   const shown = contributions.filter(
@@ -363,8 +293,8 @@ function Records({ contributions, phones, isAdmin, canReview, filter, onFilter, 
     <div>
       <div className={styles.recordHead}>
         <div>
-          <h3>Recent Contributions</h3>
-          <p>{isAdmin ? 'Latest contributions from your community members.' : 'Verified contributions, and your own records.'}</p>
+          <h3>All payments</h3>
+          <p>{isAdmin ? 'Newest first. Press Check on a payment to approve it.' : 'Checked payments, and your own.'}</p>
         </div>
         <div className={styles.filters}>
           <label className={styles.search}>
@@ -378,14 +308,11 @@ function Records({ contributions, phones, isAdmin, canReview, filter, onFilter, 
             />
           </label>
           <select value={filter} onChange={(event) => onFilter(event.target.value)} aria-label="Status">
-            <option value="all">All Statuses</option>
+            <option value="all">All payments</option>
             <option value="verified">Paid</option>
-            <option value="pending">Pending</option>
+            <option value="pending">Waiting to be checked</option>
             <option value="rejected">Rejected</option>
           </select>
-          <button type="button" className={styles.export} onClick={onExport}>
-            <Download size={16} aria-hidden="true" /> Export
-          </button>
         </div>
       </div>
 
@@ -402,12 +329,11 @@ function Records({ contributions, phones, isAdmin, canReview, filter, onFilter, 
       ) : (
         <>
           <div className={styles.tableScroll}>
-            <table className={styles.table}>
+            <table className={`${styles.table} ${styles.payments}`}>
               <thead>
                 <tr>
                   <th scope="col">Date</th>
-                  <th scope="col">Contributor</th>
-                  <th scope="col">Unit</th>
+                  <th scope="col">Name</th>
                   <th scope="col">Amount</th>
                   <th scope="col">Reference</th>
                   <th scope="col">Proof</th>
@@ -424,10 +350,7 @@ function Records({ contributions, phones, isAdmin, canReview, filter, onFilter, 
                   const phone = phones.get(c.userId)
                   return (
                     <tr key={c.id}>
-                      <td>
-                        {formatDate(when)}
-                        {c.createdAt && <small>{timeOf(c.createdAt)}</small>}
-                      </td>
+                      <td>{formatDate(when)}</td>
                       <td>
                         <span className={styles.person}>
                           <span className={styles.avatar} aria-hidden="true">
@@ -435,11 +358,10 @@ function Records({ contributions, phones, isAdmin, canReview, filter, onFilter, 
                           </span>
                           <span>
                             {c.userName}
-                            {phone && <small>{phone.replace(/^\+234/, '0')}</small>}
+                            <small>{[c.unitNumber && `Unit ${c.unitNumber}`, phone?.replace(/^\+234/, '0')].filter(Boolean).join(' · ')}</small>
                           </span>
                         </span>
                       </td>
-                      <td>{c.unitNumber ?? 'Not set'}</td>
                       <td className={styles.amount}>{formatNaira(c.amount)}</td>
                       <td className={styles.reference}>{c.reference || methodLabel(c.method)}</td>
                       <td>
@@ -457,11 +379,11 @@ function Records({ contributions, phones, isAdmin, canReview, filter, onFilter, 
                       <td className={styles.rowAction}>
                         {canReview && c.status === 'pending' ? (
                           <button type="button" className={styles.review} onClick={() => onOpen(c)}>
-                            Review
+                            Check
                           </button>
                         ) : (
                           <button type="button" className={styles.view} onClick={() => onOpen(c)} aria-label={`View ${c.userName}'s contribution`}>
-                            <Eye size={17} aria-hidden="true" />
+                            <Eye size={17} aria-hidden="true" /> View
                           </button>
                         )}
                       </td>
@@ -479,8 +401,7 @@ function Records({ contributions, phones, isAdmin, canReview, filter, onFilter, 
   )
 }
 
-const timeOf = (iso) => new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'Africa/Lagos' })
-
+// The Households tab (admins): what each household owes, has paid and still owes.
 function Households({ people }) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('all')
@@ -565,73 +486,6 @@ function Households({ people }) {
       </div>
       <Pagination paged={paged} noun="households" />
     </div>
-  )
-}
-
-function CampaignCard({ campaign, estate }) {
-  const percent = Math.min(Math.round(campaign.percentFunded), 100)
-  return (
-    <section className={`${shared.card} ${styles.campaign}`} aria-labelledby="campaign-card-title">
-      <div className={styles.campaignTop}>
-        <div className={styles.campaignPhoto}>
-          {campaign.imageUrl ? <img src={sizedPhoto(campaign.imageUrl, 300)} alt="" /> : <Photo name="transformer" sizes="96px" />}
-        </div>
-        <div>
-          <div className={styles.campaignTitleRow}>
-            <h2 id="campaign-card-title">{campaign.title}</h2>
-            <StatusBadge status={campaign.status} />
-          </div>
-          <p className={styles.estate}>
-            <Users size={15} aria-hidden="true" /> {estate.name}
-          </p>
-        </div>
-      </div>
-      {campaign.description && <p className={styles.description}>{campaign.description}</p>}
-      <div className={styles.funding}>
-        <span>Funding Progress</span>
-        <strong>{Math.round(campaign.percentFunded)}%</strong>
-      </div>
-      <div className={styles.bar} role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100} aria-label="Funding progress">
-        <span style={{ width: `${percent}%` }} />
-      </div>
-      <dl className={styles.money}>
-        <div>
-          <dt>Collected</dt>
-          <dd>{formatNaira(campaign.totalCollected)}</dd>
-        </div>
-        <div>
-          <dt>Target</dt>
-          <dd>{formatNaira(campaign.targetAmount)}</dd>
-        </div>
-      </dl>
-      <Link to={`/campaigns/${campaign.id}`} className={styles.details}>
-        View Campaign Details <ArrowRight size={16} aria-hidden="true" />
-      </Link>
-    </section>
-  )
-}
-
-function Action({ icon: Icon, title, text, to, onClick }) {
-  const content = (
-    <>
-      <span className={styles.actionIcon} aria-hidden="true">
-        <Icon />
-      </span>
-      <span>
-        <strong>{title}</strong>
-        {text}
-      </span>
-      <ArrowRight aria-hidden="true" className={styles.actionArrow} />
-    </>
-  )
-  return to ? (
-    <Link to={to} className={styles.action}>
-      {content}
-    </Link>
-  ) : (
-    <button type="button" className={styles.action} onClick={onClick}>
-      {content}
-    </button>
   )
 }
 

@@ -42,8 +42,11 @@
   list-style: none;
 }
 
+/* Settings and Log Out sit at the bottom, away from the everyday links. */
 .secondary {
-  margin-top: 76px;
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
 }
 
 .link {
@@ -51,13 +54,13 @@
   align-items: center;
   gap: 16px;
   width: 100%;
-  height: 50px;
+  height: 54px;
   padding: 0 16px;
   white-space: nowrap;
   border: 0;
   border-radius: 9px;
   background: none;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 500;
   color: var(--nav-text);
   text-decoration: none;
@@ -77,63 +80,16 @@
 }
 
 .icon {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   flex: none;
   stroke-width: 1.8;
 }
 
-.promo {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  flex: none;
-  min-height: 316px;
-  margin: auto 0 0;
-  padding: 36px 28px;
-  overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: 12px;
-  background: #082c39;
-  isolation: isolate;
-}
-
 .nav {
-  margin-bottom: 40px;
-}
-
-/* The photo sits at the bottom of the card, fading into its teal top where the text is. */
-.promoPhoto {
-  position: absolute;
-  inset: 0;
-  z-index: -2; /* under the teal ::before overlay */
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 62% 100%;
-  filter: grayscale(1) brightness(0.9) contrast(1.1);
-}
-
-.promo::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(180deg, #0a3140 0%, rgb(10 49 64 / 0.94) 40%, rgb(14 70 78 / 0.6) 72%, rgb(8 52 54 / 0.55));
-}
-
-.promoTitle {
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.3;
-  color: #fff;
-}
-
-.promoText {
-  margin-top: 12px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: rgb(255 255 255 / 0.78);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
 .backdrop {
@@ -149,20 +105,12 @@
   .link {
     gap: 14px;
     padding: 0 14px;
-    font-size: 15px;
+    font-size: 16px;
     white-space: nowrap;
   }
 
-  .promo {
-    padding: 28px 20px;
-  }
 }
 
-@media (max-height: 820px) {
-  .promo {
-    display: none;
-  }
-}
 
 @media (max-width: 900px) {
   .sidebar {

@@ -8,7 +8,6 @@ import {
   Hash,
   Mail,
   Phone,
-  HandCoins,
   House,
   ImagePlus,
   LoaderCircle,
@@ -22,7 +21,6 @@ import {
   UserPlus,
   UserRound,
   Users,
-  Wrench,
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../auth/AuthContext.js'
@@ -64,19 +62,18 @@ const PAYMENT_LABELS = {
   unpaid: ['Not Paid', 'unpaid'],
 }
 
-// Estate Settings for community leads, from Estate-Settings-Design.png.
+// Estate Settings for community leads, in three tabs so only one part shows at a time:
+// the estate itself, its residents, and your own profile.
 export default function EstateSettings() {
   const { profile, estate: authEstate, refresh } = useAuth()
   const [state, setState] = useState({ status: 'loading' })
   const [save, setSave] = useState('saved') // saved | saving | failed
   const [dialog, setDialog] = useState(null)
-  const [section, setSection] = useState('details')
+  const [section, setSection] = useState('estate')
   const toast = useToast()
-  const detailsRef = useRef(null)
-  const residentsRef = useRef(null)
-  const adminRef = useRef(null)
-  const profileRef = useRef(null)
 
+  // Loads the estate and its campaigns first, then the residents list with each person's
+  // payment status for the featured campaign (the one the Overview shows).
   const load = useCallback(() => {
     let current = true
     Promise.all([api(`/estates/${authEstate.id}`), api('/campaigns')])
@@ -110,7 +107,7 @@ export default function EstateSettings() {
 
   const heading = (
     <div className={styles.heading}>
-      <PageHeading back={{ to: '/dashboard', label: 'Back to Dashboard' }} title="Estate Settings" subtitle="Manage your estate details, residents and community access." />
+      <PageHeading back={{ to: '/dashboard', label: 'Back to Home' }} title="Estate Settings" subtitle="Manage your estate details, residents and community access." />
       <SaveStatus state={save} />
     </div>
   )
@@ -123,69 +120,58 @@ export default function EstateSettings() {
     )
   }
 
-  const { estate, stats, residents, joinRequests, invites, paymentSummary, featured } = state
+  const { estate, residents, joinRequests, invites, featured } = state
   const ownerId = estate.ownerId ?? estate.createdBy
   const isOwner = ownerId === profile.id
-  const goTo = (key) => {
-    setSection(key)
-    const target = { details: detailsRef, residents: residentsRef, admin: adminRef, profile: profileRef }[key]
-    target.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
+  const tabs = [
+    ['estate', 'Estate'],
+    ['residents', joinRequests.length ? `Residents (${joinRequests.length} waiting)` : 'Residents'],
+    ['profile', 'My profile'],
+  ]
 
   return (
     <AppShell heading={heading}>
       <div className={styles.page}>
-        <nav className={styles.tabs} aria-label="Settings sections">
-          {[
-            ['details', 'Estate Details'],
-            ['residents', 'Residents'],
-            ['admin', 'Administration'],
-            ['profile', 'My Profile'],
-          ].map(([key, label]) => (
-            <button key={key} type="button" className={section === key ? styles.activeTab : ''} onClick={() => goTo(key)}>
+        <div className={styles.tabs} role="tablist" aria-label="Settings sections">
+          {tabs.map(([key, label]) => (
+            <button key={key} type="button" role="tab" aria-selected={section === key} className={section === key ? styles.activeTab : ''} onClick={() => setSection(key)}>
               {label}
             </button>
           ))}
-        </nav>
-
-        <div className={styles.layout}>
-          <div className={styles.main}>
-            <div ref={detailsRef} className={styles.anchor}>
-              <EstateInfo estate={estate} onEdit={() => setDialog({ type: 'estate' })} onSave={saveEstate} />
-            </div>
-
-            <div className={styles.tiles}>
-              <Tile icon={House} value={estate.totalHouseholds ?? 'Not set'} label="Households" />
-              <Tile icon={Users} value={paymentSummary ? paymentSummary.paid + paymentSummary.partial : stats.residentCount} label={paymentSummary ? 'Active Contributors' : 'Members'} />
-              <Tile icon={HandCoins} value={stats.campaignCount} label="Campaigns" />
-              <Tile icon={Wrench} value={stats.campaignsByStatus.repairing} label="Active Repairs" />
-            </div>
-
-            {joinRequests.length > 0 && <JoinRequests requests={joinRequests} estateId={estate.id} onChanged={load} />}
-
-            <div ref={residentsRef} className={styles.anchor}>
-              <Residents
-                estate={estate}
-                residents={residents}
-                invites={invites}
-                featured={featured}
-                ownerId={ownerId}
-                myId={profile.id}
-                onChanged={load}
-                onAdd={() => setDialog({ type: 'add' })}
-              />
-            </div>
-          </div>
-
-          <aside ref={adminRef} className={`${styles.side} ${styles.anchor}`}>
-            <div ref={profileRef} className={styles.anchor}>
-              <MyProfile profile={profile} isOwner={isOwner} onEdit={() => setDialog({ type: 'profile' })} />
-            </div>
-            <Administrators residents={residents} ownerId={ownerId} onManage={() => goTo('residents')} />
-            <CommunityAccess estate={estate} onSave={saveEstate} />
-            {isOwner && <DangerZone onTransfer={() => setDialog({ type: 'transfer' })} />}
-          </aside>
         </div>
+
+        {section === 'estate' && (
+          <>
+            <EstateInfo estate={estate} onEdit={() => setDialog({ type: 'estate' })} onSave={saveEstate} />
+            <div className={styles.pair}>
+              <Administrators residents={residents} ownerId={ownerId} onManage={() => setSection('residents')} />
+              <CommunityAccess estate={estate} onSave={saveEstate} />
+            </div>
+            {isOwner && <DangerZone onTransfer={() => setDialog({ type: 'transfer' })} />}
+          </>
+        )}
+
+        {section === 'residents' && (
+          <>
+            {joinRequests.length > 0 && <JoinRequests requests={joinRequests} estateId={estate.id} onChanged={load} />}
+            <Residents
+              estate={estate}
+              residents={residents}
+              invites={invites}
+              featured={featured}
+              ownerId={ownerId}
+              myId={profile.id}
+              onChanged={load}
+              onAdd={() => setDialog({ type: 'add' })}
+            />
+          </>
+        )}
+
+        {section === 'profile' && (
+          <div className={styles.narrow}>
+            <MyProfile profile={profile} isOwner={isOwner} onEdit={() => setDialog({ type: 'profile' })} />
+          </div>
+        )}
       </div>
 
       {dialog?.type === 'profile' && (
@@ -227,6 +213,7 @@ export default function EstateSettings() {
   )
 }
 
+// "All changes saved" / "Saving…" / "Couldn't save" beside the page title.
 function SaveStatus({ state }) {
   const [Icon, text] = {
     saved: [CircleCheck, 'All changes saved'],
@@ -237,20 +224,6 @@ function SaveStatus({ state }) {
     <p className={`${styles.saveStatus} ${styles[state]}`} role="status">
       <Icon size={18} aria-hidden="true" /> {text}
     </p>
-  )
-}
-
-function Tile({ icon: Icon, value, label }) {
-  return (
-    <div className={styles.tile}>
-      <span className={styles.tileIcon} aria-hidden="true">
-        <Icon />
-      </span>
-      <span>
-        <strong>{value}</strong>
-        {label}
-      </span>
-    </div>
   )
 }
 
@@ -424,6 +397,7 @@ function Residents({ estate, residents, invites, featured, ownerId, myId, onChan
   const [problem, setProblem] = useState('')
   const [editing, setEditing] = useState(null)
   const toast = useToast()
+  // Past the deadline, anyone still owing shows as Overdue instead of their payment status.
   const overdue = featured?.deadline && featured.deadline < dayFromToday(0)
 
   const shown = residents.filter((person) => {
@@ -642,6 +616,8 @@ function changeMessage(person, change, estate) {
   return 'Changes saved'
 }
 
+// The ⋮ menu on each resident row. `locked` hides the role and suspend options for the
+// estate owner and for yourself, which the API refuses anyway.
 function ResidentMenu({ person, locked, onEdit, onAct }) {
   const [open, setOpen] = useState(false)
   const run = (action) => () => {
@@ -715,6 +691,7 @@ function MyProfile({ profile, isOwner, onEdit }) {
   )
 }
 
+// Everyone with the admin role, the estate owner first.
 function Administrators({ residents, ownerId, onManage }) {
   const admins = residents.filter((person) => person.role === 'admin').sort((a, b) => (b.id === ownerId) - (a.id === ownerId))
   return (
@@ -743,6 +720,7 @@ function Administrators({ residents, ownerId, onManage }) {
   )
 }
 
+// The two switches that control how new residents get in. Each saves straight away.
 function CommunityAccess({ estate, onSave }) {
   const [problem, setProblem] = useState('')
   const toggle = (field) => (value) => {
@@ -781,6 +759,7 @@ function CommunityAccess({ estate, onSave }) {
   )
 }
 
+// Only the estate owner sees this.
 function DangerZone({ onTransfer }) {
   return (
     <section className={styles.danger} aria-labelledby="danger-title">
@@ -862,6 +841,8 @@ function EditEstate({ estate, onClose, onSave }) {
   )
 }
 
+// Adds someone by email. If they already have a CIRF account they join now; if not,
+// the email is invited and they join automatically when they sign up.
 function AddResident({ estateId, onClose, onAdded }) {
   const [email, setEmail] = useState('')
   const [unitNumber, setUnitNumber] = useState('')
@@ -926,6 +907,7 @@ function AddResident({ estateId, onClose, onAdded }) {
   )
 }
 
+// Changes a resident's unit and number of units, which sets their share of a per-unit levy.
 function EditResident({ estateId, person, onClose, onSaved }) {
   const [unitNumber, setUnitNumber] = useState(person.unitNumber ?? '')
   const [units, setUnits] = useState(String(person.units ?? 1))
@@ -969,6 +951,8 @@ function EditResident({ estateId, person, onClose, onSaved }) {
   )
 }
 
+// Hands the estate to another member. Typing the estate name is a safety check so it
+// can't happen by accident.
 function TransferOwnership({ estate, residents, onClose, onDone }) {
   const [userId, setUserId] = useState('')
   const [confirmName, setConfirmName] = useState('')

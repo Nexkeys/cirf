@@ -2,6 +2,8 @@ import { Navigate, useLocation } from 'react-router'
 import { FullPageLoader } from '../components/Loading.jsx'
 import { useAuth } from './AuthContext.js'
 
+// Route guards act like security checks around pages.
+// They decide whether a user should be allowed to see a screen or redirected elsewhere.
 // Sign In, Create Account and password reset are for people who aren't in yet.
 // Someone signed in with Firebase who hasn't finished Create Account (for example after
 // their first Google sign-in) is sent there, keeping ?role= so the right tab stays picked.

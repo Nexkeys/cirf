@@ -14,7 +14,7 @@
 }
 
 .axis {
-  font-size: 13px;
+  font-size: 15px;
   fill: var(--text);
 }
 
@@ -35,7 +35,7 @@
 }
 
 .bubbleText {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   fill: #fff;
 }
